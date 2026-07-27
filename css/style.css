@@ -1106,46 +1106,110 @@
       }
     }
 
+    /* Fallback for browsers that don't support dvh */
+    @supports not (height: 100dvh) {
+      :root {
+        --mobile-vh: 100vh;
+      }
+    }
+    @supports (height: 100dvh) {
+      :root {
+        --mobile-vh: 100dvh;
+      }
+    }
+
     @media (max-width: 768px) {
+      .app {
+        height: var(--mobile-vh, 100vh);
+      }
+
       .mobile-tab-bar {
         display: flex;
       }
 
+      /* --- 共通: editor-grid をフレックスカラムに --- */
+      .editor-grid {
+        display: flex;
+        flex-direction: column;
+        grid-template-columns: unset;
+        flex: 1;
+        min-height: 0;
+      }
+
+      /* --- 編集モード --- */
       .editor-grid.mode-edit .preview-container-wrapper {
         display: none !important;
       }
 
-      .editor-grid.mode-preview .editor-panel {
-        display: none !important;
-      }
-
       .editor-grid.mode-edit .editor-panel {
-        height: calc(100vh - 130px);
-        min-height: 450px;
+        flex: 1;
+        min-height: 0;
+        height: auto;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
       }
 
       .editor-grid.mode-edit .editor-text-card {
         flex: 1;
         min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .editor-grid.mode-edit .editor-settings-card {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
       }
 
       .editor-grid.mode-edit .text-input {
-        height: 100%;
-        min-height: 150px;
+        flex: 1;
+        min-height: 100px;
+        height: auto;
+      }
+
+      .editor-grid.mode-edit .controls-main {
+        flex-shrink: 0;
+        padding-bottom: 4px;
+      }
+
+      /* --- プレビューモード --- */
+      .editor-grid.mode-preview .editor-panel {
+        display: none !important;
+      }
+
+      .editor-grid.mode-preview .preview-container-wrapper {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
       }
 
       .editor-grid.mode-preview .preview-viewport {
-        height: calc(100vh - 130px);
+        flex: 1;
+        min-height: 0;
         max-height: none;
-        min-height: 450px;
       }
 
+      /* --- 両方モード --- */
       .editor-grid.mode-both .editor-panel {
-        min-height: 400px;
+        flex: none;
+        height: 45%;
+        min-height: 200px;
+        overflow: hidden;
+      }
+
+      .editor-grid.mode-both .preview-container-wrapper {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
       }
 
       .editor-grid.mode-both .preview-viewport {
-        min-height: 420px;
+        flex: 1;
+        min-height: 0;
         max-height: none;
       }
     }
