@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="sepia" data-writing-mode="vertical">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>言ノ葉Editer Version 1.0</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link id="dynamic-font-link" rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Shippori+Mincho:wght@400;700&family=Noto+Serif+JP:wght@400;700&family=Sawarabi+Mincho&display=swap">
+    <style id="page-size-style">
+  @page {
+    size: 210mm 297mm;
+    margin: 0;
+  }
+</style>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+  <main class="app">
+    <header class="hero no-print">
+      <div class="hero-title-group">
+        <h1>言ノ葉Editer</h1>
+        <span class="version-badge">Version 1.0</span>
+      </div>
+      <div class="hero-actions">
+        <select id="themeSelect" class="select-input" style="width: auto; height: 38px;">
+          <option value="standard">☀️ ライト</option>
+          <option value="dark">🌙 ダーク</option>
+          <option value="sepia" selected>☕ セピア</option>
+        </select>
+        <button id="printButton" class="primary-button" type="button">🖨️ 印刷 / PDF保存</button>
+      </div>
+    </header>
+
+    <div class="mobile-tab-bar no-print">
+      <button id="mobileTabEdit" class="mobile-tab-btn active" type="button">✍️ 編集</button>
+      <button id="mobileTabPreview" class="mobile-tab-btn" type="button">👁️ プレビュー</button>
+      <button id="mobileTabBoth" class="mobile-tab-btn" type="button">📱 両方</button>
+    </div>
+
+    <div class="editor-grid mode-edit">
+      <section class="panel editor-panel no-print">
+        <input type="radio" id="left-tab-text" name="left-panel-tab" class="tab-radio" checked>
+        <input type="radio" id="left-tab-settings" name="left-panel-tab" class="tab-radio">
+
+        <div class="panel-tabs-bar">
+          <label for="left-tab-text" class="panel-tab-btn">✍️ 本文入力</label>
+          <label for="left-tab-settings" class="panel-tab-btn">⚙️ 組版・表示設定</label>
+        </div>
+
+        <!-- タブ1: テキスト入力 -->
+        <div class="editor-text-card">
+          <div class="field-label">
+            <label for="sourceText">✍️ 本文テキスト</label>
+            <small id="charCount">0文字</small>
+          </div>
+          <textarea id="sourceText" class="text-input" placeholder="ここに本文を入力してください。"></textarea>
+          <div class="controls-main">
+            <button id="insertBreakButton" class="secondary-button" type="button">✂ 手動改ページ</button>
+            <button id="exportButton" class="secondary-button" type="button">💾 ファイル保存</button>
+            <button id="importButton" class="secondary-button" type="button">📂 ファイルを開く</button>
+            <input type="file" id="fileInput" accept=".txt,.md" style="display: none;">
+            <button id="sampleButton" class="secondary-button" type="button">サンプル表示</button>
+            <button id="clearButton" class="secondary-button" type="button">消去</button>
+          </div>
+        </div>
+
+        <!-- タブ2: 設定メニュー -->
+        <div class="editor-settings-card">
+          <!-- グループ1: 基本情報 -->
+          <details class="setting-group" open>
+            <summary>📄 基本情報（タイトル・ヘッダー）</summary>
+            <div class="setting-content">
+              <div class="form-row two-cols">
+                <div class="form-col">
+                  <div class="field-label"><label for="pageTitle">表題（ファイル名）</label></div>
+                  <input id="pageTitle" class="title-input" type="text" placeholder="例：舞姫、怪異譚">
+                </div>
+                <div class="form-col">
+                  <div class="field-label"><label for="pageHeader">📌 ヘッダー（柱）文字</label></div>
+                  <input id="pageHeader" class="title-input" type="text" placeholder="例：第一章 ～目覚め～">
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <!-- グループ2: 組構・綴じ方向・用紙設定 -->
+          <details class="setting-group" open>
+            <summary>📐 組版・書字・用紙設定</summary>
+            <div class="setting-content">
+              <div class="form-row">
+                <div class="form-col">
+                  <div class="field-label"><label for="writingModeSelect">✍️ 書字方向</label></div>
+                  <select id="writingModeSelect" class="select-input">
+                    <option value="vertical" selected>縦書き</option>
+                    <option value="horizontal">横書き</option>
+                  </select>
+                </div>
+                <div class="form-col">
+                  <div class="field-label"><label for="bindingSelect">📖 綴じ方向（のど）</label></div>
+                  <select id="bindingSelect" class="select-input">
+                    <option value="right" selected>右綴じ（縦書き標準）</option>
+                    <option value="left">左綴じ（横書き標準）</option>
+                  </select>
+                </div>
+                <div class="form-col">
+                  <div class="field-label"><label for="pageSizeSelect">📏 用紙サイズ</label></div>
+                  <select id="pageSizeSelect" class="select-input">
+                    <option value="A4">A4 (210×297mm)</option>
+                    <option value="B5">B5 (182×257mm)</option>
+                    <option value="A5" selected>A5 (148×210mm)</option>
+                    <option value="B6">B6 (128×182mm)</option>
+                    <option value="A6">A6 (105×148mm)</option>
+                    <option value="Hagaki">ハガキ (100×148mm)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-col">
+                  <div class="field-label"><label for="columnSelect">📖 段組</label></div>
+                  <select id="columnSelect" class="select-input">
+                    <option value="1" selected>1段組（標準）</option>
+                    <option value="2">2段組</option>
+                  </select>
+                </div>
+                <div class="form-col" id="columnRuleCol">
+                  <div class="field-label"><label for="columnRuleSelect">✂️ 境界線</label></div>
+                  <select id="columnRuleSelect" class="select-input">
+                    <option value="on" selected>実線</option>
+                    <option value="off">なし</option>
+                  </select>
+                </div>
+                <div class="form-col">
+                  <div class="field-label"><label for="gutterSelect">📖 のど（綴じ代）</label></div>
+                  <select id="gutterSelect" class="select-input">
+                    <option value="off" selected>なし（左右均等）</option>
+                    <option value="on">あり（左右交互余白）</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-col">
+                  <div class="field-label"><label for="fontSizeSelect">🔤 文字サイズ</label></div>
+                  <select id="fontSizeSelect" class="select-input">
+                    <option value="8.5pt">小 (8.5pt)</option>
+                    <option value="9.5pt" selected>標準 (9.5pt)</option>
+                    <option value="10.5pt">中 (10.5pt)</option>
+                    <option value="12pt">大 (12pt)</option>
+                  </select>
+                </div>
+                <div class="form-col">
+                  <div class="field-label"><label for="marginSelect">📐 余白</label></div>
+                  <select id="marginSelect" class="select-input">
+                    <option value="narrow">狭い (12mm / 10mm)</option>
+                    <option value="normal" selected>標準 (18mm / 14mm)</option>
+                    <option value="wide">広い (24mm / 18mm)</option>
+                  </select>
+                </div>
+                <div class="form-col"></div>
+              </div>
+              <div class="form-row">
+                <div class="form-col" style="grid-column: span 3;">
+                  <div class="field-label"><label for="fontSelect">✒️ 書体（フォント）</label></div>
+                  <select id="fontSelect" class="select-input">
+                    <option value="system">システム標準明朝（游明朝/ヒラギノ）</option>
+                    <option value="shippori" selected>Shippori Mincho（しっぽり明朝）</option>
+                    <option value="noto">Noto Serif JP（標準Noto明朝）</option>
+                    <option value="sawarabi">Sawarabi Mincho（さわらび明朝）</option>
+                    <option value="custom">カスタムWebフォントURL指定...</option>
+                  </select>
+                </div>
+              </div>
+              <div id="customFontRow" class="form-row" style="display: none;">
+                <div class="form-col" style="grid-column: span 2;">
+                  <div class="field-label"><label for="customFontUrl">🔗 カスタムCSS/Font URL</label></div>
+                  <input id="customFontUrl" class="title-input" type="text"
+                    placeholder="https://fonts.googleapis.com/css2?family=...">
+                </div>
+                <div class="form-col">
+                  <div class="field-label"><label for="customFontFamily">font-family名</label></div>
+                  <input id="customFontFamily" class="title-input" type="text" placeholder="例：'MyFont', serif">
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <!-- グループ3: ヘッダー・ノンブル詳細設定 -->
+          <details class="setting-group">
+            <summary>📌 ヘッダー・フッター（ノンブル）設定</summary>
+            <div class="setting-content">
+              <div class="form-row">
+                <div class="form-col">
+                  <div class="field-label"><label for="headerDisplaySelect">📄 ヘッダー表示</label></div>
+                  <select id="headerDisplaySelect" class="select-input">
+                    <option value="all" selected>全ページ</option>
+                    <option value="odd">奇数ページのみ</option>
+                    <option value="even">偶数ページのみ</option>
+                    <option value="alternate">奇数・偶数で左右交互（小口側）</option>
+                  </select>
+                </div>
+                <div class="form-col">
+                  <div class="field-label"><label for="headerPosSelect">📍 ヘッダー位置</label></div>
+                  <select id="headerPosSelect" class="select-input">
+                    <option value="right" selected>右上（標準）</option>
+                    <option value="center">中央上</option>
+                    <option value="left">左上</option>
+                  </select>
+                </div>
+                <div class="form-col">
+                  <div class="field-label"><label for="headerSizeSelect">📏 文字サイズ</label></div>
+                  <select id="headerSizeSelect" class="select-input">
+                    <option value="0.55rem">極小 (0.55rem)</option>
+                    <option value="0.65rem" selected>標準 (0.65rem)</option>
+                    <option value="0.75rem">大 (0.75rem)</option>
+                    <option value="0.85rem">特大 (0.85rem)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-col">
+                  <div class="field-label"><label for="nombreDisplaySelect">🔢 ノンブル表示</label></div>
+                  <select id="nombreDisplaySelect" class="select-input">
+                    <option value="all" selected>全ページ表示</option>
+                    <option value="skip-first">1ページ目を隠す</option>
+                    <option value="off">表示しない</option>
+                  </select>
+                </div>
+                <div class="form-col">
+                  <div class="field-label"><label for="nombrePosSelect">📍 ノンブル位置</label></div>
+                  <select id="nombrePosSelect" class="select-input">
+                    <option value="center" selected>中央下（標準）</option>
+                    <option value="right">右下</option>
+                    <option value="left">左下</option>
+                    <option value="alternate">左右交互（小口側）</option>
+                  </select>
+                </div>
+                <div class="form-col">
+                  <div class="field-label"><label for="startPageInput">🔢 開始ページ</label></div>
+                  <input id="startPageInput" class="title-input" type="number" value="1" min="1">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-col">
+                  <div class="field-label"><label for="nombreFormatSelect">🎨 ノンブル装飾</label></div>
+                  <select id="nombreFormatSelect" class="select-input">
+                    <option value="plain" selected>N （数字のみ）</option>
+                    <option value="hyphen">- N - （ハイフン）</option>
+                    <option value="bracket">（ N ）（丸括弧）</option>
+                    <option value="square">[ N ] （角括弧）</option>
+                    <option value="slash">/ N / （スラッシュ）</option>
+                    <option value="page">P.N （ページ記号）</option>
+                  </select>
+                </div>
+                <div class="form-col">
+                  <div class="field-label"><label for="nombreTypeSelect">🔢 数字タイプ</label></div>
+                  <select id="nombreTypeSelect" class="select-input">
+                    <option value="arabic" selected>算用数字 (1, 2, 3...)</option>
+                    <option value="kanji">漢数字 (一, 二, 三...)</option>
+                  </select>
+                </div>
+                <div class="form-col"></div>
+              </div>
+            </div>
+          </details>
+          <div class="app-footer">
+            MIT License - &copy; 2026 <a href="https://amexfuri.work/" target="_blank" rel="noopener">Squall</a>.
+          </div>
+        </div>
+      </section>
+
+      <div class="preview-container-wrapper">
+        <div id="loadingIndicator" class="loading-indicator">
+          <div class="loading-spinner"></div>
+          <span>📖 組版中 Loading... ✒️</span>
+        </div>
+
+        <div class="page-nav-bar no-print">
+          <button id="prevPageBtn" class="page-nav-btn" type="button" title="前のページ">◀</button>
+          <span id="pageNavInfo" class="page-nav-info">1 / 1 ページ</span>
+          <button id="nextPageBtn" class="page-nav-btn" type="button" title="次のページ">▶</button>
+        </div>
+
+        <section class="preview-viewport">
+          <div id="pagesContainer" class="pages-container"></div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/app.js"></script>
+</body>
+
+</html>
