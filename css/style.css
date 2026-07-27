@@ -1127,6 +1127,10 @@
         display: flex;
       }
 
+      #mobileTabBoth {
+        display: none;
+      }
+
       /* --- 共通: editor-grid をフレックスカラムに --- */
       .editor-grid {
         display: flex;
@@ -1153,8 +1157,6 @@
       .editor-grid.mode-edit .editor-text-card {
         flex: 1;
         min-height: 0;
-        display: flex;
-        flex-direction: column;
       }
 
       .editor-grid.mode-edit .editor-settings-card {
@@ -1192,26 +1194,6 @@
         max-height: none;
       }
 
-      /* --- 両方モード --- */
-      .editor-grid.mode-both .editor-panel {
-        flex: none;
-        height: 45%;
-        min-height: 200px;
-        overflow: hidden;
-      }
-
-      .editor-grid.mode-both .preview-container-wrapper {
-        flex: 1;
-        min-height: 0;
-        display: flex;
-        flex-direction: column;
-      }
-
-      .editor-grid.mode-both .preview-viewport {
-        flex: 1;
-        min-height: 0;
-        max-height: none;
-      }
     }
 
     @media (max-width: 600px) {
