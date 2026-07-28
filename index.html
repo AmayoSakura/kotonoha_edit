@@ -1,135 +1,823 @@
-<!DOCTYPE html>
-<html lang="ja" data-theme="sepia" data-writing-mode="vertical">
+<!doctype html>
+<html lang="ja" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- OGP (Open Graph Protocol) -->
+    <meta property="og:title" content="言ノ葉Editer - 日本語組版エディタ" />
+    <meta
+      property="og:description"
+      content="言葉を整え、物語を美しく。縦書き・横書き対応の日本語組版エディタ。"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="image/ogp.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="ja_JP" />
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>言ノ葉Editer Version 1.0</title>
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="言ノ葉Editer - 日本語組版エディタ" />
+    <meta
+      name="twitter:description"
+      content="言葉を整え、物語を美しく。縦書き・横書き対応の日本語組版エディタ。"
+    />
+    <meta name="twitter:image" content="image/ogp.png" />
 
-  <!-- OGP (Open Graph Protocol) -->
-  <meta property="og:title" content="言ノ葉Editer - 日本語組版エディタ">
-  <meta property="og:description" content="言葉を整え、物語を美しく。縦書き・横書き対応の日本語組版エディタ。">
-  <meta property="og:type" content="website">
-  <meta property="og:image" content="image/ogp.png">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-  <meta property="og:locale" content="ja_JP">
+    <!-- 一般メタタグ -->
+    <meta
+      name="description"
+      content="言葉を整え、物語を美しく。縦書き・横書き対応の日本語組版エディタ。"
+    />
 
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="言ノ葉Editer - 日本語組版エディタ">
-  <meta name="twitter:description" content="言葉を整え、物語を美しく。縦書き・横書き対応の日本語組版エディタ。">
-  <meta name="twitter:image" content="image/ogp.png">
+    <!-- ファビコン -->
+    <link rel="icon" type="image/svg+xml" href="image/favicon.svg" />
 
-  <!-- 一般メタタグ -->
-  <meta name="description" content="言葉を整え、物語を美しく。縦書き・横書き対応の日本語組版エディタ。">
-
-  <!-- ファビコン -->
-  <link rel="icon" type="image/svg+xml" href="image/favicon.svg">
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link id="dynamic-font-link" rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Shippori+Mincho:wght@400;700&family=Noto+Serif+JP:wght@400;700&family=Sawarabi+Mincho&display=swap">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      id="dynamic-font-link"
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Shippori+Mincho:wght@400;500;600;700&family=Noto+Serif+JP:wght@400;500;600&family=Sawarabi+Mincho&display=swap"
+    />
     <style id="page-size-style">
-  @page {
-    size: 210mm 297mm;
-    margin: 0;
-  }
-</style>
-  <link rel="stylesheet" href="css/style.css">
-</head>
+      @page {
+        size: 210mm 297mm;
+        margin: 0;
+      }
+    </style>
+    <title>言ノ葉Editer v0.8</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      id="dynamic-font-link"
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;700&family=Noto+Serif+JP:wght@400;700&family=Sawarabi+Mincho&display=swap"
+    />
 
-<body>
-  <main class="app">
-    <header class="hero no-print">
-      <div class="hero-title-group">
-        <h1>言ノ葉Editer</h1>
-        <span class="version-badge">Version 1.0</span>
-      </div>
-      <div class="hero-actions">
-        <select id="themeSelect" class="select-input" style="width: auto; height: 38px;">
-          <option value="standard">☀️ ライト</option>
-          <option value="dark">🌙 ダーク</option>
-          <option value="sepia" selected>☕ セピア</option>
-        </select>
-        <button id="printButton" class="primary-button" type="button">🖨️ 印刷 / PDF保存</button>
-      </div>
-    </header>
+    <style id="page-size-style">
+      @page {
+        size: 210mm 297mm;
+        margin: 0;
+      }
+    </style>
+    <style>
+      @layer base, layout, editor, viewer, print;
 
-    <div class="mobile-tab-bar no-print">
-      <button id="mobileTabEdit" class="mobile-tab-btn active" type="button">✍️ 編集</button>
-      <button id="mobileTabPreview" class="mobile-tab-btn" type="button">👁️ プレビュー</button>
-      <button id="mobileTabBoth" class="mobile-tab-btn" type="button">📱 両方</button>
-    </div>
+      @layer base {
+        :root {
+          color-scheme: dark;
+          --bg: #0f172a;
+          --panel: #1e293b;
+          --panel-sub: #172033;
+          --input-bg: #111827;
+          --text: #f8fafc;
+          --muted: #94a3b8;
+          --line: #334155;
+          --accent: #38bdf8;
+          --accent-dark: #0284c7;
+          --accent-soft: rgba(56, 189, 248, 0.15);
+          --shadow: 0 18px 48px rgba(0, 0, 0, 0.4);
+          --title-gradient: linear-gradient(135deg, #ffffff 0%, #38bdf8 100%);
 
-    <div class="editor-grid mode-edit">
-      <section class="panel editor-panel no-print">
-        <input type="radio" id="left-tab-text" name="left-panel-tab" class="tab-radio" checked>
-        <input type="radio" id="left-tab-settings" name="left-panel-tab" class="tab-radio">
+          --paper-w: 210mm;
+          --paper-h: 297mm;
+          --doc-font-size: 10.5pt;
+          --doc-font-family:
+            "Shippori Mincho", "Yu Mincho", "游明朝", "YuMincho",
+            "Hiragino Mincho ProN", "Noto Serif JP", serif;
+          --ui-font-family:
+            -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+            "Helvetica Neue", "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+            "Meiryo", sans-serif;
+          --page-padding-v: 18mm;
+          --page-padding-h: 14mm;
+        }
 
-        <div class="panel-tabs-bar">
-          <label for="left-tab-text" class="panel-tab-btn">✍️ 本文入力</label>
-          <label for="left-tab-settings" class="panel-tab-btn">⚙️ 組版・表示設定</label>
+        [data-theme="standard"] {
+          color-scheme: light;
+          --bg: #f1f5f9;
+          --panel: #ffffff;
+          --panel-sub: #f8fafc;
+          --input-bg: #ffffff;
+          --text: #0f172a;
+          --muted: #64748b;
+          --line: #cbd5e1;
+          --accent: #0284c7;
+          --accent-dark: #0369a1;
+          --accent-soft: #e0f2fe;
+          --shadow: 0 8px 24px rgba(148, 163, 184, 0.15);
+          --title-gradient: linear-gradient(135deg, #0f172a 0%, #0284c7 100%);
+        }
+
+        [data-theme="sepia"] {
+          color-scheme: light;
+          --bg: #f2ebd9;
+          --panel: #faf6ed;
+          --panel-sub: #f4eee1;
+          --input-bg: #eae1cf;
+          --text: #2d241e;
+          --muted: #786c60;
+          --line: #d8ccbc;
+          --accent: #9a5316;
+          --accent-dark: #783e0e;
+          --accent-soft: #ede0cf;
+          --shadow: 0 8px 24px rgba(45, 36, 30, 0.12);
+          --title-gradient: linear-gradient(135deg, #2d241e 0%, #9a5316 100%);
+          --paper-bg: #f7f1e3;
+          --paper-text: #2b221b;
+        }
+
+        * {
+          box-sizing: border-box;
+        }
+        html {
+          font-family: var(--ui-font-family);
+          background: var(--bg);
+          color: var(--text);
+        }
+        body {
+          margin: 0;
+          min-height: 100vh;
+        }
+        button,
+        input,
+        textarea,
+        select {
+          font-family: var(--ui-font-family);
+          font-size: 0.92rem;
+        }
+        button {
+          cursor: pointer;
+        }
+      }
+
+      @layer layout {
+        .app {
+          width: min(1450px, calc(100% - 32px));
+          margin: 0 auto;
+          padding: 28px 0 40px;
+        }
+
+        .hero {
+          margin-bottom: 24px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 12px;
+          padding-bottom: 16px;
+          border-bottom: 1px solid var(--line);
+        }
+
+        .hero-title-group {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .hero h1 {
+          margin: 0;
+          font-size: 1.4rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          background: var(--title-gradient);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          font-family:
+            "Shippori Mincho", "游明朝", "Yu Mincho", "Hiragino Mincho ProN",
+            serif;
+        }
+
+        .version-badge {
+          font-size: 0.72rem;
+          padding: 2px 8px;
+          border-radius: 20px;
+          background: var(--accent-soft);
+          color: var(--accent);
+          border: 1px solid var(--line);
+          font-weight: 600;
+          letter-spacing: 0.03em;
+        }
+
+        .hero-actions {
+          display: flex;
+          gap: 10px;
+        }
+        .panel {
+          background: var(--panel);
+          border: 1px solid var(--line);
+          border-radius: 14px;
+          box-shadow: var(--shadow);
+        }
+
+        .primary-button,
+        .secondary-button {
+          min-height: 38px;
+          border: 0;
+          border-radius: 8px;
+          padding: 0 16px;
+          font-weight: 600;
+          font-size: 0.88rem;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+        }
+
+        .primary-button {
+          background: var(--accent);
+          color: #ffffff;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .primary-button:hover {
+          background: var(--accent-dark);
+          transform: translateY(-1px);
+          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .secondary-button {
+          background: var(--panel-sub);
+          color: var(--text);
+          border: 1px solid var(--line);
+        }
+
+        .secondary-button:hover {
+          background: var(--accent-soft);
+          border-color: var(--accent);
+          color: var(--accent);
+          transform: translateY(-1px);
+        }
+      }
+
+      @layer editor {
+        .editor-grid {
+          display: grid;
+          grid-template-columns: 440px 1fr;
+          gap: 24px;
+          align-items: start;
+        }
+        .editor-panel {
+          padding: 20px;
+        }
+
+        .setting-group {
+          border: 1px solid var(--line);
+          border-radius: 10px;
+          margin-bottom: 12px;
+          background: var(--panel-sub);
+          overflow: hidden;
+          transition: border-color 0.2s ease;
+        }
+
+        .setting-group:hover {
+          border-color: var(--accent);
+        }
+
+        .setting-group summary {
+          padding: 12px 16px;
+          font-weight: 600;
+          font-size: 0.88rem;
+          cursor: pointer;
+          user-select: none;
+          color: var(--text);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          outline: none;
+          transition: background 0.2s ease;
+        }
+
+        .setting-group summary:hover {
+          background: rgba(0, 0, 0, 0.03);
+        }
+
+        .setting-group summary::-webkit-details-marker,
+        .setting-group summary::marker {
+          display: none;
+          content: "";
+        }
+
+        .setting-group summary::after {
+          content: "▼";
+          font-size: 0.65rem;
+          color: var(--muted);
+          transition:
+            transform 0.2s ease,
+            color 0.2s ease;
+          margin-left: 8px;
+        }
+
+        .setting-group[open] summary::after {
+          transform: rotate(180deg);
+          color: var(--accent);
+        }
+
+        .setting-group[open] summary {
+          border-bottom: 1px solid var(--line);
+        }
+
+        .setting-content {
+          padding: 14px 14px 2px;
+        }
+        .form-row {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 8px;
+          margin-bottom: 12px;
+        }
+        .form-row.two-cols {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .form-col {
+          min-width: 0;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
+        }
+        .field-label {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 4px;
+          margin-bottom: 6px;
+          font-weight: 700;
+          font-size: 0.78rem;
+          min-height: 20px;
+          flex-shrink: 0;
+          white-space: nowrap;
+          letter-spacing: -0.03em;
+        }
+        .field-label small {
+          color: var(--muted);
+          font-weight: 500;
+        }
+
+        .title-input,
+        .select-input {
+          width: 100%;
+          height: 40px;
+          padding: 0 6px;
+          font-size: 0.82rem;
+          border: 1px solid var(--line);
+          border-radius: 8px;
+          background: var(--input-bg);
+          color: var(--text);
+          outline: none;
+          transition: all 0.2s ease;
+          box-sizing: border-box;
+          font-weight: 500;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .text-input {
+          width: 100%;
+          min-height: 380px;
+          padding: 14px;
+          border: 1px solid var(--line);
+          border-radius: 8px;
+          background: var(--input-bg);
+          color: var(--text);
+          outline: none;
+          transition: all 0.2s ease;
+          resize: vertical;
+          line-height: 1.7;
+          box-sizing: border-box;
+          font-weight: 400;
+        }
+
+        .title-input:focus,
+        .text-input:focus,
+        .select-input:focus {
+          border-color: var(--accent);
+          box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+
+        .controls-main {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-top: 16px;
+        }
+      }
+
+      @layer viewer {
+        .md-body .inline-code {
+          font-family: monospace;
+          background: rgba(0, 0, 0, 0.08);
+          padding: 1px 4px;
+          border-radius: 3px;
+          font-size: 0.88em;
+        }
+
+        .preview-viewport {
+          background-color: var(--panel-sub);
+          border-radius: 16px;
+          padding: 36px;
+          max-height: calc(100vh - 80px);
+          overflow: auto;
+          border: 1px solid var(--line);
+        }
+
+        .pages-container {
+          display: flex;
+          flex-direction: row-reverse;
+          gap: 24px;
+          justify-content: flex-end;
+          align-items: flex-start;
+          padding-bottom: 20px;
+        }
+
+        .paper-page {
+          width: var(--paper-w);
+          height: var(--paper-h);
+          min-width: var(--paper-w);
+          min-height: var(--paper-h);
+          background: #fffefb;
+          color: #1f2328;
+          padding: var(--page-padding-v) var(--page-padding-h);
+          box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+          border-radius: 2px;
+          box-sizing: border-box;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .page-header-tag {
+          position: absolute;
+          top: 4mm;
+          right: var(--page-padding-h);
+          font-family: var(--doc-font-family);
+          font-size: 0.65rem;
+          color: #888888;
+          letter-spacing: 0.08em;
+          opacity: 0.85;
+        }
+
+        .page-number-tag {
+          position: absolute;
+          bottom: 4mm;
+          left: 50%;
+          transform: translateX(-50%);
+          font-family: var(--doc-font-family);
+          font-size: 0.68rem;
+          color: #888888;
+        }
+
+        .md-body {
+          writing-mode: vertical-rl;
+          -webkit-writing-mode: vertical-rl;
+          text-orientation: mixed;
+          line-height: 1.75;
+          font-family: var(--doc-font-family);
+          font-size: var(--doc-font-size);
+          width: 100%;
+          box-sizing: border-box;
+
+          line-break: strict;
+          -webkit-line-break: strict;
+          word-break: normal;
+          overflow-wrap: anywhere;
+          hanging-punctuation: allow-end;
+          overflow: hidden;
+        }
+
+        .nobreak {
+          display: inline;
+          white-space: nowrap;
+          text-indent: 0;
+        }
+
+        .paper-page:not(.has-columns) .md-body {
+          height: 100%;
+        }
+
+        .columns-wrapper {
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+          width: 100%;
+          justify-content: space-between;
+        }
+
+        .paper-page.has-columns .md-body {
+          height: calc(50% - 5mm);
+        }
+
+        .column-divider {
+          border-top: 1px solid #cbd5e1;
+          width: 100%;
+          margin: 2mm 0;
+          flex-shrink: 0;
+        }
+        .column-divider.no-border {
+          border-top: none;
+        }
+
+        .md-body h1 {
+          margin: 0 0 0 16px;
+          font-size: 1.8em;
+          border-left: 2px solid #1f2328;
+          padding-left: 8px;
+        }
+        .md-body h2 {
+          margin: 0 10px 0 10px;
+          padding-left: 6px;
+          border-left: 1px solid #888;
+          font-size: 1.3em;
+        }
+        .md-body h3 {
+          margin: 0 8px 0 8px;
+          font-size: 1.1em;
+        }
+
+        .md-body p {
+          margin: 0;
+          padding: 0;
+          text-indent: 1em;
+        }
+        .md-body p.no-indent {
+          text-indent: 0;
+        }
+
+        .md-body blockquote {
+          margin: 0 8px;
+          padding: 8px 4px;
+          border-top: 2px solid var(--accent);
+          background: #f6f8fa;
+          font-size: 0.95em;
+        }
+        .md-body hr {
+          margin: 0 12px;
+          border: 0;
+          border-right: 1px solid #d0d7de;
+          height: 100%;
+        }
+
+        .tcy {
+          text-combine-upright: all;
+          -webkit-text-combine: horizontal;
+          display: inline;
+          margin: 0;
+          padding: 0;
+          letter-spacing: 0;
+        }
+
+        .bouten {
+          text-emphasis: filled sesame;
+          -webkit-text-emphasis: filled sesame;
+          text-emphasis-position: over right;
+          -webkit-text-emphasis-position: over right;
+        }
+
+        .paper-page.gutter-odd {
+          padding-right: calc(var(--page-padding-h) + 6mm) !important;
+        }
+        .paper-page.gutter-even {
+          padding-left: calc(var(--page-padding-h) + 6mm) !important;
+        }
+      }
+
+      @media (max-width: 1000px) {
+        .editor-grid {
+          grid-template-columns: 1fr;
+        }
+        .preview-viewport {
+          max-height: 600px;
+        }
+      }
+
+      @media (max-width: 600px) {
+        .app {
+          width: calc(100% - 16px);
+          padding: 10px 0 20px;
+        }
+
+        .editor-panel {
+          padding: 12px;
+        }
+
+        .form-row {
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .form-col {
+          width: 100%;
+          min-width: 0;
+        }
+
+        .preview-viewport {
+          padding: 16px;
+          max-height: 500px;
+        }
+      }
+
+      @layer print {
+        @media print {
+          html,
+          body {
+            width: var(--paper-w) !important;
+            height: var(--paper-h) !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+          }
+          .no-print,
+          .editor-panel,
+          .hero {
+            display: none !important;
+          }
+          .app {
+            width: 100% !important;
+            max-width: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+          }
+          .editor-grid {
+            display: block !important;
+          }
+
+          .preview-viewport {
+            background: transparent !important;
+            padding: 0 !important;
+            max-height: none !important;
+            overflow: visible !important;
+            border: none !important;
+          }
+
+          .pages-container {
+            display: block !important;
+            padding: 0 !important;
+          }
+
+          .paper-page {
+            box-shadow: none !important;
+            padding: var(--page-padding-v) var(--page-padding-h) !important;
+            margin: 0 !important;
+            width: var(--paper-w) !important;
+            height: var(--paper-h) !important;
+            page-break-after: always !important;
+            break-after: page !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+
+          .page-header-tag,
+          .page-number-tag {
+            display: block !important;
+            color: #000 !important;
+          }
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <header class="hero no-print">
+        <div class="hero-title-group">
+          <h1>言ノ葉Editer</h1>
+          <span class="version-badge">v0.8</span>
         </div>
-
-        <!-- タブ1: テキスト入力 -->
-        <div class="editor-text-card">
-          <div class="field-label">
-            <label for="sourceText">✍️ 本文テキスト</label>
-            <small id="charCount">0文字</small>
-          </div>
-          <textarea id="sourceText" class="text-input" placeholder="ここに本文を入力してください。"></textarea>
-          <div class="controls-main">
-            <button id="insertBreakButton" class="secondary-button" type="button">✂ 手動改ページ</button>
-            <button id="exportButton" class="secondary-button" type="button">💾 ファイル保存</button>
-            <button id="importButton" class="secondary-button" type="button">📂 ファイルを開く</button>
-            <input type="file" id="fileInput" accept=".txt,.md" style="display: none;">
-            <button id="sampleButton" class="secondary-button" type="button">サンプル表示</button>
-            <button id="clearButton" class="secondary-button" type="button">消去</button>
-          </div>
+        <div class="hero-actions">
+          <select
+            id="themeSelect"
+            class="select-input"
+            style="width: auto; height: 38px"
+          >
+            <option value="standard">☀️ ライト</option>
+            <option value="dark">🌙 ダーク</option>
+            <option value="sepia" selected>☕ セピア</option>
+          </select>
+          <button id="printButton" class="primary-button" type="button">
+            🖨️ 印刷 / PDF保存
+          </button>
         </div>
+      </header>
 
-        <!-- タブ2: 設定メニュー -->
-        <div class="editor-settings-card">
+      <div class="editor-grid">
+        <section class="panel editor-panel no-print">
           <!-- グループ1: 基本情報 -->
           <details class="setting-group" open>
             <summary>📄 基本情報（タイトル・ヘッダー）</summary>
             <div class="setting-content">
               <div class="form-row two-cols">
                 <div class="form-col">
-                  <div class="field-label"><label for="pageTitle">表題（ファイル名）</label></div>
-                  <input id="pageTitle" class="title-input" type="text" placeholder="例：舞姫、怪異譚">
+                  <div class="field-label">
+                    <label for="pageTitle">表題（タイトル）</label>
+                  </div>
+                  <input
+                    id="pageTitle"
+                    class="title-input"
+                    type="text"
+                    placeholder="例：舞姫、怪異譚"
+                  />
                 </div>
                 <div class="form-col">
-                  <div class="field-label"><label for="pageHeader">📌 ヘッダー（柱）文字</label></div>
-                  <input id="pageHeader" class="title-input" type="text" placeholder="例：第一章 ～目覚め～">
+                  <div class="field-label">
+                    <label for="pageHeader">📌 ヘッダー（柱）文字</label>
+                  </div>
+                  <input
+                    id="pageHeader"
+                    class="title-input"
+                    type="text"
+                    placeholder="例：第一章 ～目覚め～"
+                  />
                 </div>
               </div>
             </div>
           </details>
 
-          <!-- グループ2: 組構・綴じ方向・用紙設定 -->
-          <details class="setting-group" open>
-            <summary>📐 組版・書字・用紙設定</summary>
+          <!-- グループ2: ヘッダー・フッター（ノンブル）詳細設定 -->
+          <details class="setting-group">
+            <summary>📌 ヘッダー・フッター（ノンブル）設定</summary>
             <div class="setting-content">
+              <!-- 1行目: ヘッダー設定（3列） -->
               <div class="form-row">
                 <div class="form-col">
-                  <div class="field-label"><label for="writingModeSelect">✍️ 書字方向</label></div>
-                  <select id="writingModeSelect" class="select-input">
-                    <option value="vertical" selected>縦書き</option>
-                    <option value="horizontal">横書き</option>
+                  <div class="field-label">
+                    <label for="headerDisplaySelect">📄 ヘッダー表示</label>
+                  </div>
+                  <select id="headerDisplaySelect" class="select-input">
+                    <option value="all" selected>全ページ</option>
+                    <option value="odd">奇数ページのみ</option>
+                    <option value="even">偶数ページのみ</option>
+                    <option value="alternate">奇数・偶数で左右交互</option>
                   </select>
                 </div>
                 <div class="form-col">
-                  <div class="field-label"><label for="bindingSelect">📖 綴じ方向（のど）</label></div>
-                  <select id="bindingSelect" class="select-input">
-                    <option value="right" selected>右綴じ（縦書き標準）</option>
-                    <option value="left">左綴じ（横書き標準）</option>
+                  <div class="field-label">
+                    <label for="headerPosSelect">📍 ヘッダー位置</label>
+                  </div>
+                  <select id="headerPosSelect" class="select-input">
+                    <option value="right" selected>右上（標準）</option>
+                    <option value="center">中央上</option>
+                    <option value="left">左上</option>
                   </select>
                 </div>
                 <div class="form-col">
-                  <div class="field-label"><label for="pageSizeSelect">📏 用紙サイズ</label></div>
+                  <div class="field-label">
+                    <label for="headerSizeSelect">📏 文字サイズ</label>
+                  </div>
+                  <select id="headerSizeSelect" class="select-input">
+                    <option value="0.55rem">極小 (0.55rem)</option>
+                    <option value="0.65rem" selected>標準 (0.65rem)</option>
+                    <option value="0.75rem">大 (0.75rem)</option>
+                    <option value="0.85rem">特大 (0.85rem)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- 2行目: フッター（ノンブル）設定（3列） -->
+              <div class="form-row">
+                <div class="form-col">
+                  <div class="field-label">
+                    <label for="nombreDisplaySelect">🔢 ノンブル表示</label>
+                  </div>
+                  <select id="nombreDisplaySelect" class="select-input">
+                    <option value="all" selected>全ページ表示</option>
+                    <option value="skip-first">1ページ目を隠す</option>
+                    <option value="off">表示しない</option>
+                  </select>
+                </div>
+                <div class="form-col">
+                  <div class="field-label">
+                    <label for="nombrePosSelect">📍 ノンブル位置</label>
+                  </div>
+                  <select id="nombrePosSelect" class="select-input">
+                    <option value="center" selected>中央下（標準）</option>
+                    <option value="right">右下</option>
+                    <option value="left">左下</option>
+                    <option value="alternate">左右交互（外側）</option>
+                  </select>
+                </div>
+                <div class="form-col">
+                  <div class="field-label">
+                    <label for="startPageInput">🔢 開始ページ</label>
+                  </div>
+                  <input
+                    id="startPageInput"
+                    class="title-input"
+                    type="number"
+                    value="1"
+                    min="1"
+                  />
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <!-- グループ3: 組版・フォント設定 -->
+          <details class="setting-group">
+            <summary>📐 組版・フォント設定</summary>
+            <div class="setting-content">
+              <!-- 1行目: 用紙・段組関連（3列） -->
+              <div class="form-row">
+                <div class="form-col">
+                  <div class="field-label">
+                    <label for="pageSizeSelect">📏 用紙サイズ</label>
+                  </div>
                   <select id="pageSizeSelect" class="select-input">
                     <option value="A4">A4 (210×297mm)</option>
                     <option value="B5">B5 (182×257mm)</option>
@@ -139,33 +827,32 @@
                     <option value="Hagaki">ハガキ (100×148mm)</option>
                   </select>
                 </div>
-              </div>
-              <div class="form-row">
                 <div class="form-col">
-                  <div class="field-label"><label for="columnSelect">📖 段組</label></div>
+                  <div class="field-label">
+                    <label for="columnSelect">📖 段組</label>
+                  </div>
                   <select id="columnSelect" class="select-input">
                     <option value="1" selected>1段組（標準）</option>
-                    <option value="2">2段組</option>
+                    <option value="2">2段組（上下2段）</option>
                   </select>
                 </div>
                 <div class="form-col" id="columnRuleCol">
-                  <div class="field-label"><label for="columnRuleSelect">✂️ 境界線</label></div>
+                  <div class="field-label">
+                    <label for="columnRuleSelect">✂️ 境界線</label>
+                  </div>
                   <select id="columnRuleSelect" class="select-input">
                     <option value="on" selected>実線</option>
                     <option value="off">なし</option>
                   </select>
                 </div>
-                <div class="form-col">
-                  <div class="field-label"><label for="gutterSelect">📖 のど（綴じ代）</label></div>
-                  <select id="gutterSelect" class="select-input">
-                    <option value="off" selected>なし（左右均等）</option>
-                    <option value="on">あり（左右交互余白）</option>
-                  </select>
-                </div>
               </div>
+
+              <!-- 2行目: 文字サイズ・余白関連（3列） -->
               <div class="form-row">
                 <div class="form-col">
-                  <div class="field-label"><label for="fontSizeSelect">🔤 文字サイズ</label></div>
+                  <div class="field-label">
+                    <label for="fontSizeSelect">🔤 文字サイズ</label>
+                  </div>
                   <select id="fontSizeSelect" class="select-input">
                     <option value="8.5pt">小 (8.5pt)</option>
                     <option value="9.5pt" selected>標準 (9.5pt)</option>
@@ -174,145 +861,900 @@
                   </select>
                 </div>
                 <div class="form-col">
-                  <div class="field-label"><label for="marginSelect">📐 余白</label></div>
+                  <div class="field-label">
+                    <label for="marginSelect">📐 余白</label>
+                  </div>
                   <select id="marginSelect" class="select-input">
                     <option value="narrow">狭い (12mm / 10mm)</option>
                     <option value="normal" selected>標準 (18mm / 14mm)</option>
                     <option value="wide">広い (24mm / 18mm)</option>
                   </select>
                 </div>
-                <div class="form-col"></div>
+                <div class="form-col">
+                  <div class="field-label">
+                    <label for="gutterSelect">📖 綴じ代</label>
+                  </div>
+                  <select id="gutterSelect" class="select-input">
+                    <option value="off" selected>なし（左右均等）</option>
+                    <option value="on">あり（左右交互余白）</option>
+                  </select>
+                </div>
               </div>
+
+              <!-- 3行目: 書体（フォント）設定 -->
               <div class="form-row">
-                <div class="form-col" style="grid-column: span 3;">
-                  <div class="field-label"><label for="fontSelect">✒️ 書体（フォント）</label></div>
+                <div class="form-col" style="grid-column: span 3">
+                  <div class="field-label">
+                    <label for="fontSelect">✒️ 書体（フォント）</label>
+                  </div>
                   <select id="fontSelect" class="select-input">
-                    <option value="system">システム標準明朝（游明朝/ヒラギノ）</option>
-                    <option value="shippori" selected>Shippori Mincho（しっぽり明朝）</option>
+                    <option value="system">
+                      システム標準明朝（游明朝/ヒラギノ）
+                    </option>
+                    <option value="shippori" selected>
+                      Shippori Mincho（しっぽり明朝）
+                    </option>
                     <option value="noto">Noto Serif JP（標準Noto明朝）</option>
-                    <option value="sawarabi">Sawarabi Mincho（さわらび明朝）</option>
-                    <option value="custom">カスタムWebフォントURL指定...</option>
+                    <option value="sawarabi">
+                      Sawarabi Mincho（さわらび明朝）
+                    </option>
+                    <option value="custom">
+                      カスタムWebフォントURL指定...
+                    </option>
                   </select>
                 </div>
               </div>
-              <div id="customFontRow" class="form-row" style="display: none;">
-                <div class="form-col" style="grid-column: span 2;">
-                  <div class="field-label"><label for="customFontUrl">🔗 カスタムCSS/Font URL</label></div>
-                  <input id="customFontUrl" class="title-input" type="text"
-                    placeholder="https://fonts.googleapis.com/css2?family=...">
+
+              <!-- カスタムフォント指定行 -->
+              <div id="customFontRow" class="form-row" style="display: none">
+                <div class="form-col" style="grid-column: span 2">
+                  <div class="field-label">
+                    <label for="customFontUrl">🔗 カスタムCSS/Font URL</label>
+                  </div>
+                  <input
+                    id="customFontUrl"
+                    class="title-input"
+                    type="text"
+                    placeholder="https://fonts.googleapis.com/css2?family=..."
+                  />
                 </div>
                 <div class="form-col">
-                  <div class="field-label"><label for="customFontFamily">font-family名</label></div>
-                  <input id="customFontFamily" class="title-input" type="text" placeholder="例：'MyFont', serif">
+                  <div class="field-label">
+                    <label for="customFontFamily">font-family名</label>
+                  </div>
+                  <input
+                    id="customFontFamily"
+                    class="title-input"
+                    type="text"
+                    placeholder="例：'MyFont', serif"
+                  />
                 </div>
               </div>
             </div>
           </details>
 
-          <!-- グループ3: ヘッダー・ノンブル詳細設定 -->
-          <details class="setting-group">
-            <summary>📌 ヘッダー・フッター（ノンブル）設定</summary>
-            <div class="setting-content">
-              <div class="form-row">
-                <div class="form-col">
-                  <div class="field-label"><label for="headerDisplaySelect">📄 ヘッダー表示</label></div>
-                  <select id="headerDisplaySelect" class="select-input">
-                    <option value="all" selected>全ページ</option>
-                    <option value="odd">奇数ページのみ</option>
-                    <option value="even">偶数ページのみ</option>
-                    <option value="alternate">奇数・偶数で左右交互（小口側）</option>
-                  </select>
-                </div>
-                <div class="form-col">
-                  <div class="field-label"><label for="headerPosSelect">📍 ヘッダー位置</label></div>
-                  <select id="headerPosSelect" class="select-input">
-                    <option value="right" selected>右上（標準）</option>
-                    <option value="center">中央上</option>
-                    <option value="left">左上</option>
-                  </select>
-                </div>
-                <div class="form-col">
-                  <div class="field-label"><label for="headerSizeSelect">📏 文字サイズ</label></div>
-                  <select id="headerSizeSelect" class="select-input">
-                    <option value="0.55rem">極小 (0.55rem)</option>
-                    <option value="0.65rem" selected>標準 (0.65rem)</option>
-                    <option value="0.75rem">大 (0.75rem)</option>
-                    <option value="0.85rem">特大 (0.85rem)</option>
-                  </select>
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-col">
-                  <div class="field-label"><label for="nombreDisplaySelect">🔢 ノンブル表示</label></div>
-                  <select id="nombreDisplaySelect" class="select-input">
-                    <option value="all" selected>全ページ表示</option>
-                    <option value="skip-first">1ページ目を隠す</option>
-                    <option value="off">表示しない</option>
-                  </select>
-                </div>
-                <div class="form-col">
-                  <div class="field-label"><label for="nombrePosSelect">📍 ノンブル位置</label></div>
-                  <select id="nombrePosSelect" class="select-input">
-                    <option value="center" selected>中央下（標準）</option>
-                    <option value="right">右下</option>
-                    <option value="left">左下</option>
-                    <option value="alternate">左右交互（小口側）</option>
-                  </select>
-                </div>
-                <div class="form-col">
-                  <div class="field-label"><label for="startPageInput">🔢 開始ページ</label></div>
-                  <input id="startPageInput" class="title-input" type="number" value="1" min="1">
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-col">
-                  <div class="field-label"><label for="nombreFormatSelect">🎨 ノンブル装飾</label></div>
-                  <select id="nombreFormatSelect" class="select-input">
-                    <option value="plain" selected>N （数字のみ）</option>
-                    <option value="hyphen">- N - （ハイフン）</option>
-                    <option value="bracket">（ N ）（丸括弧）</option>
-                    <option value="square">[ N ] （角括弧）</option>
-                    <option value="slash">/ N / （スラッシュ）</option>
-                    <option value="page">P.N （ページ記号）</option>
-                  </select>
-                </div>
-                <div class="form-col">
-                  <div class="field-label"><label for="nombreTypeSelect">🔢 数字タイプ</label></div>
-                  <select id="nombreTypeSelect" class="select-input">
-                    <option value="arabic" selected>算用数字 (1, 2, 3...)</option>
-                    <option value="kanji">漢数字 (一, 二, 三...)</option>
-                  </select>
-                </div>
-                <div class="form-col"></div>
-              </div>
-            </div>
-          </details>
-          <div class="app-footer">
-            MIT License - &copy; 2026 <a href="https://amexfuri.work/" target="_blank" rel="noopener">Squall</a>.
+          <div class="field-label" style="margin-top: 16px">
+            <label for="sourceText">テキスト</label>
+            <small id="charCount">0文字</small>
           </div>
-        </div>
-      </section>
+          <textarea
+            id="sourceText"
+            class="text-input"
+            placeholder="ここに本文を入力してください。"
+          ></textarea>
 
-      <div class="preview-container-wrapper">
-        <div id="loadingIndicator" class="loading-indicator">
-          <div class="loading-spinner"></div>
-          <span>📖 組版中 Loading... ✒️</span>
-        </div>
-
-        <div class="page-nav-bar no-print">
-          <button id="prevPageBtn" class="page-nav-btn" type="button" title="前のページ">◀</button>
-          <span id="pageNavInfo" class="page-nav-info">1 / 1 ページ</span>
-          <button id="nextPageBtn" class="page-nav-btn" type="button" title="次のページ">▶</button>
-        </div>
+          <div class="controls-main">
+            <button
+              id="insertBreakButton"
+              class="secondary-button"
+              type="button"
+            >
+              ✂ 手動改ページ
+            </button>
+            <button id="sampleButton" class="secondary-button" type="button">
+              サンプル表示
+            </button>
+            <button id="clearButton" class="secondary-button" type="button">
+              消去
+            </button>
+          </div>
+        </section>
 
         <section class="preview-viewport">
           <div id="pagesContainer" class="pages-container"></div>
         </section>
       </div>
-    </div>
-  </main>
+    </main>
 
-  <script src="js/app.js"></script>
-</body>
+    <script>
+      window.addEventListener("DOMContentLoaded", function () {
+        "use strict";
 
+        const CONFIG_KEYS = {
+          pageTitle: "title",
+          pageHeader: "header",
+          headerDisplaySelect: "headerDisplay",
+          headerPosSelect: "headerPos",
+          headerSizeSelect: "headerSize",
+          fontSelect: "font",
+          customFontUrl: "customFontUrl",
+          customFontFamily: "customFontFamily",
+          pageSizeSelect: "pageSize",
+          columnSelect: "column",
+          fontSizeSelect: "fontSize",
+          marginSelect: "margin",
+          gutterSelect: "gutter",
+          themeSelect: "theme",
+          sourceText: "text",
+          columnRuleSelect: "columnRule",
+          nombreDisplaySelect: "nombreDisplay",
+          startPageInput: "startPage",
+          nombrePosSelect: "nombrePos",
+        };
+
+        const els = {};
+        Object.keys(CONFIG_KEYS).forEach((id) => {
+          els[id] = document.getElementById(id);
+        });
+
+        const customFontRow = document.getElementById("customFontRow");
+        const columnRuleCol = document.getElementById("columnRuleCol");
+        const charCount = document.getElementById("charCount");
+        const pagesContainer = document.getElementById("pagesContainer");
+        const pageSizeStyle = document.getElementById("page-size-style");
+
+        const STORAGE_KEY = "md_vertical_editor_draft_" + location.pathname;
+        let debounceTimer = null;
+
+        const PAGE_SIZES = {
+          A4: { w: "210mm", h: "297mm" },
+          B5: { w: "182mm", h: "257mm" },
+          A5: { w: "148mm", h: "210mm" },
+          B6: { w: "128mm", h: "182mm" },
+          A6: { w: "105mm", h: "148mm" },
+          Hagaki: { w: "100mm", h: "148mm" },
+        };
+
+        const MARGIN_SIZES = {
+          narrow: { v: "12mm", h: "10mm" },
+          normal: { v: "18mm", h: "14mm" },
+          wide: { v: "24mm", h: "18mm" },
+        };
+
+        const FONTS = {
+          shippori: '"Shippori Mincho", "Yu Mincho", "MS Mincho", serif',
+          noto: '"Noto Serif JP", "Yu Mincho", "MS Mincho", serif',
+          sawarabi: '"Sawarabi Mincho", "Yu Mincho", "MS Mincho", serif',
+          system: '"Hiragino Mincho ProN", "Yu Mincho", "MS Mincho", serif',
+        };
+
+        // 💾 ストレージへの保存機能
+        function saveToStorage() {
+          const data = {};
+          for (const [id, key] of Object.entries(CONFIG_KEYS)) {
+            if (els[id]) data[key] = els[id].value;
+          }
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+          } catch (e) {
+            console.warn("ローカルストレージへの保存に失敗しました", e);
+          }
+        }
+
+        // 📂 ストレージからの復元機能
+        function loadFromStorage() {
+          try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return false;
+
+            const data = JSON.parse(raw);
+            for (const [id, key] of Object.entries(CONFIG_KEYS)) {
+              if (data[key] !== undefined && els[id]) {
+                els[id].value = data[key];
+              }
+            }
+            if (data.theme !== undefined && els.themeSelect) {
+              els.themeSelect.value = data.theme;
+              document.documentElement.setAttribute("data-theme", data.theme);
+            }
+            if (
+              els.fontSelect &&
+              els.fontSelect.value === "custom" &&
+              customFontRow
+            ) {
+              customFontRow.style.display = "flex";
+            }
+            return true;
+          } catch (e) {
+            console.warn("ローカルストレージからの読み込みに失敗しました", e);
+            return false;
+          }
+        }
+
+        function updatePageStyle() {
+          const conf = PAGE_SIZES[els.pageSizeSelect.value] || PAGE_SIZES["A4"];
+          const margin =
+            MARGIN_SIZES[els.marginSelect.value] || MARGIN_SIZES["normal"];
+
+          let selectedFont = FONTS[els.fontSelect.value];
+          if (els.fontSelect.value === "custom") {
+            selectedFont = els.customFontFamily.value.trim() || "serif";
+            const url = els.customFontUrl.value.trim();
+            if (url) {
+              document.getElementById("dynamic-font-link").href = url;
+            }
+          }
+          const cols = els.columnSelect.value;
+          document.documentElement.style.setProperty(
+            "--doc-column-count",
+            cols,
+          );
+          if (cols === "2") {
+            document.documentElement.style.setProperty(
+              "--doc-column-gap",
+              "8mm",
+            );
+            document.documentElement.style.setProperty(
+              "--doc-column-rule",
+              "1px solid var(--line)",
+            );
+          } else {
+            document.documentElement.style.setProperty(
+              "--doc-column-gap",
+              "0px",
+            );
+            document.documentElement.style.setProperty(
+              "--doc-column-rule",
+              "none",
+            );
+          }
+
+          document.documentElement.style.setProperty("--paper-w", conf.w);
+          document.documentElement.style.setProperty("--paper-h", conf.h);
+          document.documentElement.style.setProperty(
+            "--doc-font-size",
+            els.fontSizeSelect.value,
+          );
+          document.documentElement.style.setProperty(
+            "--doc-font-family",
+            selectedFont,
+          );
+          document.documentElement.style.setProperty(
+            "--page-padding-v",
+            margin.v,
+          );
+          document.documentElement.style.setProperty(
+            "--page-padding-h",
+            margin.h,
+          );
+
+          pageSizeStyle.innerHTML =
+            "@page { size: " + conf.w + " " + conf.h + "; margin: 0; }";
+        }
+
+        function escapeHtml(value) {
+          return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+        }
+
+        function parseInlineVerticalMarkdown(text) {
+          let value = escapeHtml(text);
+
+          // 1. バックチック (`...`) 内のテキストを変換から一時保護
+          const codeBlocks = [];
+          value = value.replace(/`([^`]+)`/g, function (match, code) {
+            codeBlocks.push('<code class="inline-code">' + code + "</code>");
+            return "___CODE_PLACEHOLDER_" + (codeBlocks.length - 1) + "___";
+          });
+
+          // 2. 通常の変換処理（ルビ・傍点・Markdownなど）
+          value = value.replace(
+            /《《([^》\n]+)》》/g,
+            '<span class="bouten">$1</span>',
+          );
+          value = value.replace(
+            /[\|｜]([^《\n]+)《([^》\n]+)》/g,
+            "<ruby>$1<rt>$2</rt></ruby>",
+          );
+          value = value.replace(
+            /([\u4e00-\u9faf]+)《([^》\n]+)》/g,
+            "<ruby>$1<rt>$2</rt></ruby>",
+          );
+
+          value = value.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+          value = value.replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>");
+          value = value.replace(
+            /(!\?|\?!|!!|\?\?|！？|？！|！！|？？)/g,
+            '<span class="tcy">$1</span>',
+          );
+          value = value.replace(
+            /\b(\d{1,2})\b/g,
+            '<span class="tcy">$1</span>',
+          );
+
+          // 分離禁止文字（「――」「……」「──」）の自動ラップ
+          value = value.replace(
+            /(――+|……+|──+)/g,
+            '<span class="nobreak">$1</span>',
+          );
+
+          // 3. 保護していたコード要素を復元
+          value = value.replace(
+            /___CODE_PLACEHOLDER_(\d+)___/g,
+            function (match, index) {
+              return codeBlocks[index];
+            },
+          );
+
+          return value;
+        }
+
+        function parseToAST(markdown) {
+          const normalized = String(markdown).replace(/\r\n?/g, "\n");
+          if (!normalized.trim()) return [];
+
+          const rawSections = normalized.split(
+            /(?:\n|^)\s*(?:\[改ページ\]|<!--\s*pagebreak\s*-->)\s*(?=\n|$)/i,
+          );
+          const sections = [];
+
+          rawSections.forEach((sectionStr) => {
+            const lines = sectionStr.split("\n");
+            const items = [];
+
+            lines.forEach((line) => {
+              const trimmed = line.trim();
+
+              // 空行（全角・半角スペースのみの行を含む）を空段落として保持する
+              if (trimmed === "") {
+                items.push({ type: "empty" });
+                return;
+              }
+
+              const heading = trimmed.match(/^(#{1,6})\s+(.+)$/);
+              if (heading) {
+                items.push({
+                  type: "heading",
+                  level: heading[1].length,
+                  text: heading[2].trim(),
+                });
+                return;
+              }
+
+              if (/^(?:-{3,}|\*{3,}|_{3,})$/.test(trimmed)) {
+                items.push({ type: "hr" });
+                return;
+              }
+
+              const quote = trimmed.match(/^>\s?(.*)$/);
+              if (quote) {
+                items.push({ type: "quote", text: quote[1] });
+                return;
+              }
+
+              const isBracket = /^[「『（【〔〈《“‘]/.test(trimmed);
+              items.push({ type: "p", isBracket, text: trimmed });
+            });
+
+            if (items.length > 0) {
+              sections.push(items);
+            }
+          });
+
+          return sections;
+        }
+
+        function createPageElement(pageIdx, titleText, isTwoColumn) {
+          const isGutterOn =
+            els.gutterSelect && els.gutterSelect.value === "on";
+
+          // 開始ページ番号の反映とノンブル計算
+          const startPageNum =
+            parseInt(els.startPageInput ? els.startPageInput.value : 1, 10) ||
+            1;
+          const pageNum = pageIdx + startPageNum;
+          const isOdd = (pageIdx + 1) % 2 !== 0; // 左右の綴じ代判定は物理ページ数で計算
+
+          let gutterClass = "";
+          if (isGutterOn) {
+            gutterClass = isOdd ? " gutter-odd" : " gutter-even";
+          }
+
+          const paperEl = document.createElement("div");
+          paperEl.className =
+            "paper-page" + (isTwoColumn ? " has-columns" : "") + gutterClass;
+
+          let headerTitleHtml = "";
+          if (pageIdx === 0 && titleText) {
+            headerTitleHtml =
+              "<h1>" + parseInlineVerticalMarkdown(titleText) + "</h1>";
+          }
+
+          const headerText = els.pageHeader.value.trim();
+          const displayVal = els.headerDisplaySelect.value;
+          const posVal = els.headerPosSelect.value;
+          const sizeVal = els.headerSizeSelect.value;
+
+          let showHeader = false;
+          if (headerText) {
+            if (displayVal === "all" || displayVal === "alternate") {
+              showHeader = true;
+            } else if (displayVal === "odd" && isOdd) {
+              showHeader = true;
+            } else if (displayVal === "even" && !isOdd) {
+              showHeader = true;
+            }
+          }
+
+          let headerTagHtml = "";
+          if (showHeader) {
+            let currentPos = posVal;
+            if (displayVal === "alternate") {
+              currentPos = isOdd ? "left" : "right";
+            }
+
+            let posStyle = "";
+            if (currentPos === "center") {
+              posStyle = "left: 50%; right: auto; transform: translateX(-50%);";
+            } else if (currentPos === "left") {
+              posStyle =
+                "left: var(--page-padding-h); right: auto; transform: none;";
+            } else {
+              posStyle =
+                "right: var(--page-padding-h); left: auto; transform: none;";
+            }
+
+            const styleAttr = "font-size: " + sizeVal + "; " + posStyle;
+            headerTagHtml =
+              '<div class="page-header-tag" style="' +
+              styleAttr +
+              '">' +
+              escapeHtml(headerText) +
+              "</div>";
+          }
+
+          // 2段組境界線の表示判定
+          const showRule = els.columnRuleSelect
+            ? els.columnRuleSelect.value === "on"
+            : true;
+          const dividerClass = showRule
+            ? "column-divider"
+            : "column-divider no-border";
+
+          let bodyHtml = "";
+          if (isTwoColumn) {
+            bodyHtml =
+              '<div class="columns-wrapper">' +
+              '<article class="md-body col-top">' +
+              headerTitleHtml +
+              "</article>" +
+              '<div class="' +
+              dividerClass +
+              '"></div>' +
+              '<article class="md-body col-bottom"></article>' +
+              "</div>";
+          } else {
+            bodyHtml =
+              '<article class="md-body">' + headerTitleHtml + "</article>";
+          }
+
+          // ノンブル表示制御（全表示 / 1ページ目スキップ / 非表示）および位置制御
+          const nombreVal = els.nombreDisplaySelect
+            ? els.nombreDisplaySelect.value
+            : "all";
+          const nombrePosVal = els.nombrePosSelect
+            ? els.nombrePosSelect.value
+            : "center";
+
+          let nombreHtml = "";
+          if (
+            nombreVal === "all" ||
+            (nombreVal === "skip-first" && pageIdx > 0)
+          ) {
+            let currentNombrePos = nombrePosVal;
+            if (nombrePosVal === "alternate") {
+              currentNombrePos = isOdd ? "left" : "right";
+            }
+
+            let nombrePosStyle = "";
+            if (currentNombrePos === "right") {
+              nombrePosStyle =
+                "right: var(--page-padding-h); left: auto; transform: none;";
+            } else if (currentNombrePos === "left") {
+              nombrePosStyle =
+                "left: var(--page-padding-h); right: auto; transform: none;";
+            } else {
+              // center
+              nombrePosStyle =
+                "left: 50%; right: auto; transform: translateX(-50%);";
+            }
+
+            nombreHtml =
+              '<div class="page-number-tag" style="' +
+              nombrePosStyle +
+              '">- ' +
+              pageNum +
+              " -</div>";
+          }
+
+          paperEl.innerHTML = headerTagHtml + bodyHtml + nombreHtml;
+
+          return paperEl;
+        }
+
+        function renderPagesWithPrecisePagination() {
+          const totalChars = els.sourceText.value.length;
+          const genkoPages = (totalChars / 400).toFixed(1);
+          charCount.textContent =
+            totalChars.toLocaleString("ja-JP") +
+            "文字（400字詰：約" +
+            genkoPages +
+            "枚）";
+
+          const title = els.pageTitle.value.trim();
+          document.title = title || "Markdown 縦書きドキュメント作成";
+
+          pagesContainer.innerHTML = "";
+          const sections = parseToAST(els.sourceText.value);
+
+          if (sections.length === 0) {
+            pagesContainer.innerHTML =
+              '<div class="paper-page"><article class="md-body"><p style="color:#888;">ここに縦書きプレビューが表示されます。</p></article></div>';
+            return;
+          }
+
+          const isTwoColumn = els.columnSelect.value === "2";
+          let totalPageIndex = 0;
+
+          sections.forEach((items, sectionIdx) => {
+            if (sectionIdx > 0) {
+              totalPageIndex++;
+            }
+
+            let currentPageEl = createPageElement(
+              totalPageIndex,
+              sectionIdx === 0 ? title : null,
+              isTwoColumn,
+            );
+            let currentArticles = Array.from(
+              currentPageEl.querySelectorAll(".md-body"),
+            );
+            let currentColIdx = 0;
+            let currentArticle = currentArticles[currentColIdx];
+
+            pagesContainer.appendChild(currentPageEl);
+
+            const checkOverflow = () => {
+              const containerRect = currentArticle.getBoundingClientRect();
+              const lastChild = currentArticle.lastElementChild;
+              if (!lastChild) return false;
+              const childRect = lastChild.getBoundingClientRect();
+              return childRect.left < containerRect.left - 1;
+            };
+
+            const nextArticle = () => {
+              if (isTwoColumn && currentColIdx === 0) {
+                currentColIdx = 1;
+                currentArticle = currentArticles[currentColIdx];
+                return currentArticle;
+              }
+
+              totalPageIndex++;
+              currentPageEl = createPageElement(
+                totalPageIndex,
+                null,
+                isTwoColumn,
+              );
+              currentArticles = Array.from(
+                currentPageEl.querySelectorAll(".md-body"),
+              );
+              currentColIdx = 0;
+              currentArticle = currentArticles[currentColIdx];
+              pagesContainer.appendChild(currentPageEl);
+              return currentArticle;
+            };
+
+            const appendWithOverflowCheck = (el) => {
+              currentArticle.appendChild(el);
+              if (checkOverflow()) {
+                currentArticle.removeChild(el);
+                currentArticle = nextArticle();
+                currentArticle.appendChild(el);
+              }
+            };
+
+            items.forEach((item) => {
+              if (item.type === "empty") {
+                const p = document.createElement("p");
+                p.className = "no-indent";
+                p.innerHTML = "&nbsp;";
+                appendWithOverflowCheck(p);
+              } else if (item.type === "heading") {
+                const h = document.createElement("h" + item.level);
+                h.innerHTML = parseInlineVerticalMarkdown(item.text);
+                appendWithOverflowCheck(h);
+              } else if (item.type === "hr") {
+                const hr = document.createElement("hr");
+                appendWithOverflowCheck(hr);
+              } else if (item.type === "quote") {
+                const bq = document.createElement("blockquote");
+                bq.innerHTML = parseInlineVerticalMarkdown(item.text);
+                appendWithOverflowCheck(bq);
+              } else if (item.type === "p") {
+                let remainingText = item.text;
+                let isFirstPiece = true;
+
+                while (remainingText.length > 0) {
+                  const p = document.createElement("p");
+                  if (item.isBracket || !isFirstPiece) {
+                    p.className = "no-indent";
+                  }
+                  currentArticle.appendChild(p);
+
+                  let fitsCharCount = 0;
+                  let low = 1;
+                  let high = remainingText.length;
+                  let bestFitText = "";
+
+                  while (low <= high) {
+                    const mid = Math.floor((low + high) / 2);
+                    p.innerHTML = parseInlineVerticalMarkdown(
+                      remainingText.substring(0, mid),
+                    );
+
+                    if (!checkOverflow()) {
+                      fitsCharCount = mid;
+                      bestFitText = p.innerHTML;
+                      low = mid + 1;
+                    } else {
+                      high = mid - 1;
+                    }
+                  }
+
+                  if (fitsCharCount === 0) {
+                    currentArticle.removeChild(p);
+                    currentArticle = nextArticle();
+                  } else {
+                    if (fitsCharCount < remainingText.length) {
+                      let adjustedCount = fitsCharCount;
+
+                      const isGyoutouKinsoku = (ch) => {
+                        return /[・、。，．？！?!：；・ー—–〜～ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮヵヶ\)\}\]］〕〉》〕】〞"’]/.test(
+                          ch,
+                        );
+                      };
+
+                      const isDashOrLeader = (ch) => /[―…──]/.test(ch);
+
+                      while (adjustedCount > 0) {
+                        const nextChar = remainingText[adjustedCount];
+                        const prevChar = remainingText[adjustedCount - 1];
+
+                        if (isGyoutouKinsoku(nextChar)) {
+                          adjustedCount--;
+                          continue;
+                        }
+
+                        if (
+                          isDashOrLeader(prevChar) &&
+                          isDashOrLeader(nextChar)
+                        ) {
+                          adjustedCount--;
+                          continue;
+                        }
+
+                        const sliced = remainingText.substring(
+                          0,
+                          adjustedCount,
+                        );
+                        const openBrackets = (sliced.match(/《/g) || []).length;
+                        const closeBrackets = (sliced.match(/》/g) || [])
+                          .length;
+
+                        if (openBrackets > closeBrackets) {
+                          const lastOpen = sliced.lastIndexOf("《");
+                          const pipeIndex = sliced.lastIndexOf("｜", lastOpen);
+                          if (pipeIndex !== -1 && pipeIndex < lastOpen) {
+                            adjustedCount = pipeIndex;
+                          } else {
+                            adjustedCount = lastOpen;
+                          }
+                          continue;
+                        }
+
+                        const starCount = (sliced.match(/\*\*/g) || []).length;
+                        if (starCount % 2 !== 0) {
+                          const lastStar = sliced.lastIndexOf("**");
+                          if (lastStar > 0) {
+                            adjustedCount = lastStar;
+                            continue;
+                          }
+                        }
+
+                        if (prevChar === "｜") {
+                          adjustedCount--;
+                          continue;
+                        }
+
+                        break;
+                      }
+
+                      if (adjustedCount > 0) {
+                        fitsCharCount = adjustedCount;
+                      }
+                    }
+
+                    p.innerHTML = parseInlineVerticalMarkdown(
+                      remainingText.substring(0, fitsCharCount),
+                    );
+                    remainingText = remainingText.substring(fitsCharCount);
+
+                    if (remainingText.length > 0) {
+                      currentArticle = nextArticle();
+                      isFirstPiece = false;
+                    }
+                  }
+                }
+              }
+            });
+          });
+        }
+        function updateColumnRuleVisibility() {
+          if (columnRuleCol) {
+            columnRuleCol.style.display =
+              els.columnSelect.value === "2" ? "" : "none";
+          }
+        }
+        function updatePreview() {
+          updateColumnRuleVisibility();
+          updatePageStyle();
+          renderPagesWithPrecisePagination();
+          saveToStorage();
+        }
+
+        function debounceUpdatePreview() {
+          charCount.textContent =
+            els.sourceText.value.length.toLocaleString("ja-JP") + "文字";
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(updatePreview, 300);
+        }
+
+        if (els.fontSelect) {
+          els.fontSelect.addEventListener("change", function () {
+            customFontRow.style.display =
+              els.fontSelect.value === "custom" ? "flex" : "none";
+            updatePreview();
+          });
+        }
+
+        if (els.themeSelect) {
+          els.themeSelect.addEventListener("change", function () {
+            document.documentElement.setAttribute(
+              "data-theme",
+              els.themeSelect.value,
+            );
+            saveToStorage();
+          });
+        }
+
+        const CHANGE_EVENT_IDS = [
+          "pageSizeSelect",
+          "columnSelect",
+          "fontSizeSelect",
+          "marginSelect",
+          "gutterSelect",
+          "headerDisplaySelect",
+          "headerPosSelect",
+          "headerSizeSelect",
+          "nombrePosSelect",
+          "columnRuleSelect",
+          "nombreDisplaySelect",
+        ];
+        CHANGE_EVENT_IDS.forEach((id) => {
+          if (els[id]) els[id].addEventListener("change", updatePreview);
+        });
+
+        const INPUT_EVENT_IDS = [
+          "customFontUrl",
+          "customFontFamily",
+          "startPageInput",
+          "sourceText",
+          "pageTitle",
+          "pageHeader",
+        ];
+        INPUT_EVENT_IDS.forEach((id) => {
+          if (els[id]) els[id].addEventListener("input", debounceUpdatePreview);
+        });
+
+        document
+          .getElementById("insertBreakButton")
+          .addEventListener("click", function () {
+            const insertText = "\n\n[改ページ]\n\n";
+            const start = els.sourceText.selectionStart;
+            const end = els.sourceText.selectionEnd;
+            els.sourceText.value =
+              els.sourceText.value.substring(0, start) +
+              insertText +
+              els.sourceText.value.substring(end);
+            els.sourceText.selectionStart = els.sourceText.selectionEnd =
+              start + insertText.length;
+            els.sourceText.focus();
+            updatePreview();
+          });
+
+        document
+          .getElementById("printButton")
+          .addEventListener("click", function () {
+            window.print();
+          });
+
+        document
+          .getElementById("sampleButton")
+          .addEventListener("click", function () {
+            els.pageTitle.value = "言ノ葉Editer 取扱説明書";
+            els.pageHeader.value = "～機能と特殊記法のご案内～";
+            els.fontSelect.value = "system";
+            els.pageSizeSelect.value = "B6";
+            els.fontSizeSelect.value = "9.5pt";
+
+            els.sourceText.value =
+              "『言ノ葉Editer』へようこそ。\n" +
+              "このツールは、Markdown記法や独自の執筆用記法を使って、美しい縦書き文章をリアルタイムに作成・組版するためのエディタです。\n\n" +
+              "## 1. 執筆用記法（ルビ・傍点）\n\n" +
+              "小説執筆に欠かせないルビ（ふりがな）や傍点（圏点）の入力に対応しています。\n\n" +
+              "・ルビ指定：`｜漢字《かんじ》` または `漢字《かんじ》`（※漢字直後は｜省略可）\n" +
+              "（例：｜瑠璃《るり》色の空に、鳳凰《ほうおう》が舞う。）\n\n" +
+              "・傍点指定：`《《強調したい文字》》`\n" +
+              "（例：ここが《《一番重要な場面》》です。）\n\n" +
+              "## 2. 縦中横の自動変換\n\n" +
+              "半角数字（1〜2桁）や、連続する感嘆符・疑問符は、自動的に縦中横（横向きのまま縦書きに整列）に変換されます。\n\n" +
+              "・数字指定：`12`月 `31`日\n" +
+              "（例：12月31日 15時03分）\n\n" +
+              "・記号指定：`!?` `？！` `！！` など\n" +
+              "（例：本当!? 嘘でしょ？！ 信じられない！！）\n\n" +
+              "## 3. Markdown記法と装飾\n\n" +
+              "標準的なMarkdown記法で文章を修飾できます。\n\n" +
+              "・太字指定：`**太字**`（例：**ここが太字**）\n" +
+              "・見出し：`# 見出し1` や `## 見出し2` を使用\n" +
+              "・引用枠：行頭に `>` をつける\n\n" +
+              "> 引用枠は、作中の手紙や古文書、回想シーン、または注釈などの表現に活用できます。\n\n" +
+              "[改ページ]\n\n" +
+              "## 4. ページ制御と印刷・PDF保存\n\n" +
+              "・手動改ページ：独立した行に `[改ページ]` と入力すると、任意の位置で次のページへ送ることができます。\n" +
+              "・印刷・PDF保存：画面右上の「🖨️ 印刷 / PDF保存」ボタンを押すことで、プレビュー通りの縦書きレイアウトで印刷やPDF出力が可能です。\n\n" +
+              "## 5. 各種レイアウト設定\n\n" +
+              "画面左側の設定パネルから、以下の項目を自在に変更できます。\n\n" +
+              "・用紙サイズ（A4、B5、A5、B6、A6、ハガキ）\n" +
+              "・段組（1段組 / 上下2段組）\n" +
+              "・本文文字サイズ、余白、のど（綴じ代）設定\n" +
+              "・明朝体フォントの変更（しっぽり明朝、Noto Serif JPなど）\n" +
+              "・UIテーマ（ダーク、ライト、セピア）\n\n" +
+              "入力したテキストや設定はブラウザに自動保存されますので、安心してご執筆をお楽しみください。";
+
+            updatePreview();
+          });
+
+        document
+          .getElementById("clearButton")
+          .addEventListener("click", function () {
+            if (confirm("入力した内容をすべて消去しますか？")) {
+              els.pageTitle.value = "";
+              els.pageHeader.value = "";
+              els.sourceText.value = "";
+              localStorage.removeItem(STORAGE_KEY);
+              updatePreview();
+              els.sourceText.focus();
+            }
+          });
+
+        // 🚀 初期ロード
+        loadFromStorage();
+        updatePreview();
+      });
+    </script>
+  </body>
 </html>
