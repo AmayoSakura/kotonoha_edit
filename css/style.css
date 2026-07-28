@@ -868,6 +868,18 @@
         overflow: hidden;
       }
 
+      .md-body p.align-left {
+        text-align: left;
+      }
+
+      .md-body p.align-center {
+        text-align: center;
+      }
+
+      .md-body p.align-right {
+        text-align: right;
+      }
+
       [data-writing-mode="vertical"] .md-body {
         writing-mode: vertical-rl;
         -webkit-writing-mode: vertical-rl;
@@ -1112,6 +1124,7 @@
         --mobile-vh: 100vh;
       }
     }
+
     @supports (height: 100dvh) {
       :root {
         --mobile-vh: 100dvh;
@@ -1314,4 +1327,4 @@
         }
       }
     }
-  
+    

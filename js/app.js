@@ -1,4 +1,3 @@
-
     window.addEventListener("DOMContentLoaded", function () {
       "use strict";
 
@@ -43,7 +42,6 @@
       let debounceTimer = null;
       let isSyncingFromEditor = false;
       let isTyping = false;
-      let typingTimer = null;
       let isSyncingFromPreview = false;
       let preservedPageIndex = 0;
       let isRendering = false;
@@ -401,9 +399,27 @@
               continue;
             }
 
-            const isBracket = /^[「『（【〔〈《“‘]/.test(trimmed);
-            const isList = /^[・\-\*]/.test(trimmed) || /^\d+[\.．]/.test(trimmed);
-            items.push({ type: 'p', isBracket: isBracket || isList, text: trimmed, startIndex: itemStart, endIndex: itemEnd });
+            const alignMatch = trimmed.match(/^\[(center|right|中央|中央寄せ|右|右寄せ|下|下寄せ|地|地寄せ)\]\s*(.*)$/i);
+            let align = null;
+            let contentText = trimmed;
+
+            if (alignMatch) {
+              const tag = alignMatch[1].toLowerCase();
+              if (['center', '中央', '中央寄せ'].includes(tag)) align = 'center';
+              else if (['right', '右', '右寄せ', '下', '下寄せ', '地', '地寄せ'].includes(tag)) align = 'right';
+              contentText = alignMatch[2];
+            }
+
+            const isBracket = /^[「『（【〔〈《“‘]/.test(contentText);
+            const isList = /^[・\-\*]/.test(contentText) || /^\d+[\.．]/.test(contentText);
+            items.push({
+              type: 'p',
+              align: align,
+              isBracket: isBracket || isList || !!align,
+              text: contentText,
+              startIndex: itemStart,
+              endIndex: itemEnd
+            });
           }
 
           if (items.length > 0) {
@@ -620,10 +636,7 @@
         };
 
         const flushCurrentPage = () => {
-          currentData.articlesHtml = currentArticles.map((a, i) => {
-            let html = a.innerHTML;
-            return html;
-          });
+          currentData.articlesHtml = currentArticles.map((a) => a.innerHTML);
           generatedPagesCache.push(currentData);
         };
 
@@ -669,7 +682,6 @@
         const sections = parseToAST(els.sourceText.value);
         let processedItems = 0;
         const CHUNK_SIZE = 150;
-
         let lastFitsCharCountEstimate = 400;
 
         const secLen = sections.length;
@@ -727,8 +739,16 @@
 
               while (remainingText.length > 0) {
                 const p = document.createElement('p');
+
+                const classNames = [];
                 if (item.isBracket || !isFirstPiece) {
-                  p.className = 'no-indent';
+                  classNames.push('no-indent');
+                }
+                if (item.align) {
+                  classNames.push('align-' + item.align);
+                }
+                if (classNames.length > 0) {
+                  p.className = classNames.join(' ');
                 }
                 currentArticle.appendChild(p);
 
@@ -772,10 +792,7 @@
                   if (fitsCharCount < remainingText.length) {
                     let adjustedCount = fitsCharCount;
 
-                    const isGyoutouKinsoku = (ch) => {
-                      return /[・、。，．？！?!：；・ー—–〜～ぁぃぅぇぉっゃゅょゎァィゥェォッャュょヮヵヶ\)\}\]］〕〉》〕】〞"’]/.test(ch);
-                    };
-
+                    const isGyoutouKinsoku = (ch) => /[・、。，．？！?!：；・ー—–〜～ぁぃぅぇぉっゃゅょゎァィゥェォッャュょヮヵヶ\)\}\]］〕〉》〕】〞"’]/.test(ch);
                     const isDashOrLeader = (ch) => /[―…──]/.test(ch);
 
                     while (adjustedCount > 0) {
@@ -1029,14 +1046,14 @@
 
           if (els.sourceText) {
             els.sourceText.value = "『言ノ葉Editer』へようこそ。\n" +
-              "本ツールは、Markdown記法や多彩な組版設定を用いて、同人誌、小説、論文などを美しくレイアウト・プレビューできる縦書き・横書き対応のエディタです。\n\n" +
+              "本ツールは、Markdown記法や多彩な組版設定を用いて、小説、エッセイ、論文などを美しくレイアウト・プレビューできる縦書き・横書き対応のエディタです。\n\n" +
               "はじめての方に向けて、**Markdown記法**の使い方と、本ツールの**全機能の活用ガイド**を解説します。\n\n" +
               "## 1. 使えるMarkdown記法（初心者向けガイド）\n\n" +
               "Markdown（マークダウン）とは、シンプルな記号で文字を装飾する書き方です。以下のルールを覚えるだけで、美しく整った誌面が作れます。\n\n" +
               "・**見出し**：行頭に `#` をつけると見出しになります（例: `# 第1章`、`## 節タイトル`、`### 項`）。\n" +
               "・**太字**：強調したい文字を `**` で挟みます（例: `**重要な部分**`）。\n" +
               "・**斜体**：文字を `*` で挟みます（例: `*斜体の文字*`）\n" +
-              "　※環境や日本語フォントによっては、正しく斜体で表示されない場合があります。\n" +
+              " ※環境や日本語フォントによっては、正しく斜体で表示されない場合があります。\n" +
               "・**引用**：行頭に `>` をつけると引用文になります（例: `> 心に響く言葉`）。\n" +
               "・**水平線**：`-` を3つ以上並べると区切り線になります。\n\n" +
               "---\n\n" +
@@ -1051,6 +1068,11 @@
               "（例：ここが《《最も大切なポイント》》です）\n\n" +
               "・**縦中横**：\n" +
               "縦書き時、半角数字（1〜2桁）や `!?` などの連続記号は、自動的に横向きに整列して読みやすくなります（例：12月 31日、!?、？！）。\n\n" +
+              "・**テキスト配置**：\n" +
+              "`[center]``[中央]``[中央寄せ]`のいずれかで一文を中央寄せ（上下中央）に配置します。\n\n" +
+              "[center]中央寄せ（上下中央）サンプル\n\n" +
+              "`[右]``[右寄せ]``[下]``[下寄せ]``[地]``[地寄せ]`のいずれかで一文を右側（下側）に配置します。\n\n" +
+              "[右]右寄せ（下寄せ）サンプル\n\n" +
               "・**手動改ページ**：\n" +
               "独立した行に `[改ページ]` と記述するか、エディタ下の「✂ 手動改ページ」ボタンで、任意の場所でページを強制的に区切ることができます。\n\n" +
               "[改ページ]\n\n" +
@@ -1090,44 +1112,6 @@
         });
       }
 
-      function syncEditorToPreview() {
-        if (isSyncingFromPreview || isTyping || !els.sourceText) return;
-        isSyncingFromEditor = true;
-
-        const cursorPos = els.sourceText.selectionStart;
-        const totalPages = generatedPagesCache.length;
-        if (totalPages === 0) return;
-
-        let targetPageIdx = 0;
-        for (let i = 0; i < totalPages; i++) {
-          const page = generatedPagesCache[i];
-          if (page.startCharIndex !== undefined && page.endCharIndex !== undefined) {
-            if (cursorPos >= page.startCharIndex && cursorPos <= page.endCharIndex) {
-              targetPageIdx = i;
-              break;
-            } else if (cursorPos < page.startCharIndex) {
-              targetPageIdx = Math.max(0, i - 1);
-              break;
-            } else {
-              targetPageIdx = i;
-            }
-          }
-        }
-
-        const pageWidth = getScaledPageWidthPx();
-        const isVertical = (els.writingModeSelect ? els.writingModeSelect.value : "vertical") === "vertical";
-        if (viewport) {
-          preservedPageIndex = targetPageIdx;
-          const scrollPos = isVertical ? -(targetPageIdx * pageWidth) : (targetPageIdx * pageWidth);
-          viewport.scrollTo({
-            left: scrollPos,
-            behavior: 'auto'
-          });
-        }
-
-        setTimeout(() => { isSyncingFromEditor = false; }, 50);
-      }
-
       if (viewport) {
         viewport.addEventListener('scroll', function () {
           if (isRendering || generatedPagesCache.length === 0) return;
@@ -1138,68 +1122,25 @@
             Math.max(0, Math.round(scrollPos / pageWidth))
           );
           updatePageNavUI();
-
-          if (isSyncingFromEditor || !els.sourceText) return;
-          isSyncingFromPreview = true;
-
-          const totalPages = generatedPagesCache.length;
-          const maxPageIdx = totalPages - 1;
-          const currentPageIdx = Math.max(0, Math.min(maxPageIdx, preservedPageIndex));
-
-          function getPixelPositionInTextarea(textarea, charIndex) {
-            const div = document.createElement('div');
-            const style = window.getComputedStyle(textarea);
-
-            div.style.cssText = `
-          position: absolute;
-          visibility: hidden;
-          height: auto;
-          width: ${textarea.clientWidth}px;
-          font-family: ${style.fontFamily};
-          font-size: ${style.fontSize};
-          line-height: ${style.lineHeight};
-          padding: ${style.paddingTop} ${style.paddingRight} ${style.paddingBottom} ${style.paddingLeft};
-          border: ${style.border};
-          box-sizing: border-box;
-          white-space: pre-wrap;
-          word-break: ${style.wordBreak};
-          overflow-wrap: ${style.overflowWrap};
-        `;
-
-            const fullText = textarea.value;
-            const textBefore = fullText.substring(0, charIndex);
-            const textAfter = fullText.substring(charIndex);
-
-            div.textContent = textBefore;
-            const span = document.createElement('span');
-            span.textContent = textAfter;
-            div.appendChild(span);
-
-            document.body.appendChild(div);
-            const spanTop = span.offsetTop;
-            document.body.removeChild(div);
-
-            return spanTop;
-          }
-
-          const targetPage = generatedPagesCache[currentPageIdx];
-          if (targetPage && targetPage.startCharIndex !== undefined) {
-            const charIndex = targetPage.startCharIndex;
-            const fullText = els.sourceText.value;
-            els.sourceText.focus();
-            els.sourceText.setSelectionRange(charIndex, charIndex);
-
-            const targetScrollTop = getPixelPositionInTextarea(els.sourceText, charIndex);
-            els.sourceText.scrollTop = targetScrollTop;
-          }
-
-          setTimeout(() => { isSyncingFromPreview = false; }, 100);
         });
       }
 
       const prevPageBtn = document.getElementById("prevPageBtn");
       const nextPageBtn = document.getElementById("nextPageBtn");
       const pageNavInfo = document.getElementById("pageNavInfo");
+
+      function scrollToCurrentPage() {
+        const pageWidth = getScaledPageWidthPx();
+        const isVertical = (els.writingModeSelect ? els.writingModeSelect.value : "vertical") === "vertical";
+        if (viewport) {
+          const scrollPos = isVertical ? -(preservedPageIndex * pageWidth) : (preservedPageIndex * pageWidth);
+          viewport.scrollTo({
+            left: scrollPos,
+            behavior: 'smooth'
+          });
+        }
+        updatePageNavUI();
+      }
 
       function updatePageNavUI() {
         if (!pageNavInfo) return;
@@ -1235,32 +1176,15 @@
         }
       }
 
-      function goToPage(targetIdx) {
-        const totalPages = generatedPagesCache.length;
-        if (totalPages === 0 || !viewport) return;
-
-        const safeIdx = Math.max(0, Math.min(targetIdx, totalPages - 1));
-        preservedPageIndex = safeIdx;
-        const pageWidth = getScaledPageWidthPx();
-        const isVertical = (els.writingModeSelect ? els.writingModeSelect.value : "vertical") === "vertical";
-        const scrollPos = isVertical ? -(safeIdx * pageWidth) : (safeIdx * pageWidth);
-
-        viewport.scrollTo({
-          left: scrollPos,
-          behavior: 'smooth'
-        });
-
-        updatePageNavUI();
-      }
-
       if (prevPageBtn) {
         prevPageBtn.addEventListener("click", function () {
           const isVertical = (els.writingModeSelect ? els.writingModeSelect.value : "vertical") === "vertical";
           if (isVertical) {
-            goToPage(preservedPageIndex + 1);
+            preservedPageIndex = Math.min((generatedPagesCache.length || 1) - 1, preservedPageIndex + 1);
           } else {
-            goToPage(preservedPageIndex - 1);
+            preservedPageIndex = Math.max(0, preservedPageIndex - 1);
           }
+          scrollToCurrentPage();
         });
       }
 
@@ -1268,88 +1192,55 @@
         nextPageBtn.addEventListener("click", function () {
           const isVertical = (els.writingModeSelect ? els.writingModeSelect.value : "vertical") === "vertical";
           if (isVertical) {
-            goToPage(preservedPageIndex - 1);
+            preservedPageIndex = Math.max(0, preservedPageIndex - 1);
           } else {
-            goToPage(preservedPageIndex + 1);
+            preservedPageIndex = Math.min((generatedPagesCache.length || 1) - 1, preservedPageIndex + 1);
           }
+          scrollToCurrentPage();
         });
       }
 
-      if (els.sourceText) {
-        els.sourceText.addEventListener("input", function () {
-          isTyping = true;
-          clearTimeout(typingTimer);
-          typingTimer = setTimeout(() => { isTyping = false; }, 800);
-        });
-        els.sourceText.addEventListener("click", syncEditorToPreview);
-        els.sourceText.addEventListener("select", syncEditorToPreview);
-      }
-
+      // モバイル切り替え用
       const mobileTabEdit = document.getElementById("mobileTabEdit");
       const mobileTabPreview = document.getElementById("mobileTabPreview");
       const mobileTabBoth = document.getElementById("mobileTabBoth");
       const editorGrid = document.querySelector(".editor-grid");
 
-      function setMobileMode(mode) {
-        if (!editorGrid) return;
-        editorGrid.classList.remove("mode-edit", "mode-preview", "mode-both");
-        editorGrid.classList.add("mode-" + mode);
-
-        if (mobileTabEdit) mobileTabEdit.classList.toggle("active", mode === "edit");
-        if (mobileTabPreview) mobileTabPreview.classList.toggle("active", mode === "preview");
-        if (mobileTabBoth) mobileTabBoth.classList.toggle("active", mode === "both");
-
-        setTimeout(() => {
-          updatePreviewScale();
-          if (mode !== "edit") {
-            updatePreview();
-          } else {
-            renderAllPagesToDOM();
-          }
-        }, 50);
-      }
-
-      if (mobileTabEdit) mobileTabEdit.addEventListener("click", () => setMobileMode("edit"));
-      if (mobileTabPreview) mobileTabPreview.addEventListener("click", () => setMobileMode("preview"));
-      if (mobileTabBoth) mobileTabBoth.addEventListener("click", () => setMobileMode("both"));
-
-      let resizeTimer = null;
-      window.addEventListener("resize", function () {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(() => {
-          updatePreviewScale();
-          renderAllPagesToDOM();
-          if (viewport) {
-            const pageWidth = getScaledPageWidthPx();
-            const isVertical = (els.writingModeSelect ? els.writingModeSelect.value : "vertical") === "vertical";
-            viewport.scrollLeft = isVertical ? -(preservedPageIndex * pageWidth) : (preservedPageIndex * pageWidth);
-          }
-        }, 100);
-      });
-
-      window.addEventListener("beforeprint", function () {
-        preparePrintDOM();
-      });
-
-      window.addEventListener("afterprint", function () {
-        updatePreview();
-      });
-
-      loadFromStorage();
-      setMobileMode("edit");
-
-      requestAnimationFrame(function () {
-        updatePreview();
-      });
-
-      if (document.fonts && document.fonts.ready) {
-        document.fonts.ready.then(function () {
-          updatePreview();
+      if (mobileTabEdit && editorGrid) {
+        mobileTabEdit.addEventListener("click", function () {
+          editorGrid.classList.remove("mode-preview");
+          editorGrid.classList.add("mode-edit");
+          mobileTabEdit.classList.add("active");
+          if (mobileTabPreview) mobileTabPreview.classList.remove("active");
+          if (mobileTabBoth) mobileTabBoth.classList.remove("active");
         });
       }
 
+      if (mobileTabPreview && editorGrid) {
+        mobileTabPreview.addEventListener("click", function () {
+          editorGrid.classList.remove("mode-edit");
+          editorGrid.classList.add("mode-preview");
+          mobileTabPreview.classList.add("active");
+          if (mobileTabEdit) mobileTabEdit.classList.remove("active");
+          if (mobileTabBoth) mobileTabBoth.classList.remove("active");
+        });
+      }
 
-      window.addEventListener("load", function () {
-        updatePreview();
+      if (mobileTabBoth && editorGrid) {
+        mobileTabBoth.addEventListener("click", function () {
+          editorGrid.classList.remove("mode-edit", "mode-preview");
+          mobileTabBoth.classList.add("active");
+          if (mobileTabEdit) mobileTabEdit.classList.remove("active");
+          if (mobileTabPreview) mobileTabPreview.classList.remove("active");
+        });
+      }
+
+      // 初期起動処理
+      loadFromStorage();
+      updatePreview();
+
+      window.addEventListener("resize", function () {
+        updatePreviewScale();
+        renderAllPagesToDOM();
       });
     });
