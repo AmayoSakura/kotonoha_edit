@@ -38,11 +38,9 @@
       const pagesContainer = document.getElementById("pagesContainer");
       const pageSizeStyle = document.getElementById("page-size-style");
       const viewport = document.querySelector('.preview-viewport');
+      const editorGrid = document.getElementById("editorGrid");
       const STORAGE_KEY = "md_vertical_editor_draft_" + location.pathname;
       let debounceTimer = null;
-      let isSyncingFromEditor = false;
-      let isTyping = false;
-      let isSyncingFromPreview = false;
       let preservedPageIndex = 0;
       let isRendering = false;
       let generatedPagesCache = [];
@@ -70,6 +68,33 @@
         "sawarabi": '"Sawarabi Mincho", "Yu Mincho", "MS Mincho", serif',
         "system": '"Hiragino Mincho ProN", "Yu Mincho", "MS Mincho", serif'
       };
+
+      // モバイル用表示タブ切り替え機能（「両方」は除去）
+      const mobileTabEdit = document.getElementById("mobileTabEdit");
+      const mobileTabPreview = document.getElementById("mobileTabPreview");
+
+      function setMobileMode(mode) {
+        if (!editorGrid) return;
+        editorGrid.classList.remove("mode-edit", "mode-preview");
+        editorGrid.classList.add("mode-" + mode);
+
+        [mobileTabEdit, mobileTabPreview].forEach(btn => {
+          if (btn) btn.classList.remove("active");
+        });
+
+        if (mode === "edit" && mobileTabEdit) mobileTabEdit.classList.add("active");
+        if (mode === "preview" && mobileTabPreview) mobileTabPreview.classList.add("active");
+
+        if (mode === "preview") {
+          requestAnimationFrame(() => {
+            updatePreviewScale();
+            renderAllPagesToDOM();
+          });
+        }
+      }
+
+      if (mobileTabEdit) mobileTabEdit.addEventListener("click", () => setMobileMode("edit"));
+      if (mobileTabPreview) mobileTabPreview.addEventListener("click", () => setMobileMode("preview"));
 
       const exportBtn = document.getElementById("exportButton");
       const importBtn = document.getElementById("importButton");
@@ -108,6 +133,7 @@
           reader.onload = function (event) {
             if (els.sourceText) {
               els.sourceText.value = event.target.result;
+              updateCharCount();
               updatePreview();
             }
 
@@ -151,6 +177,9 @@
         if (!viewport) return 1;
         let clientWidth = viewport.clientWidth;
         if (clientWidth === 0) {
+          clientWidth = viewport.getBoundingClientRect().width;
+        }
+        if (clientWidth === 0) {
           const appEl = document.querySelector('.app');
           clientWidth = appEl ? appEl.clientWidth : window.innerWidth;
         }
@@ -182,6 +211,9 @@
 
         let clientWidth = viewport.clientWidth;
         if (clientWidth === 0) {
+          clientWidth = viewport.getBoundingClientRect().width;
+        }
+        if (clientWidth === 0) {
           const appEl = document.querySelector('.app');
           clientWidth = appEl ? appEl.clientWidth : window.innerWidth;
         }
@@ -206,7 +238,7 @@
         const scale = getEffectiveScale();
         const pageWpx = getPageWidthPx();
         const GAP = 24;
-        return Math.round(pageWpx * scale + GAP);
+        return pageWpx * scale + GAP;
       }
 
       function saveToStorage() {
@@ -321,7 +353,7 @@
 
         value = value.replace(/《《([^》\n]+)》》/g, '<span class="bouten">$1</span>');
         value = value.replace(/[\|｜]([^《\n]+)《([^》\n]+)》/g, '<ruby>$1<rt>$2</rt></ruby>');
-        value = value.replace(/([\u4e00-\u9faf]+)《([^》\n]+)》/g, '<ruby>$1<rt>$2</rt></ruby>');
+        value = value.replace(/([\u3005\u3007\u303b\u4e00-\u9faf]+)《([^》\n]+)》/g, '<ruby>$1<rt>$2</rt></ruby>');
         value = value.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
         value = value.replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>");
 
@@ -372,8 +404,8 @@
           for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
             const trimmed = line.trim();
-            const itemStart = lineStart + line.indexOf(trimmed);
-            const itemEnd = itemStart + trimmed.length;
+            const itemStart = lineStart;
+            const itemEnd = lineStart + line.length;
 
             lineStart += line.length + 1;
 
@@ -590,6 +622,87 @@
         }, delay);
       }
 
+      // プレビューの先頭文章とテキストエディタの連動調整（折り返しを考慮した精密スクロール）
+      function syncEditorToPage(pageIndex) {
+        if (!els.sourceText || !generatedPagesCache || !generatedPagesCache[pageIndex]) return;
+        const pageData = generatedPagesCache[pageIndex];
+        // 最初のページの場合は強制的に0文字目（一番最初）に連動させる
+        const startIdx = pageIndex === 0 ? 0 : (pageData.startCharIndex ?? 0);
+
+        const fullText = els.sourceText.value;
+        if (!fullText) return;
+
+        let measurerContainer = document.getElementById("measurerContainer");
+        if (!measurerContainer) return;
+
+        let textMeasurer = document.getElementById("textMeasurer");
+        if (!textMeasurer) {
+          textMeasurer = document.createElement("div");
+          textMeasurer.id = "textMeasurer";
+          measurerContainer.appendChild(textMeasurer);
+        }
+
+        const computedStyle = window.getComputedStyle(els.sourceText);
+
+        textMeasurer.style.cssText = `
+          position: absolute;
+          visibility: hidden;
+          white-space: pre-wrap;
+          word-break: ${computedStyle.wordBreak};
+          overflow-wrap: ${computedStyle.overflowWrap};
+          font-family: ${computedStyle.fontFamily};
+          font-size: ${computedStyle.fontSize};
+          line-height: ${computedStyle.lineHeight};
+          letter-spacing: ${computedStyle.letterSpacing};
+          width: ${els.sourceText.clientWidth}px;
+          box-sizing: border-box;
+          padding: ${computedStyle.paddingTop} ${computedStyle.paddingRight} ${computedStyle.paddingBottom} ${computedStyle.paddingLeft};
+          border: ${computedStyle.borderWidth} solid transparent;
+          margin: 0;
+        `;
+
+        const targetText = fullText.substring(0, startIdx);
+        textMeasurer.innerHTML = escapeHtml(targetText) + '<span id="scrollTargetMarker">&#8203;</span>';
+        const marker = textMeasurer.querySelector('#scrollTargetMarker');
+        const targetTop = marker ? marker.offsetTop : 0;
+
+        const paddingTop = parseFloat(computedStyle.paddingTop) || 0;
+        els.sourceText.scrollTop = startIdx === 0 ? 0 : Math.max(0, targetTop - paddingTop);
+      }
+
+      // テキストエリアのカーソル位置からプレビューの対応ページへスクロール連動
+      function syncPageToEditor() {
+        if (!els.sourceText || generatedPagesCache.length === 0) return;
+        const cursorPos = els.sourceText.selectionStart;
+
+        let targetPageIndex = 0;
+        for (let i = 0; i < generatedPagesCache.length; i++) {
+          const page = generatedPagesCache[i];
+          if (page.startCharIndex !== undefined && page.endCharIndex !== undefined) {
+            if (cursorPos >= page.startCharIndex && cursorPos <= page.endCharIndex) {
+              targetPageIndex = i;
+              break;
+            } else if (cursorPos > page.endCharIndex) {
+              targetPageIndex = i;
+            }
+          }
+        }
+
+        if (preservedPageIndex !== targetPageIndex) {
+          preservedPageIndex = targetPageIndex;
+          const pageWidth = getScaledPageWidthPx();
+          const isVertical = (els.writingModeSelect ? els.writingModeSelect.value : "vertical") === "vertical";
+          if (viewport) {
+            const scrollPos = isVertical ? -(targetPageIndex * pageWidth) : (targetPageIndex * pageWidth);
+            viewport.scrollTo({
+              left: scrollPos,
+              behavior: 'smooth'
+            });
+          }
+          updatePageNavUI();
+        }
+      }
+
       async function renderPagesWithPrecisePagination(isSyncForce = false) {
         if (!pagesContainer || !els.sourceText) return;
 
@@ -671,6 +784,7 @@
 
         const registerPageCharRange = (startIdx, endIdx) => {
           if (startIdx === undefined || endIdx === undefined) return;
+          // ページ内の最初の要素の開始位置を正確に記録する
           if (currentData.startCharIndex === undefined || startIdx < currentData.startCharIndex) {
             currentData.startCharIndex = startIdx;
           }
@@ -889,11 +1003,14 @@
 
       function renderAllPagesToDOM() {
         if (!pagesContainer || generatedPagesCache.length === 0) return;
-        const pageWidth = getScaledPageWidthPx();
+        const scale = getEffectiveScale();
+        const pageWpx = getPageWidthPx();
+        const GAP = 24;
+        const effectivePageWidth = pageWpx * scale + GAP;
         const totalPages = generatedPagesCache.length;
         const isVertical = (els.writingModeSelect ? els.writingModeSelect.value : "vertical") === "vertical";
 
-        pagesContainer.style.width = (totalPages * pageWidth) + "px";
+        pagesContainer.style.width = (totalPages * effectivePageWidth) + "px";
         pagesContainer.innerHTML = "";
         activePageDOMs.clear();
 
@@ -901,14 +1018,20 @@
         for (let idx = 0; idx < totalPages; idx++) {
           const pageEl = createPageDOMFromData(generatedPagesCache[idx]);
           pageEl.style.position = "absolute";
-          if (isVertical) {
-            pageEl.style.right = (idx * pageWidth) + "px";
-            pageEl.style.left = "auto";
-          } else {
-            pageEl.style.left = (idx * pageWidth) + "px";
-            pageEl.style.right = "auto";
-          }
           pageEl.style.top = "0";
+
+          if (isVertical) {
+            pageEl.style.right = "0";
+            pageEl.style.left = "auto";
+            pageEl.style.transformOrigin = "top right";
+            pageEl.style.transform = `scale(${scale}) translateX(${-idx * (pageWpx + GAP / scale)}px)`;
+          } else {
+            pageEl.style.left = "0";
+            pageEl.style.right = "auto";
+            pageEl.style.transformOrigin = "top left";
+            pageEl.style.transform = `scale(${scale}) translateX(${idx * (pageWpx + GAP / scale)}px)`;
+          }
+
           fragment.appendChild(pageEl);
           activePageDOMs.set(idx, pageEl);
         }
@@ -940,13 +1063,34 @@
         return 300;
       }
 
+      function updateCharCount() {
+        if (charCount && els.sourceText) {
+          charCount.textContent = els.sourceText.value.length.toLocaleString("ja-JP") + "文字";
+        }
+      }
+
       function debounceUpdatePreview() {
+        updateCharCount();
         if (charCount && els.sourceText) {
           charCount.textContent = els.sourceText.value.length.toLocaleString("ja-JP") + "文字";
         }
         showLoading();
         clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(updatePreview, getDebounceMs());
+        debounceTimer = setTimeout(() => {
+          updatePreview();
+          syncPageToEditor();
+        }, getDebounceMs());
+      }
+      if (els.sourceText) {
+        ['keyup', 'click', 'select', 'paste'].forEach(eventType => {
+          els.sourceText.addEventListener(eventType, function () {
+            if (eventType === 'paste') {
+              // ★ペースト完了後に値が反映されるのを待ってから更新
+              setTimeout(debounceUpdatePreview, 0);
+            }
+            syncPageToEditor();
+          });
+        });
       }
 
       if (els.fontSelect) {
@@ -981,6 +1125,15 @@
         if (els[id]) els[id].addEventListener("input", debounceUpdatePreview);
       });
 
+      // テキストエリアでのカーソル移動やキー入力、クリック時にプレビュー側を連動させる
+      if (els.sourceText) {
+        ['keyup', 'click', 'select'].forEach(eventType => {
+          els.sourceText.addEventListener(eventType, function () {
+            syncPageToEditor();
+          });
+        });
+      }
+
       const insertBreakBtn = document.getElementById("insertBreakButton");
       if (insertBreakBtn) {
         insertBreakBtn.addEventListener("click", function () {
@@ -995,9 +1148,9 @@
         });
       }
 
-      function preparePrintDOM() {
+      async function preparePrintDOM() {
         currentCalcToken++;
-        renderPagesWithPrecisePagination(true);
+        await renderPagesWithPrecisePagination(true);
 
         if (!pagesContainer) return;
         pagesContainer.innerHTML = "";
@@ -1019,17 +1172,18 @@
 
       const printBtn = document.getElementById("printButton");
       if (printBtn) {
-        printBtn.addEventListener("click", function () {
+        printBtn.addEventListener("click", async function () {
           const titleInput = els.pageTitle ? els.pageTitle.value.trim() : "";
           const originalTitle = document.title;
           if (titleInput) {
             document.title = titleInput;
           }
-          preparePrintDOM();
+          await preparePrintDOM();
           setTimeout(() => {
             window.print();
             setTimeout(() => {
               document.title = originalTitle;
+              updatePreview();
             }, 1000);
           }, 50);
         });
@@ -1040,7 +1194,7 @@
         sampleBtn.addEventListener("click", function () {
           if (els.pageTitle) els.pageTitle.value = "言ノ葉Editer 取扱説明書";
           if (els.pageHeader) els.pageHeader.value = "～機能と特殊記法のご案内～";
-          if (els.fontSelect) els.fontSelect.value = "system";
+          if (els.fontSelect) els.fontSelect.value = "noto";
           if (els.pageSizeSelect) els.pageSizeSelect.value = "B6";
           if (els.fontSizeSelect) els.fontSizeSelect.value = "9.5pt";
 
@@ -1074,10 +1228,10 @@
               "`[右]``[右寄せ]``[下]``[下寄せ]``[地]``[地寄せ]`のいずれかで一文を右側（下側）に配置します。\n\n" +
               "[右]右寄せ（下寄せ）サンプル\n\n" +
               "・**手動改ページ**：\n" +
-              "独立した行に `[改ページ]` と記述するか、エディタ下の「✂ 手動改ページ」ボタンで、任意の場所でページを強制的に区切ることができます。\n\n" +
+              "独立した行に `[改ページ]` と記述するか、エディタ下の「改ページ挿入」ボタンで、任意の場所でページを強制的に区切ることができます。\n\n" +
               "[改ページ]\n\n" +
               "## 3. 組版・書字・用紙設定の使い方\n\n" +
-              "左側パネルの「⚙️ 組版・表示設定」タブから、発行スタイルに合わせた詳細なレイアウト調整が可能です。\n\n" +
+              "左側パネルの「組版・表示設定」タブから、発行スタイルに合わせた詳細なレイアウト調整が可能です。\n\n" +
               "・**書字・綴じ方向**：縦書き（右綴じ・左綴じ）と横書きをワンタッチで切り替え可能。「のど（綴じ代）」を有効にすると、見開きページの左右交互に余白が自動調整されます。\n" +
               "・**用紙サイズ**：Ａ４からＢ５、Ａ５、Ｂ６、Ａ６、ハガキサイズまで幅広くサポート。\n" +
               "・**段組・境界線**：1段組のほか、文芸誌や資料に便利な2段組（実線/なしの境界線選択付き）を選べます。\n" +
@@ -1089,8 +1243,8 @@
               "・**ノンブル（ページ番号）**：算用数字（`1, 2, 3...`）のほか、縦書きに映える漢数字（`一, 二, 三...`）表記に対応。ハイフン（`- 1 -`）、丸括弧（`（ 1 ）`）、角括弧、スラッシュ、P.Nなどの装飾スタイルが選べます。\n\n" +
               "[改ページ]\n\n" +
               "## 5. 保存・インポート・印刷機能\n\n" +
-              "・**自動保存・データ管理**：執筆中の文章はローカルストレージに自動保存されます。「💾 ファイル保存」「📂 ファイルを開く」からテキスト・Markdownファイルの入出力も自由に行えます。\n" +
-              "・**印刷・PDF保存**：画面右上の「🖨️ 印刷 / PDF保存」ボタンを押すだけで、余白やノンブルが整ったプレビュー通りの美しい印刷・PDF出力が実行できます。\n\n" +
+              "・**自動保存・データ管理**：執筆中の文章はローカルストレージに自動保存されます。「保存」「開く」からテキスト・Markdownファイルの入出力も自由に行えます。\n" +
+              "・**印刷・PDF保存**：画面右上の「印刷 / PDF保存」ボタンを押すだけで、余白やノンブルが整ったプレビュー通りの美しい印刷・PDF出力が実行できます。\n\n" +
               "> 『言ノ葉Editer』を活用して、あなたの素敵な作品を形にしてください。";
           }
 
@@ -1117,11 +1271,15 @@
           if (isRendering || generatedPagesCache.length === 0) return;
           const pageWidth = getScaledPageWidthPx();
           const scrollPos = Math.abs(viewport.scrollLeft);
-          preservedPageIndex = Math.min(
+          const newIndex = Math.min(
             generatedPagesCache.length - 1,
             Math.max(0, Math.round(scrollPos / pageWidth))
           );
-          updatePageNavUI();
+          if (preservedPageIndex !== newIndex) {
+            preservedPageIndex = newIndex;
+            updatePageNavUI();
+            syncEditorToPage(preservedPageIndex);
+          }
         });
       }
 
@@ -1140,6 +1298,7 @@
           });
         }
         updatePageNavUI();
+        syncEditorToPage(preservedPageIndex);
       }
 
       function updatePageNavUI() {
@@ -1200,47 +1359,18 @@
         });
       }
 
-      // モバイル切り替え用
-      const mobileTabEdit = document.getElementById("mobileTabEdit");
-      const mobileTabPreview = document.getElementById("mobileTabPreview");
-      const mobileTabBoth = document.getElementById("mobileTabBoth");
-      const editorGrid = document.querySelector(".editor-grid");
-
-      if (mobileTabEdit && editorGrid) {
-        mobileTabEdit.addEventListener("click", function () {
-          editorGrid.classList.remove("mode-preview");
-          editorGrid.classList.add("mode-edit");
-          mobileTabEdit.classList.add("active");
-          if (mobileTabPreview) mobileTabPreview.classList.remove("active");
-          if (mobileTabBoth) mobileTabBoth.classList.remove("active");
-        });
-      }
-
-      if (mobileTabPreview && editorGrid) {
-        mobileTabPreview.addEventListener("click", function () {
-          editorGrid.classList.remove("mode-edit");
-          editorGrid.classList.add("mode-preview");
-          mobileTabPreview.classList.add("active");
-          if (mobileTabEdit) mobileTabEdit.classList.remove("active");
-          if (mobileTabBoth) mobileTabBoth.classList.remove("active");
-        });
-      }
-
-      if (mobileTabBoth && editorGrid) {
-        mobileTabBoth.addEventListener("click", function () {
-          editorGrid.classList.remove("mode-edit", "mode-preview");
-          mobileTabBoth.classList.add("active");
-          if (mobileTabEdit) mobileTabEdit.classList.remove("active");
-          if (mobileTabPreview) mobileTabPreview.classList.remove("active");
-        });
-      }
-
-      // 初期起動処理
-      loadFromStorage();
-      updatePreview();
-
+      let resizeTimer = null;
       window.addEventListener("resize", function () {
-        updatePreviewScale();
-        renderAllPagesToDOM();
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+          updatePreview();
+        }, 200);
       });
+
+      loadFromStorage();
+      updateCharCount();
+      updateColumnRuleVisibility();
+      updatePageStyle();
+      updatePreviewScale();
+      renderPagesWithPrecisePagination();
     });
