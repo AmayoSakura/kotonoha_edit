@@ -1078,88 +1078,57 @@
 
 @layer print {
   @media print {
-    @page {
-      margin: 0 !important;
-    }
-
     html,
     body {
       width: var(--paper-w) !important;
       height: var(--paper-h) !important;
       background: #ffffff !important;
       color: #000000 !important;
-      overflow: visible !important;
-      margin: 0 !important;
-      padding: 0 !important;
     }
-
     .no-print,
     .editor-panel,
-    .hero,
-    .mobile-tab-bar,
-    .page-nav-bar,
-    .loading-indicator,
-    #measurerContainer {
+    .hero {
       display: none !important;
     }
+    .app {
+      width: 100% !important;
+      max-width: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    .editor-grid {
+      display: block !important;
+    }
 
-    .app,
-    .editor-grid,
-    .preview-container-wrapper,
-    .preview-viewport,
+    .preview-viewport {
+      background: transparent !important;
+      padding: 0 !important;
+      max-height: none !important;
+      overflow: visible !important;
+      border: none !important;
+    }
+
     .pages-container {
       display: block !important;
-      width: 100% !important;
-      height: auto !important;
-      max-height: none !important;
-      margin: 0 !important;
       padding: 0 !important;
-      border: none !important;
-      background: transparent !important;
-      box-shadow: none !important;
-      overflow: visible !important;
-      position: static !important;
-      direction: ltr !important;
     }
 
     .paper-page {
-      position: relative !important;
-      top: auto !important;
-      right: auto !important;
-      left: auto !important;
-      margin: 0 !important;
-      width: 100vw !important;
-      height: 100vh !important;
-      min-width: 100vw !important;
-      min-height: 100vh !important;
-      max-width: 100vw !important;
-      max-height: 100vh !important;
-      background-color: #ffffff !important;
       box-shadow: none !important;
       padding: var(--page-padding-v) var(--page-padding-h) !important;
-      transform: none !important;
-      page-break-before: always !important;
-      break-before: page !important;
+      margin: 0 !important;
+      width: var(--paper-w) !important;
+      height: var(--paper-h) !important;
       page-break-after: always !important;
       break-after: page !important;
-      page-break-inside: avoid !important;
-      break-inside: avoid !important;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
-      box-sizing: border-box !important;
-      overflow: hidden !important;
-    }
-
-    .paper-page:first-child,
-    .paper-page:first-of-type {
-      page-break-before: avoid !important;
-      break-before: avoid !important;
     }
 
     .page-header-tag,
     .page-number-tag {
       display: block !important;
-      color: #000000 !important;
+      color: #000 !important;
     }
   }
 }
