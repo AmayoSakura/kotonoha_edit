@@ -3,7 +3,35 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- OGP (Open Graph Protocol) -->
+    <meta property="og:title" content="言ノ葉Editer - 日本語組版エディタ" />
+    <meta
+      property="og:description"
+      content="言葉を整え、物語を美しく。縦書き対応の日本語組版エディタ。"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="image/ogp.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="ja_JP" />
 
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="言ノ葉Editer - 日本語組版エディタ" />
+    <meta
+      name="twitter:description"
+      content="言葉を整え、物語を美しく。縦書き対応の日本語組版エディタ。"
+    />
+    <meta name="twitter:image" content="image/ogp.png" />
+
+    <!-- 一般メタタグ -->
+    <meta
+      name="description"
+      content="言葉を整え、物語を美しく。縦書き対応の日本語組版エディタ。"
+    />
+
+    <!-- ファビコン -->
+    <link rel="icon" type="image/svg+xml" href="image/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -18,7 +46,7 @@
         margin: 0;
       }
     </style>
-    <title>言ノ葉Editer v0.16</title>
+    <title>言ノ葉Editer v0.17</title>
 
     <style>
       @layer base, layout, editor, viewer, print;
@@ -560,6 +588,8 @@
           padding-left: 8px;
           line-height: 1.4;
           white-space: nowrap;
+          /* p要素と同じ理由（縦書きでのheight暗黙継承）で追加。詳細はmd-body pのコメント参照。 */
+          height: fit-content;
         }
 
         .md-body h2 {
@@ -569,6 +599,8 @@
           font-size: 1.3em;
           line-height: 1.5;
           white-space: nowrap;
+          /* p要素と同じ理由（縦書きでのheight暗黙継承）で追加。詳細はmd-body pのコメント参照。 */
+          height: fit-content;
         }
 
         .md-body h3 {
@@ -576,6 +608,8 @@
           font-size: 1.1em;
           line-height: 1.6;
           white-space: nowrap;
+          /* p要素と同じ理由（縦書きでのheight暗黙継承）で追加。詳細はmd-body pのコメント参照。 */
+          height: fit-content;
         }
 
         .md-body p {
@@ -583,6 +617,13 @@
           padding: 0;
           text-indent: 1em;
           white-space: nowrap;
+          /* 縦書き(writing-mode: vertical-rl)では、height未指定のブロック要素が
+           親(.md-body, height:100%)の高さを暗黙的に継承してしまうケースがあり、
+           実際には文字数に応じて縮むべき各行の<p>が、ページ1段分の高さを
+           丸ごと専有してしまっていた。これが「JSの行分割計算は正しいのに
+           実描画では早期に折り返されたように見える」現象の直接原因だったため、
+           height を内容に応じたサイズに明示的に固定する。 */
+          height: fit-content;
         }
 
         .md-body p.no-indent {
@@ -595,6 +636,8 @@
           background: #efefef;
           font-size: 0.95em;
           white-space: nowrap;
+          /* p要素と同じ理由（縦書きでのheight暗黙継承）で追加。詳細はmd-body pのコメント参照。 */
+          height: fit-content;
         }
 
         .md-body hr {
@@ -740,7 +783,7 @@
       <header class="hero no-print">
         <div class="hero-title-group">
           <h1>言ノ葉Editer</h1>
-          <span class="version-badge">v0.16</span>
+          <span class="version-badge">v0.17</span>
         </div>
         <div class="hero-actions">
           <select
@@ -1422,10 +1465,18 @@
           const marginVPx = mmToPx(margin.v);
           const marginHPx = mmToPx(margin.h);
 
-          const availableH = paperHPx - marginVPx * 2 - 8;
-          let colHPx = availableH;
+          // .paper-page は box-sizing: border-box で padding: var(--page-padding-v) var(--page-padding-h)。
+          // border は無いので、内側の実高さは「用紙の高さ - 上下padding」で理論値と一致する。
+          const innerHPx = paperHPx - marginVPx * 2;
+
+          let colHPx = innerHPx;
           if (isTwoColumn) {
-            colHPx = availableH / 2 - mmToPx(3) - 4;
+            // CSS: .paper-page.has-columns .md-body { height: calc(50% - 3mm); }
+            // 50% の基準は .columns-wrapper の height:100%（= innerHPx と同じ）。
+            // column-divider の margin(2mm×2=4mm)+border(1px)は、
+            // 2つの .md-body（合計 100% - 6mm）の残り 6mm 分に収まる設計のため、
+            // ここで別途 divider 分を引く必要はない（二重引きになるため削除）。
+            colHPx = innerHPx / 2 - mmToPx(3);
           }
 
           const gutterWidth = isGutterOn ? mmToPx(6) : 0;
@@ -1442,10 +1493,25 @@
             return fontSizePx * fontScale;
           }
 
+          // .inline-code は font-size: 0.88em で本文より縮小して描画される。
+          // 従来の計算はこの縮小率を無視して本文と同じ幅で見積もっていたため、
+          // コードブロックを含む行で「実際より短く」見積もられ、はみ出し（文字切れ）の原因になっていた。
+          const INLINE_CODE_FONT_SCALE = 0.88;
+          // .inline-code の padding: 1px 4px のうち、縦書きで行送り方向に効くのは上下の 1px×2。
+          // トークン単位で1回だけ加算する（文字ごとではなく、コード片全体で1回）。
+          const INLINE_CODE_PADDING_PX = 2;
+
           function parseTextTokens(str) {
             const tokens = [];
+            // fallback（最後の代替パターン）は1文字ずつマッチさせる。
+            // 以前は [^...]+ で連続文字を貪欲に食っていたため、
+            // 「色の空に、鳳凰《ほうおう》」のように平文の直後に自動判定ルビ
+            // （｜なしの「漢字+《...》」パターン）が続く場合、
+            // 手前の平文が「鳳凰」まで巻き込んでトークン化してしまい、
+            // ルビが《の前後で分断される不具合があった。1文字ずつにすることで、
+            // 毎文字ごとに改めてルビパターンとのマッチを試みられるようにする。
             const pattern =
-              /(!\?|\?!|!!|\?\?|！？|？！|！！|！！|？？)|(\b\d{1,2}\b)|([\|｜][^《\n]+《[^》\n]+》)|([一-龯]+《[^》\n]+》)|(《《[^》\n]+》》)|(\*\*[^*]+\*\*)|(\*[^*\n]+\*)|(`[^`]+`)|([^\|｜《\*`!\?\d]+|.)/g;
+              /(!\?|\?!|!!|\?\?|！？|？！|！！|！！|？？)|(\b\d{1,2}\b)|([\|｜][^《\n]+《[^》\n]+》)|([一-龯]+《[^》\n]+》)|(《《[^》\n]+》》)|(\*\*[^*]+\*\*)|(\*[^*\n]+\*)|(`[^`]+`)|([^\|｜《\*`!\?\d])/g;
             let match;
             while ((match = pattern.exec(str)) !== null) {
               const raw = match[0];
@@ -1469,7 +1535,11 @@
             return tokens;
           }
 
-          function splitTextToLines(rawText, fontScale = 1.0) {
+          function splitTextToLines(
+            rawText,
+            fontScale = 1.0,
+            hasIndent = false,
+          ) {
             const tokens = parseTextTokens(rawText);
             const charItems = [];
 
@@ -1483,15 +1553,21 @@
                 (tok.raw.startsWith("`") && tok.raw.endsWith("`"));
 
               if (tok.raw !== tok.display && !isSplittable) {
+                const isRuby =
+                  tok.raw.includes("《") &&
+                  tok.raw.endsWith("》") &&
+                  !tok.raw.startsWith("《《");
                 charItems.push({
                   raw: tok.raw,
                   display: tok.display,
                   isAtomic: true,
+                  isRuby: isRuby,
                 });
               } else {
                 let prefix = "";
                 let suffix = "";
                 let text = tok.raw;
+                let isCode = false;
 
                 if (text.startsWith("**") && text.endsWith("**")) {
                   prefix = "**";
@@ -1505,6 +1581,7 @@
                   prefix = "`";
                   suffix = "`";
                   text = text.slice(1, -1);
+                  isCode = true;
                 } else if (text.startsWith("《《") && text.endsWith("》》")) {
                   prefix = "《《";
                   suffix = "》》";
@@ -1517,6 +1594,10 @@
                     raw: prefix ? prefix + ch + suffix : ch,
                     display: ch,
                     isAtomic: false,
+                    // コードブロックの1文字目にのみ isCodeStart を立て、
+                    // padding分の加算をトークンごとに1回だけ行えるようにする。
+                    isCode: isCode,
+                    isCodeStart: isCode && i === 0,
                   });
                 }
               }
@@ -1527,14 +1608,64 @@
             let currentH = 0;
             let currentChars = [];
 
+            // 段落の1行目には CSS の text-indent: 1em が入るため、
+            // 実際に文字を置ける幅は colHPx より 1em（fontSizePx * fontScale）分狭い。
+            // これを考慮せずに colHPx いっぱいまで詰め込むと、1行目だけ実際の描画で
+            // 最後の1文字がインデント分に押し出されてはみ出し、画面から消えて見える不具合があった。
+            const indentPx = hasIndent ? fontSizePx * fontScale : 0;
+
             for (let i = 0; i < charItems.length; i++) {
               const item = charItems[i];
+              // 現在組み立て中の行が段落の1行目かどうか（まだ1行も確定していない = lines.length === 0）。
+              const effectiveColHPx =
+                hasIndent && lines.length === 0 ? colHPx - indentPx : colHPx;
               let itemH = 0;
-              for (let c = 0; c < item.display.length; c++) {
-                itemH += getCharHeight(item.display[c], fontScale);
+              if (item.isCode) {
+                // .inline-code は font-size: 0.88em で描画されるため、通常文字と同じ幅計算では
+                // 実際より大きく（=行に多く収まると）見積もられ、はみ出しの原因になる。
+                for (let c = 0; c < item.display.length; c++) {
+                  itemH += getCharHeight(
+                    item.display[c],
+                    fontScale * INLINE_CODE_FONT_SCALE,
+                  );
+                }
+                // padding: 1px 4px の上下1px×2分を、コード片の先頭文字のみ1回加算する。
+                if (item.isCodeStart) {
+                  itemH += INLINE_CODE_PADDING_PX;
+                }
+              } else if (item.isRuby) {
+                // ルビ付き文字の幅計算。
+                // 過去に「読み仮名の分の余裕」として RUBY_EXTRA_SCALE(1.15) を掛けていたが、
+                // CSS側の line-height: 1.8 に既にルビを収める余裕が織り込まれている可能性が高く、
+                // 追加の倍率は二重計上となって早期改行（本来入るはずの文字数より少なく見積もる）
+                // を引き起こしていたため撤去。対象文字数分の基本幅のみで計算する。
+                for (let c = 0; c < item.display.length; c++) {
+                  itemH += getCharHeight(item.display[c], fontScale);
+                }
+              } else {
+                for (let c = 0; c < item.display.length; c++) {
+                  itemH += getCharHeight(item.display[c], fontScale);
+                }
               }
 
-              if (currentH + itemH > colHPx) {
+              if (window.DEBUG_LAYOUT) {
+                console.log(
+                  "[ITEM]",
+                  JSON.stringify(item.display),
+                  "raw=",
+                  JSON.stringify(item.raw),
+                  "isCode=",
+                  !!item.isCode,
+                  "isRuby=",
+                  !!item.isRuby,
+                  "itemH=",
+                  itemH.toFixed(2),
+                  "effectiveColHPx=",
+                  effectiveColHPx.toFixed(1),
+                );
+              }
+
+              if (currentH + itemH > effectiveColHPx) {
                 if (currentChars.length === 0) {
                   currentRaw += item.raw;
                   currentH += itemH;
@@ -1566,6 +1697,18 @@
                   i -= popped.length + 1;
 
                   currentRaw = currentChars.map((c) => c.raw).join("");
+                  if (window.DEBUG_LAYOUT) {
+                    console.log(
+                      "[LINE:kinsoku]",
+                      JSON.stringify(currentRaw),
+                      "chars=",
+                      currentChars.length,
+                      "H=",
+                      currentH.toFixed(1),
+                      "/ effectiveColHPx=",
+                      effectiveColHPx.toFixed(1),
+                    );
+                  }
                   lines.push(currentRaw);
 
                   currentRaw = "";
@@ -1573,6 +1716,18 @@
                   currentChars = [];
                   continue;
                 } else {
+                  if (window.DEBUG_LAYOUT) {
+                    console.log(
+                      "[LINE]",
+                      JSON.stringify(currentRaw),
+                      "chars=",
+                      currentChars.length,
+                      "H=",
+                      currentH.toFixed(1),
+                      "/ effectiveColHPx=",
+                      effectiveColHPx.toFixed(1),
+                    );
+                  }
                   lines.push(currentRaw);
                   currentRaw = "";
                   currentH = 0;
@@ -1672,7 +1827,10 @@
                   );
                 });
               } else if (item.type === "p") {
-                const pLines = splitTextToLines(item.text, 1.0);
+                // CSSでは isBracket または align 指定がある段落は no-indent（インデント無し）になるため、
+                // 1行目の幅計算でインデント分を差し引く対象もそれに合わせる。
+                const pHasIndent = !item.isBracket && !item.align;
+                const pLines = splitTextToLines(item.text, 1.0, pHasIndent);
                 pLines.forEach((pLine, idx) => {
                   addLineToPage(
                     {
@@ -2164,16 +2322,12 @@
             els.sourceText.value =
               "『言ノ葉Editer』へようこそ。\n" +
               "このツールは、Markdown記法や独自の執筆用記法を使って、美しい縦書き文章をリアルタイムに作成・組版するためのエディタです。\n\n" +
-              "[中央]― 寄せの機能表記例 ―\n" +
-              "[右]執筆者：言ノ葉太郎\n\n" +
               "## 1. 執筆用記法（ルビ・傍点・配置）\n\n" +
               "小説執筆に欠かせないルビ（ふりがな）や傍点（圏点）、配置の指定に対応しています。\n\n" +
               "・ルビ指定：`｜漢字《かんじ》` または `漢字《かんじ》`\n" +
               "（例：｜瑠璃《るり》色の空に、鳳凰《ほうおう》が舞う。）\n\n" +
               "・傍点指定：`《《強調したい文字》》`\n" +
               "（例：ここが《《一番重要な場面》》です。）\n\n" +
-              "・中央寄せ：`[中央]文字` または `[center]文字`\n" +
-              "・右寄せ（下寄せ）：`[右]文字` または `[right]文字`\n\n" +
               "## 2. 縦中横の自動変換\n\n" +
               "半角数字（1〜2桁）や、連続する感嘆符・疑問符は、自動的に縦中横に変換されます。\n\n" +
               "・数字指定：`12`月 `31`日\n" +
@@ -2216,6 +2370,10 @@
               els.sourceText.focus();
             }
           });
+
+        // デバッグ用：レイアウト計算のログをコンソールに出力する。
+        // 検証が終わったらこのフラグと関連する console.log 呼び出しは削除すること。
+        window.DEBUG_LAYOUT = true;
 
         loadFromStorage();
         updatePreview();
