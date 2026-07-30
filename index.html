@@ -18,7 +18,7 @@
         margin: 0;
       }
     </style>
-    <title>言ノ葉Editer v0.9 (高速仮想DOM版)</title>
+    <title>言ノ葉Editer v0.10</title>
 
     <style>
       @layer base, layout, editor, viewer, print;
@@ -440,6 +440,16 @@
           overflow: hidden;
         }
 
+        .md-body .align-center {
+          text-align: center;
+          text-indent: 0 !important;
+        }
+
+        .md-body .align-right {
+          text-align: right;
+          text-indent: 0 !important;
+        }
+
         .nobreak {
           display: inline;
           white-space: nowrap;
@@ -598,6 +608,8 @@
           }
 
           .paper-page {
+            contain: none !important;
+            /* 印刷時にレイアウトカットを解除 */
             box-shadow: none !important;
             padding: var(--page-padding-v) var(--page-padding-h) !important;
             margin: 0 !important;
@@ -610,6 +622,11 @@
             overflow: visible !important;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
+          }
+
+          .md-body {
+            overflow: visible !important;
+            /* 印刷時に文字切れを防止 */
           }
 
           .paper-page:last-child {
@@ -626,7 +643,7 @@
       <header class="hero no-print">
         <div class="hero-title-group">
           <h1>言ノ葉Editer</h1>
-          <span class="version-badge">v0.9 (高速仮想化版)</span>
+          <span class="version-badge">v0.10</span>
         </div>
         <div class="hero-actions">
           <select
@@ -933,7 +950,6 @@
       window.addEventListener("DOMContentLoaded", function () {
         "use strict";
 
-        // タブ切り替え
         const tabButtons = document.querySelectorAll(".editor-tab-btn");
         const tabPanes = document.querySelectorAll(".tab-pane");
         tabButtons.forEach((btn) => {
@@ -1164,29 +1180,53 @@
                 return;
               }
 
-              const heading = trimmed.match(/^(#{1,6})\s+(.+)$/);
+              let align = null;
+              let textToParse = trimmed;
+
+              const centerMatch = textToParse.match(
+                /^(?:\[(?:中央|center)\]|［(?:中央|center)］)\s*(.*)$/i,
+              );
+              const rightMatch = textToParse.match(
+                /^(?:\[(?:右|right)\]|［(?:右|right)］)\s*(.*)$/i,
+              );
+
+              if (centerMatch) {
+                align = "center";
+                textToParse = centerMatch[1];
+              } else if (rightMatch) {
+                align = "right";
+                textToParse = rightMatch[1];
+              }
+
+              const heading = textToParse.match(/^(#{1,6})\s+(.+)$/);
               if (heading) {
                 items.push({
                   type: "heading",
                   level: heading[1].length,
                   text: heading[2].trim(),
+                  align: align,
                 });
                 return;
               }
 
-              if (/^(?:-{3,}|\*{3,}|_{3,})$/.test(trimmed)) {
+              if (/^(?:-{3,}|\*{3,}|_{3,})$/.test(textToParse)) {
                 items.push({ type: "hr" });
                 return;
               }
 
-              const quote = trimmed.match(/^>\s?(.*)$/);
+              const quote = textToParse.match(/^>\s?(.*)$/);
               if (quote) {
-                items.push({ type: "quote", text: quote[1] });
+                items.push({ type: "quote", text: quote[1], align: align });
                 return;
               }
 
-              const isBracket = /^[「『（【〔〈《“‘]/.test(trimmed);
-              items.push({ type: "p", isBracket, text: trimmed });
+              const isBracket = /^[「『（【〔〈《“‘]/.test(textToParse);
+              items.push({
+                type: "p",
+                isBracket,
+                text: textToParse,
+                align: align,
+              });
             });
 
             if (items.length > 0) sections.push(items);
@@ -1209,7 +1249,8 @@
           const marginVPx = mmToPx(margin.v);
           const marginHPx = mmToPx(margin.h);
 
-          let colHPx = paperHPx - marginVPx * 2 - 10;
+          // ルビ・行間ずれ防止のため安全幅（安全マージン）を拡張
+          let colHPx = paperHPx - marginVPx * 2 - 24;
           if (isTwoColumn) {
             colHPx = (colHPx - mmToPx(6)) / 2;
           }
@@ -1356,7 +1397,12 @@
                 const hLines = splitTextToLines(item.text, scale);
                 hLines.forEach((hLine) => {
                   addLineToPage(
-                    { type: "heading", level: item.level, text: hLine },
+                    {
+                      type: "heading",
+                      level: item.level,
+                      text: hLine,
+                      align: item.align,
+                    },
                     cost,
                   );
                 });
@@ -1365,7 +1411,10 @@
               } else if (item.type === "quote") {
                 const qLines = splitTextToLines(item.text, 0.95);
                 qLines.forEach((qLine) => {
-                  addLineToPage({ type: "quote", text: qLine }, 1.1);
+                  addLineToPage(
+                    { type: "quote", text: qLine, align: item.align },
+                    1.1,
+                  );
                 });
               } else if (item.type === "p") {
                 const pLines = splitTextToLines(item.text, 1.0);
@@ -1375,7 +1424,8 @@
                       type: "p",
                       text: pLine,
                       isBracket: item.isBracket,
-                      isIndent: idx === 0 && !item.isBracket,
+                      isIndent: idx === 0 && !item.isBracket && !item.align,
+                      align: item.align,
                     },
                     1,
                   );
@@ -1395,17 +1445,26 @@
           if (!lines || lines.length === 0) return "";
           let html = "";
           lines.forEach((item) => {
+            const alignClass = item.align ? ` align-${item.align}` : "";
+
             if (item.type === "empty") {
               html += '<p class="no-indent">&nbsp;</p>';
             } else if (item.type === "heading") {
-              html += `<h${item.level}>${parseInlineVerticalMarkdown(item.text)}</h${item.level}>`;
+              const clsAttr = alignClass ? ` class="${alignClass.trim()}"` : "";
+              html += `<h${item.level}${clsAttr}>${parseInlineVerticalMarkdown(item.text)}</h${item.level}>`;
             } else if (item.type === "hr") {
               html += "<hr />";
             } else if (item.type === "quote") {
-              html += `<blockquote>${parseInlineVerticalMarkdown(item.text)}</blockquote>`;
+              const clsAttr = alignClass ? ` class="${alignClass.trim()}"` : "";
+              html += `<blockquote${clsAttr}>${parseInlineVerticalMarkdown(item.text)}</blockquote>`;
             } else if (item.type === "p") {
-              const indentClass = item.isIndent ? "" : ' class="no-indent"';
-              html += `<p${indentClass}>${parseInlineVerticalMarkdown(item.text)}</p>`;
+              const classes = [];
+              if (!item.isIndent || item.align) classes.push("no-indent");
+              if (item.align) classes.push(`align-${item.align}`);
+
+              const classAttr =
+                classes.length > 0 ? ` class="${classes.join(" ")}"` : "";
+              html += `<p${classAttr}>${parseInlineVerticalMarkdown(item.text)}</p>`;
             }
           });
           return html;
@@ -1661,14 +1720,19 @@
             updatePreview();
           });
 
-        window.isPrinting = false;
-        window.addEventListener("beforeprint", () => {
+        // 印刷用全ページ完全描画処理
+        function prepareAllPagesForPrint() {
           window.isPrinting = true;
           const allPages = pagesContainer.querySelectorAll(".paper-page");
           allPages.forEach((el) => {
             const idx = parseInt(el.dataset.pageIndex, 10);
             if (!isNaN(idx)) renderPageDom(el, idx);
           });
+        }
+
+        window.isPrinting = false;
+        window.addEventListener("beforeprint", () => {
+          prepareAllPagesForPrint();
         });
 
         window.addEventListener("afterprint", () => {
@@ -1679,7 +1743,13 @@
         document
           .getElementById("printButton")
           .addEventListener("click", function () {
-            window.print();
+            prepareAllPagesForPrint();
+            // レンダリング・スタイル描画の確定を待ってから印刷を実行
+            requestAnimationFrame(() => {
+              setTimeout(() => {
+                window.print();
+              }, 150);
+            });
           });
 
         document
@@ -1694,12 +1764,16 @@
             els.sourceText.value =
               "『言ノ葉Editer』へようこそ。\n" +
               "このツールは、Markdown記法や独自の執筆用記法を使って、美しい縦書き文章をリアルタイムに作成・組版するためのエディタです。\n\n" +
-              "## 1. 執筆用記法（ルビ・傍点）\n\n" +
-              "小説執筆に欠かせないルビ（ふりがな）や傍点（圏点）の入力に対応しています。\n\n" +
+              "[中央]― 寄せの機能表記例 ―\n" +
+              "[右]執筆者：言ノ葉太郎\n\n" +
+              "## 1. 執筆用記法（ルビ・傍点・配置）\n\n" +
+              "小説執筆に欠かせないルビ（ふりがな）や傍点（圏点）、配置の指定に対応しています。\n\n" +
               "・ルビ指定：`｜漢字《かんじ》` または `漢字《かんじ》`\n" +
               "（例：｜瑠璃《るり》色の空に、鳳凰《ほうおう》が舞う。）\n\n" +
               "・傍点指定：`《《強調したい文字》》`\n" +
               "（例：ここが《《一番重要な場面》》です。）\n\n" +
+              "・中央寄せ：`[中央]文字` または `[center]文字`\n" +
+              "・右寄せ（下寄せ）：`[右]文字` または `[right]文字`\n\n" +
               "## 2. 縦中横の自動変換\n\n" +
               "半角数字（1〜2桁）や、連続する感嘆符・疑問符は、自動的に縦中横に変換されます。\n\n" +
               "・数字指定：`12`月 `31`日\n" +
