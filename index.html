@@ -18,7 +18,7 @@
         margin: 0;
       }
     </style>
-    <title>言ノ葉Editer v0.11</title>
+    <title>言ノ葉Editer v0.13</title>
 
     <style>
       @layer base, layout, editor, viewer, print;
@@ -724,7 +724,7 @@
       <header class="hero no-print">
         <div class="hero-title-group">
           <h1>言ノ葉Editer</h1>
-          <span class="version-badge">v0.11</span>
+          <span class="version-badge">v0.13</span>
         </div>
         <div class="hero-actions">
           <select
@@ -882,7 +882,7 @@
                     </div>
                   </div>
 
-                  <div class="form-row" style="margin-top: 10px">
+                  <div class="form-row two-cols" style="margin-top: 10px">
                     <div class="form-col">
                       <div class="field-label">
                         <label for="nombreDisplaySelect">ノンブル表示</label>
@@ -893,6 +893,20 @@
                         <option value="off">非表示</option>
                       </select>
                     </div>
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="nombreFormatSelect">ノンブル形式</label>
+                      </div>
+                      <select id="nombreFormatSelect" class="select-input">
+                        <option value="dash" selected>- 1 -</option>
+                        <option value="p">P.1</option>
+                        <option value="slash">/ 1 /</option>
+                        <option value="number">数字のみ</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="form-row two-cols" style="margin-top: 10px">
                     <div class="form-col">
                       <div class="field-label">
                         <label for="nombrePosSelect">位置</label>
@@ -1105,6 +1119,7 @@
           sourceText: "text",
           columnRuleSelect: "columnRule",
           nombreDisplaySelect: "nombreDisplay",
+          nombreFormatSelect: "nombreFormat",
           startPageInput: "startPage",
           nombrePosSelect: "nombrePos",
         };
@@ -1236,7 +1251,7 @@
           );
 
           if (pageSizeStyle) {
-            pageSizeStyle.innerHTML = `@page { size: ${conf.w}mm ${conf.h}mm; margin: 0; }`;
+            pageSizeStyle.innerHTML = `@page { size: ${conf.w}mm${conf.h}mm; margin: 0; }`;
           }
         }
 
@@ -1316,10 +1331,10 @@
               let textToParse = trimmed;
 
               const centerMatch = textToParse.match(
-                /^(?:\[(?:中央|center)\]|［(?:中央|center)］)\s*(.*)$/i,
+                /^(?:\[(?:中央\vert{}center)\]|［(?:中央|center)］)\s*(.*)$/i,
               );
               const rightMatch = textToParse.match(
-                /^(?:\[(?:右|right)\]|［(?:右|right)］)\s*(.*)$/i,
+                /^(?:\[(?:右\vert{}right)\]|［(?:右|right)］)\s*(.*)$/i,
               );
 
               if (centerMatch) {
@@ -1381,10 +1396,10 @@
           const marginVPx = mmToPx(margin.v);
           const marginHPx = mmToPx(margin.h);
 
-          // ヘッダー・フッター用の領域とフォント溢れ防止バッファ(-8px)を加味して余裕を持たせる
-          let colHPx = paperHPx - marginVPx * 2 - 8;
+          // 安全マージン（- mmToPx(4)）を持たせて文字切れを防ぐ
+          let colHPx = paperHPx - marginVPx * 2 - mmToPx(4);
           if (isTwoColumn) {
-            colHPx = (colHPx - mmToPx(6)) / 2;
+            colHPx = (colHPx - mmToPx(6)) / 2 - mmToPx(2);
           }
 
           const colWPx = paperWPx - marginHPx * 2;
@@ -1675,6 +1690,9 @@
           const nombreVal = els.nombreDisplaySelect
             ? els.nombreDisplaySelect.value
             : "all";
+          const nombreFormat = els.nombreFormatSelect
+            ? els.nombreFormatSelect.value
+            : "dash";
           const nombrePosVal = els.nombrePosSelect
             ? els.nombrePosSelect.value
             : "center";
@@ -1699,13 +1717,21 @@
               nombrePosStyle =
                 "left: 50%; right: auto; transform: translateX(-50%);";
 
-            nombreHtml = `<div class="page-number-tag" style="${nombrePosStyle}">- ${pageNum} -</div>`;
+            let nombreText = `- ${pageNum} -`;
+            if (nombreFormat === "p") {
+              nombreText = `P.${pageNum}`;
+            } else if (nombreFormat === "slash") {
+              nombreText = `/ ${pageNum} /`;
+            } else if (nombreFormat === "number") {
+              nombreText = `${pageNum}`;
+            }
+
+            nombreHtml = `<div class="page-number-tag" style="${nombrePosStyle}">${nombreText}</div>`;
           }
 
           pageEl.innerHTML = headerTagHtml + bodyHtml + nombreHtml;
         }
 
-        // --- 画面枠に収まるようにプレビューページを動的縮小・フィットさせる関数 ---
         function fitPagesToViewport() {
           if (window.isPrinting) return;
           if (!previewViewport || !pagesContainer) return;
@@ -1744,7 +1770,6 @@
 
         window.addEventListener("resize", fitPagesToViewport);
 
-        // --- 見開き2ページプレビューの表示処理 ---
         function renderCurrentPages() {
           if (window.isPrinting) return;
 
@@ -1760,7 +1785,6 @@
             return;
           }
 
-          // 偶数インデックス（0, 2, 4...）に調整
           if (currentPageIndex % 2 !== 0) {
             currentPageIndex = Math.max(0, currentPageIndex - 1);
           }
@@ -1768,7 +1792,6 @@
             currentPageIndex = Math.max(0, Math.floor((total - 1) / 2) * 2);
           }
 
-          // 最大2ページのみをDOM生成してレンダリング
           const endIdx = Math.min(currentPageIndex + 2, total);
           for (let idx = currentPageIndex; idx < endIdx; idx++) {
             const pageEl = document.createElement("div");
@@ -1782,7 +1805,6 @@
           requestAnimationFrame(fitPagesToViewport);
         }
 
-        // --- ページナビゲーション状態の更新 ---
         function updatePageCounter() {
           const total = computedPagesData.length;
           if (total === 0) {
@@ -1801,12 +1823,10 @@
           }
           pageNavStatus.textContent = statusStr;
 
-          // 縦書き右開き：◀ 次のページ（インデックス増）、前のページ ▶（インデックス減）
           nextPageBtn.disabled = currentPageIndex + 2 >= total;
           prevPageBtn.disabled = currentPageIndex <= 0;
         }
 
-        // ページ送りボタンイベント（次へ：+2ページ）
         nextPageBtn.addEventListener("click", function () {
           if (currentPageIndex + 2 < computedPagesData.length) {
             currentPageIndex += 2;
@@ -1814,7 +1834,6 @@
           }
         });
 
-        // ページ戻しボタンイベント（前へ：-2ページ）
         prevPageBtn.addEventListener("click", function () {
           if (currentPageIndex - 2 >= 0) {
             currentPageIndex -= 2;
@@ -1887,6 +1906,7 @@
           "nombrePosSelect",
           "columnRuleSelect",
           "nombreDisplaySelect",
+          "nombreFormatSelect",
         ];
         CHANGE_EVENT_IDS.forEach((id) => {
           if (els[id]) els[id].addEventListener("change", updatePreview);
@@ -1920,7 +1940,6 @@
             updatePreview();
           });
 
-        // ファイル保存機能 (txt形式)
         document
           .getElementById("exportButton")
           .addEventListener("click", function () {
@@ -1939,7 +1958,6 @@
             URL.revokeObjectURL(url);
           });
 
-        // ファイル読み込み機能 (txt / md)
         document
           .getElementById("importButton")
           .addEventListener("click", function () {
@@ -1966,7 +1984,6 @@
           reader.readAsText(file, "UTF-8");
         });
 
-        // --- 印刷用準備（全ページを一括出力） ---
         function prepareAllPagesForPrint() {
           window.isPrinting = true;
           pagesContainer.style.transform = "none";
