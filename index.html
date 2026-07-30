@@ -114,6 +114,11 @@
         button {
           cursor: pointer;
         }
+
+        button:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+        }
       }
 
       @layer layout {
@@ -205,7 +210,7 @@
           color: var(--text);
         }
 
-        .secondary-button:hover {
+        .secondary-button:hover:not(:disabled) {
           background: var(--accent-soft);
           border-color: var(--accent);
           color: var(--accent);
@@ -383,6 +388,37 @@
       }
 
       @layer viewer {
+        .preview-container {
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+          min-height: 0;
+          gap: 10px;
+          overflow: hidden;
+        }
+
+        .preview-nav {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 16px;
+          background: var(--panel);
+          border: 1px solid var(--line);
+          border-radius: 6px;
+          padding: 8px 16px;
+          flex-shrink: 0;
+          box-shadow: var(--shadow);
+        }
+
+        .page-nav-status {
+          font-size: 0.88rem;
+          font-weight: 600;
+          color: var(--text);
+          min-width: 130px;
+          text-align: center;
+          user-select: none;
+        }
+
         .inline-code {
           font-family: monospace;
           background: rgba(0, 0, 0, 0.06);
@@ -394,23 +430,23 @@
         .preview-viewport {
           background-color: var(--panel-sub);
           border-radius: 6px;
-          padding: 30px;
+          padding: 20px;
           height: 100%;
-          overflow: auto;
+          overflow: hidden;
           border: 1px solid var(--line);
           display: flex;
-          justify-content: flex-start;
-          direction: rtl;
+          justify-content: center;
+          align-items: center;
+          position: relative;
         }
 
         .pages-container {
           display: flex;
           flex-direction: row-reverse;
-          gap: 32px;
-          justify-content: flex-end;
-          align-items: flex-start;
-          padding-bottom: 20px;
-          direction: ltr;
+          gap: 24px;
+          justify-content: center;
+          align-items: center;
+          transition: transform 0.15s ease-out;
         }
 
         .paper-page {
@@ -426,7 +462,7 @@
           box-sizing: border-box;
           position: relative;
           overflow: hidden;
-          contain: strict;
+          flex-shrink: 0;
         }
 
         .page-header-tag {
@@ -650,10 +686,10 @@
             padding: 0 !important;
             margin: 0 !important;
             width: 100% !important;
+            transform: none !important;
           }
 
           .paper-page {
-            contain: none !important;
             box-shadow: none !important;
             padding: var(--page-padding-v) var(--page-padding-h) !important;
             margin: 0 !important;
@@ -663,13 +699,13 @@
             break-after: page !important;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
-            overflow: visible !important;
+            overflow: hidden !important;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
           }
 
           .md-body {
-            overflow: visible !important;
+            overflow: hidden !important;
           }
 
           .paper-page:last-child {
@@ -1003,9 +1039,33 @@
           </div>
         </section>
 
-        <section class="preview-viewport" id="previewViewport">
-          <div id="pagesContainer" class="pages-container"></div>
-        </section>
+        <!-- プレビュー表示エリア -->
+        <div class="preview-container">
+          <!-- ページコントロールバー -->
+          <div class="preview-nav no-print">
+            <button
+              id="nextPageBtn"
+              class="secondary-button"
+              type="button"
+              title="次のページへ"
+            >
+              ◀ 次のページ
+            </button>
+            <span id="pageNavStatus" class="page-nav-status">1 / 1 ページ</span>
+            <button
+              id="prevPageBtn"
+              class="secondary-button"
+              type="button"
+              title="前のページへ"
+            >
+              前のページ ▶
+            </button>
+          </div>
+
+          <section class="preview-viewport" id="previewViewport">
+            <div id="pagesContainer" class="pages-container"></div>
+          </section>
+        </div>
       </div>
     </main>
 
@@ -1060,9 +1120,15 @@
         const pageSizeStyle = document.getElementById("page-size-style");
         const fileInput = document.getElementById("fileInput");
 
+        // ページナビゲーション用要素
+        const nextPageBtn = document.getElementById("nextPageBtn");
+        const prevPageBtn = document.getElementById("prevPageBtn");
+        const pageNavStatus = document.getElementById("pageNavStatus");
+
         const STORAGE_KEY = "md_vertical_editor_draft_v09_" + location.pathname;
         let debounceTimer = null;
         let computedPagesData = [];
+        let currentPageIndex = 0; // 見開きの先頭ページインデックス（0ベース）
 
         const PAGE_SIZES_MM = {
           A4: { w: 210, h: 297 },
@@ -1313,7 +1379,8 @@
           const marginVPx = mmToPx(margin.v);
           const marginHPx = mmToPx(margin.h);
 
-          let colHPx = paperHPx - marginVPx * 2 - 24;
+          // ヘッダー・フッター用のマージン（40px相当）を引いて高さの余白を適切に確保
+          let colHPx = paperHPx - marginVPx * 2 - 40;
           if (isTwoColumn) {
             colHPx = (colHPx - mmToPx(6)) / 2;
           }
@@ -1534,8 +1601,6 @@
         }
 
         function renderPageDom(pageEl, pageIdx) {
-          if (pageEl.dataset.rendered === "true") return;
-
           const pageData = computedPagesData[pageIdx];
           if (!pageData) return;
 
@@ -1636,54 +1701,124 @@
           }
 
           pageEl.innerHTML = headerTagHtml + bodyHtml + nombreHtml;
-          pageEl.dataset.rendered = "true";
         }
 
-        function clearPageDom(pageEl) {
-          if (pageEl.dataset.rendered === "true") {
-            pageEl.innerHTML = "";
-            delete pageEl.dataset.rendered;
+        // --- 画面枠に収まるようにプレビューページを動的縮小・フィットさせる関数 ---
+        function fitPagesToViewport() {
+          if (window.isPrinting) return;
+          if (!previewViewport || !pagesContainer) return;
+
+          pagesContainer.style.transform = "none";
+
+          const pages = pagesContainer.querySelectorAll(".paper-page");
+          if (pages.length === 0) return;
+
+          const padding = 32;
+          const availableW = previewViewport.clientWidth - padding;
+          const availableH = previewViewport.clientHeight - padding;
+
+          const containerW = pagesContainer.offsetWidth;
+          const containerH = pagesContainer.offsetHeight;
+
+          if (
+            availableW <= 0 ||
+            availableH <= 0 ||
+            containerW <= 0 ||
+            containerH <= 0
+          )
+            return;
+
+          const scaleW = availableW / containerW;
+          const scaleH = availableH / containerH;
+          const scale = Math.min(1, scaleW, scaleH);
+
+          if (scale < 0.999) {
+            pagesContainer.style.transform = `scale(${scale})`;
+            pagesContainer.style.transformOrigin = "center center";
+          } else {
+            pagesContainer.style.transform = "none";
           }
         }
 
-        let virtualObserver = null;
+        window.addEventListener("resize", fitPagesToViewport);
 
-        function setupVirtualScrolling() {
-          if (virtualObserver) virtualObserver.disconnect();
-
-          virtualObserver = new IntersectionObserver(
-            (entries) => {
-              entries.forEach((entry) => {
-                const pageIdx = parseInt(entry.target.dataset.pageIndex, 10);
-                if (entry.isIntersecting) {
-                  renderPageDom(entry.target, pageIdx);
-                } else {
-                  if (!window.isPrinting) {
-                    clearPageDom(entry.target);
-                  }
-                }
-              });
-            },
-            {
-              root: previewViewport,
-              rootMargin: "800px 800px 800px 800px",
-            },
-          );
+        // --- 見開き2ページプレビューの表示処理 ---
+        function renderCurrentPages() {
+          if (window.isPrinting) return;
 
           pagesContainer.innerHTML = "";
-          computedPagesData.forEach((pageData, idx) => {
+          pagesContainer.style.transform = "none";
+
+          const total = computedPagesData.length;
+          if (total === 0) {
+            pagesContainer.innerHTML =
+              '<div class="paper-page"><article class="md-body"><p style="color:#888;">ここに縦書きプレビューが表示されます。</p></article></div>';
+            updatePageCounter();
+            requestAnimationFrame(fitPagesToViewport);
+            return;
+          }
+
+          // 偶数インデックス（0, 2, 4...）に調整
+          if (currentPageIndex % 2 !== 0) {
+            currentPageIndex = Math.max(0, currentPageIndex - 1);
+          }
+          if (currentPageIndex >= total) {
+            currentPageIndex = Math.max(0, Math.floor((total - 1) / 2) * 2);
+          }
+
+          // 最大2ページのみをDOM生成してレンダリング
+          const endIdx = Math.min(currentPageIndex + 2, total);
+          for (let idx = currentPageIndex; idx < endIdx; idx++) {
             const pageEl = document.createElement("div");
             pageEl.className = "paper-page";
             pageEl.dataset.pageIndex = idx;
             pagesContainer.appendChild(pageEl);
-            virtualObserver.observe(pageEl);
-          });
-
-          if (computedPagesData.length === 0) {
-            pagesContainer.innerHTML =
-              '<div class="paper-page"><article class="md-body"><p style="color:#888;">ここに縦書きプレビューが表示されます。</p></article></div>';
+            renderPageDom(pageEl, idx);
           }
+
+          updatePageCounter();
+          requestAnimationFrame(fitPagesToViewport);
         }
+
+        // --- ページナビゲーション状態の更新 ---
+        function updatePageCounter() {
+          const total = computedPagesData.length;
+          if (total === 0) {
+            pageNavStatus.textContent = "0 / 0 ページ";
+            nextPageBtn.disabled = true;
+            prevPageBtn.disabled = true;
+            return;
+          }
+
+          const endIdx = Math.min(currentPageIndex + 2, total);
+          let statusStr = "";
+          if (currentPageIndex + 1 === endIdx) {
+            statusStr = `${currentPageIndex + 1} / ${total} ページ`;
+          } else {
+            statusStr = `${currentPageIndex + 1}-${endIdx} / ${total} ページ`;
+          }
+          pageNavStatus.textContent = statusStr;
+
+          // 縦書き右開き：◀ 次のページ（インデックス増）、前のページ ▶（インデックス減）
+          nextPageBtn.disabled = currentPageIndex + 2 >= total;
+          prevPageBtn.disabled = currentPageIndex <= 0;
+        }
+
+        // ページ送りボタンイベント（次へ：+2ページ）
+        nextPageBtn.addEventListener("click", function () {
+          if (currentPageIndex + 2 < computedPagesData.length) {
+            currentPageIndex += 2;
+            renderCurrentPages();
+          }
+        });
+
+        // ページ戻しボタンイベント（前へ：-2ページ）
+        prevPageBtn.addEventListener("click", function () {
+          if (currentPageIndex - 2 >= 0) {
+            currentPageIndex -= 2;
+            renderCurrentPages();
+          }
+        });
 
         function updatePreview() {
           if (columnRuleCol) {
@@ -1709,7 +1844,7 @@
             title,
           );
 
-          setupVirtualScrolling();
+          renderCurrentPages();
           saveToStorage();
         }
 
@@ -1817,24 +1952,29 @@
           reader.onload = function (evt) {
             els.sourceText.value = evt.target.result;
 
-            // ファイル名から拡張子を除いた部分を表題（タイトル）に自動入力（空の場合）
             const nameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
             if (!els.pageTitle.value.trim()) {
               els.pageTitle.value = nameWithoutExt;
             }
 
+            currentPageIndex = 0;
             updatePreview();
-            fileInput.value = ""; // ファイル選択をリセット
+            fileInput.value = "";
           };
           reader.readAsText(file, "UTF-8");
         });
 
+        // --- 印刷用準備（全ページを一括出力） ---
         function prepareAllPagesForPrint() {
           window.isPrinting = true;
-          const allPages = pagesContainer.querySelectorAll(".paper-page");
-          allPages.forEach((el) => {
-            const idx = parseInt(el.dataset.pageIndex, 10);
-            if (!isNaN(idx)) renderPageDom(el, idx);
+          pagesContainer.style.transform = "none";
+          pagesContainer.innerHTML = "";
+          computedPagesData.forEach((pageData, idx) => {
+            const pageEl = document.createElement("div");
+            pageEl.className = "paper-page";
+            pageEl.dataset.pageIndex = idx;
+            pagesContainer.appendChild(pageEl);
+            renderPageDom(pageEl, idx);
           });
         }
 
@@ -1845,7 +1985,7 @@
 
         window.addEventListener("afterprint", () => {
           window.isPrinting = false;
-          setupVirtualScrolling();
+          renderCurrentPages();
         });
 
         document
@@ -1886,7 +2026,7 @@
               "・数字指定：`12`月 `31`日\n" +
               "（例：12月31日 15時03分）\n\n" +
               "・記号指定：`!?` `？！` `！！` など\n" +
-              "（例：本当!? 嘘でしょ？！ 信じられない！！）\n\n" +
+              "（例：本当!? 嘘で嘘でしょ？！ 信じられない！！）\n\n" +
               "## 3. Markdown記法と装飾\n\n" +
               "標準的なMarkdown記法で文章を修飾できます。\n\n" +
               "・太字指定：`**太字**`（例：**ここが太字**）\n" +
@@ -1906,6 +2046,7 @@
               "・UIテーマ（ダーク、ライト、セピア）\n\n" +
               "入力したテキストや設定はブラウザに自動保存されますので、安心してご執筆をお楽しみください。";
 
+            currentPageIndex = 0;
             updatePreview();
           });
 
@@ -1917,6 +2058,7 @@
               els.pageHeader.value = "";
               els.sourceText.value = "";
               localStorage.removeItem(STORAGE_KEY);
+              currentPageIndex = 0;
               updatePreview();
               els.sourceText.focus();
             }
