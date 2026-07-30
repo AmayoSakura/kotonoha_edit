@@ -472,6 +472,7 @@
           font-family: var(--doc-font-family);
           font-size: 0.65rem;
           color: #777777;
+          line-height: 1;
         }
 
         .page-number-tag {
@@ -482,6 +483,7 @@
           font-family: var(--doc-font-family);
           font-size: 0.68rem;
           color: #777777;
+          line-height: 1;
         }
 
         .md-body {
@@ -492,6 +494,7 @@
           font-family: var(--doc-font-family);
           font-size: var(--doc-font-size);
           width: 100%;
+          height: 100%;
           box-sizing: border-box;
           line-break: strict;
           -webkit-line-break: strict;
@@ -579,8 +582,7 @@
         .md-body blockquote {
           margin: 0 8px;
           padding: 8px 4px;
-          border-top: 2px solid var(--accent);
-          background: #f6f4ee;
+          background: #efefef;
           font-size: 0.95em;
         }
 
@@ -1379,8 +1381,8 @@
           const marginVPx = mmToPx(margin.v);
           const marginHPx = mmToPx(margin.h);
 
-          // ヘッダー・フッター用のマージン（40px相当）を引いて高さの余白を適切に確保
-          let colHPx = paperHPx - marginVPx * 2 - 40;
+          // ヘッダー・フッター用の領域とフォント溢れ防止バッファ(-8px)を加味して余裕を持たせる
+          let colHPx = paperHPx - marginVPx * 2 - 8;
           if (isTwoColumn) {
             colHPx = (colHPx - mmToPx(6)) / 2;
           }
