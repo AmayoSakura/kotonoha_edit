@@ -18,7 +18,7 @@
         margin: 0;
       }
     </style>
-    <title>言ノ葉Editer v0.15</title>
+    <title>言ノ葉Editer v0.16</title>
 
     <style>
       @layer base, layout, editor, viewer, print;
@@ -34,7 +34,7 @@
           --muted: #8c8c8c;
           --line: #2c2d33;
           --accent: #c29b61;
-          --accent-dark: #a67c43;
+          --accent-dark: #2c2d33;
           --accent-soft: rgba(194, 155, 97, 0.12);
           --shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
 
@@ -454,7 +454,7 @@
           height: var(--paper-h);
           min-width: var(--paper-w);
           min-height: var(--paper-h);
-          background: #fffefb;
+          background: #ffffff;
           color: #1f2328;
           padding: var(--page-padding-v) var(--page-padding-h);
           box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
@@ -496,12 +496,18 @@
           width: 100%;
           height: 100%;
           box-sizing: border-box;
-          line-break: strict;
-          -webkit-line-break: strict;
-          word-break: normal;
-          overflow-wrap: anywhere;
-          hanging-punctuation: allow-end;
           overflow: hidden;
+        }
+
+        .md-body strong,
+        .md-body em {
+          display: inline;
+          line-height: inherit;
+        }
+
+        .md-body em {
+          font-style: normal;
+          font-weight: 600;
         }
 
         .md-body .align-center {
@@ -533,7 +539,7 @@
         }
 
         .paper-page.has-columns .md-body {
-          height: calc(50% - 6mm);
+          height: calc(50% - 3mm);
         }
 
         .column-divider {
@@ -553,26 +559,30 @@
           border-left: 2px solid #1f2328;
           padding-left: 8px;
           line-height: 1.4;
+          white-space: nowrap;
         }
 
         .md-body h2 {
-          margin: 0 10px 0 10px;
+          margin: 0 8px;
           padding-left: 6px;
           border-left: 1px solid #888;
           font-size: 1.3em;
           line-height: 1.5;
+          white-space: nowrap;
         }
 
         .md-body h3 {
-          margin: 0 8px 0 8px;
+          margin: 0 6px;
           font-size: 1.1em;
           line-height: 1.6;
+          white-space: nowrap;
         }
 
         .md-body p {
           margin: 0;
           padding: 0;
           text-indent: 1em;
+          white-space: nowrap;
         }
 
         .md-body p.no-indent {
@@ -580,10 +590,11 @@
         }
 
         .md-body blockquote {
-          margin: 0 8px;
-          padding: 8px 4px;
+          margin: 0px;
+          padding: 3px;
           background: #efefef;
           font-size: 0.95em;
+          white-space: nowrap;
         }
 
         .md-body hr {
@@ -729,7 +740,7 @@
       <header class="hero no-print">
         <div class="hero-title-group">
           <h1>言ノ葉Editer</h1>
-          <span class="version-badge">v0.15</span>
+          <span class="version-badge">v0.16</span>
         </div>
         <div class="hero-actions">
           <select
@@ -1060,9 +1071,7 @@
           </div>
         </section>
 
-        <!-- プレビュー表示エリア -->
         <div class="preview-container">
-          <!-- ページコントロールバー -->
           <div class="preview-nav no-print">
             <button
               id="nextPageBtn"
@@ -1142,7 +1151,6 @@
         const pageSizeStyle = document.getElementById("page-size-style");
         const fileInput = document.getElementById("fileInput");
 
-        // ページナビゲーション用要素
         const nextPageBtn = document.getElementById("nextPageBtn");
         const prevPageBtn = document.getElementById("prevPageBtn");
         const pageNavStatus = document.getElementById("pageNavStatus");
@@ -1150,7 +1158,7 @@
         const STORAGE_KEY = "md_vertical_editor_draft_v09_" + location.pathname;
         let debounceTimer = null;
         let computedPagesData = [];
-        let currentPageIndex = 0; // 見開きの先頭ページインデックス（0ベース）
+        let currentPageIndex = 0;
 
         const PAGE_SIZES_MM = {
           A4: { w: 210, h: 297 },
@@ -1173,6 +1181,18 @@
           sawarabi: '"Sawarabi Mincho", "Yu Mincho", "MS Mincho", serif',
           system: '"Hiragino Mincho ProN", "Yu Mincho", "MS Mincho", serif',
         };
+
+        const KINSOKU_HEAD =
+          /[、。，．・：；？！?!ーぁぃぅぇぉっゃゅょゎァィUェォッャュョヮヶゝゞ」』】）〕〉》”’]/;
+        const KINSOKU_TAIL = /[「『（【〔〈ങ്ങള്‍“‘]/;
+
+        function isKinsokuHead(ch) {
+          return ch ? KINSOKU_HEAD.test(ch) : false;
+        }
+
+        function isKinsokuTail(ch) {
+          return ch ? KINSOKU_TAIL.test(ch) : false;
+        }
 
         function mmToPx(mm) {
           return mm * 3.7795275591;
@@ -1272,9 +1292,10 @@
         function parseInlineVerticalMarkdown(text) {
           let value = escapeHtml(text);
           const codeBlocks = [];
+
           value = value.replace(/`([^`]+)`/g, function (match, code) {
             codeBlocks.push('<code class="inline-code">' + code + "</code>");
-            return "___CODE_PLACEHOLDER_" + (codeBlocks.length - 1) + "___";
+            return "___CODE_PLACEHOLDER_BLOCK___";
           });
 
           value = value.replace(
@@ -1291,23 +1312,21 @@
           );
 
           value = value.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-          value = value.replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>");
+          value = value.replace(/\*([^*]+)\*/g, "<em>$1</em>");
           value = value.replace(
             /(!\?|\?!|!!|\?\?|！？|？！|！！|？？)/g,
             '<span class="tcy">$1</span>',
           );
-          value = value.replace(/ (\d{1,2}) /g, '<span class="tcy">$1</span>');
+          value = value.replace(/(\d{1,2})/g, '<span class="tcy">$1</span>');
           value = value.replace(
             /(――+|……+|──+)/g,
             '<span class="nobreak">$1</span>',
           );
 
-          value = value.replace(
-            /___CODE_PLACEHOLDER_(\d+)___/g,
-            function (match, index) {
-              return codeBlocks[index];
-            },
-          );
+          let blockIndex = 0;
+          value = value.replace(/___CODE_PLACEHOLDER_BLOCK___/g, function () {
+            return codeBlocks[blockIndex++];
+          });
 
           return value;
         }
@@ -1336,10 +1355,10 @@
               let textToParse = trimmed;
 
               const centerMatch = textToParse.match(
-                /^(?:\[(?:中央\vert{}center)\]|［(?:中央|center)］)\s*(.*)$/i,
+                /^(?:\[(?:中央|center)\]|［(?:中央|center)］)\s*(.*)$/i,
               );
               const rightMatch = textToParse.match(
-                /^(?:\[(?:右\vert{}right)\]|［(?:右|right)］)\s*(.*)$/i,
+                /^(?:\[(?:右|right)\]|［(?:右|right)］)\s*(.*)$/i,
               );
 
               if (centerMatch) {
@@ -1395,19 +1414,22 @@
             MARGIN_SIZES_MM["normal"];
           const fontSizePx = ptToPx(els.fontSizeSelect.value);
           const isTwoColumn = els.columnSelect.value === "2";
+          const isGutterOn =
+            els.gutterSelect && els.gutterSelect.value === "on";
 
           const paperHPx = mmToPx(pageSize.h);
           const paperWPx = mmToPx(pageSize.w);
           const marginVPx = mmToPx(margin.v);
           const marginHPx = mmToPx(margin.h);
 
-          // 印刷・出力時の文字切れを防ぐため、十分な領域バッファ（上下12mm、左右4mm）を確保
-          let colHPx = paperHPx - marginVPx * 2 - mmToPx(12);
+          const availableH = paperHPx - marginVPx * 2 - 8;
+          let colHPx = availableH;
           if (isTwoColumn) {
-            colHPx = (paperHPx - marginVPx * 2 - mmToPx(16)) / 2;
+            colHPx = availableH / 2 - mmToPx(3) - 4;
           }
 
-          const colWPx = paperWPx - marginHPx * 2 - mmToPx(4);
+          const gutterWidth = isGutterOn ? mmToPx(6) : 0;
+          const colWPx = paperWPx - marginHPx * 2 - gutterWidth;
           const lineSpacingPx = fontSizePx * 1.8;
           const maxLinesPerCol = Math.max(
             1,
@@ -1415,24 +1437,30 @@
           );
 
           function getCharHeight(ch, fontScale = 1.0) {
-            if (/[a-zA-Z0-9\s]/.test(ch)) return fontSizePx * 0.55 * fontScale;
+            // 半角文字・英数字の幅係数を 0.65 に修正してレイアウト計算のズレ（はみ出し・切れ）を防ぐ
+            if (/[a-zA-Z0-9\s]/.test(ch)) return fontSizePx * 0.65 * fontScale;
             return fontSizePx * fontScale;
           }
 
           function parseTextTokens(str) {
             const tokens = [];
             const pattern =
-              /([\|｜][^《\n]+《[^》\n]+》)|([一-龯]+《[^》\n]+》)|(《《[^》\n]+》》)|(\*\*[^*]+\*\*)|(`[^`]+`)|([^\|｜《\*`]+|.)/g;
+              /(!\?|\?!|!!|\?\?|！？|？！|！！|！！|？？)|(\b\d{1,2}\b)|([\|｜][^《\n]+《[^》\n]+》)|([一-龯]+《[^》\n]+》)|(《《[^》\n]+》》)|(\*\*[^*]+\*\*)|(\*[^*\n]+\*)|(`[^`]+`)|([^\|｜《\*`!\?\d]+|.)/g;
             let match;
             while ((match = pattern.exec(str)) !== null) {
               const raw = match[0];
               let display = raw;
-              if (raw.startsWith("《《") && raw.endsWith("》》")) {
+
+              if (match[1] || match[2]) {
+                display = "あ";
+              } else if (raw.startsWith("《《") && raw.endsWith("》》")) {
                 display = raw.slice(2, -2);
               } else if (raw.includes("《") && raw.endsWith("》")) {
                 display = raw.replace(/[\|｜]/g, "").replace(/《[^》]+》/g, "");
               } else if (raw.startsWith("**") && raw.endsWith("**")) {
                 display = raw.slice(2, -2);
+              } else if (raw.startsWith("*") && raw.endsWith("*")) {
+                display = raw.slice(1, -1);
               } else if (raw.startsWith("`") && raw.endsWith("`")) {
                 display = raw.slice(1, -1);
               }
@@ -1443,40 +1471,120 @@
 
           function splitTextToLines(rawText, fontScale = 1.0) {
             const tokens = parseTextTokens(rawText);
+            const charItems = [];
+
+            tokens.forEach((tok) => {
+              const isSplittable =
+                (tok.raw.startsWith("**") && tok.raw.endsWith("**")) ||
+                (tok.raw.startsWith("*") &&
+                  tok.raw.endsWith("*") &&
+                  !tok.raw.startsWith("**")) ||
+                (tok.raw.startsWith("《《") && tok.raw.endsWith("》》")) ||
+                (tok.raw.startsWith("`") && tok.raw.endsWith("`"));
+
+              if (tok.raw !== tok.display && !isSplittable) {
+                charItems.push({
+                  raw: tok.raw,
+                  display: tok.display,
+                  isAtomic: true,
+                });
+              } else {
+                let prefix = "";
+                let suffix = "";
+                let text = tok.raw;
+
+                if (text.startsWith("**") && text.endsWith("**")) {
+                  prefix = "**";
+                  suffix = "**";
+                  text = text.slice(2, -2);
+                } else if (text.startsWith("*") && text.endsWith("*")) {
+                  prefix = "*";
+                  suffix = "*";
+                  text = text.slice(1, -1);
+                } else if (text.startsWith("`") && text.endsWith("`")) {
+                  prefix = "`";
+                  suffix = "`";
+                  text = text.slice(1, -1);
+                } else if (text.startsWith("《《") && text.endsWith("》》")) {
+                  prefix = "《《";
+                  suffix = "》》";
+                  text = text.slice(2, -2);
+                }
+
+                for (let i = 0; i < text.length; i++) {
+                  const ch = text[i];
+                  charItems.push({
+                    raw: prefix ? prefix + ch + suffix : ch,
+                    display: ch,
+                    isAtomic: false,
+                  });
+                }
+              }
+            });
+
             const lines = [];
             let currentRaw = "";
             let currentH = 0;
+            let currentChars = [];
 
-            for (let i = 0; i < tokens.length; i++) {
-              const tok = tokens[i];
-              let tokH = 0;
-              for (let c = 0; c < tok.display.length; c++) {
-                tokH += getCharHeight(tok.display[c], fontScale);
+            for (let i = 0; i < charItems.length; i++) {
+              const item = charItems[i];
+              let itemH = 0;
+              for (let c = 0; c < item.display.length; c++) {
+                itemH += getCharHeight(item.display[c], fontScale);
               }
 
-              if (currentH + tokH > colHPx && currentRaw.length > 0) {
-                lines.push(currentRaw);
-                currentRaw = "";
-                currentH = 0;
-              }
-
-              if (tokH > colHPx && tok.display.length > 1) {
-                for (let c = 0; c < tok.raw.length; c++) {
-                  const chRaw = tok.raw[c];
-                  const chH = getCharHeight(chRaw, fontScale);
-                  if (currentH + chH > colHPx && currentRaw.length > 0) {
-                    lines.push(currentRaw);
-                    currentRaw = "";
-                    currentH = 0;
-                  }
-                  currentRaw += chRaw;
-                  currentH += chH;
+              if (currentH + itemH > colHPx) {
+                if (currentChars.length === 0) {
+                  currentRaw += item.raw;
+                  currentH += itemH;
+                  currentChars.push(item);
+                  lines.push(currentRaw);
+                  currentRaw = "";
+                  currentH = 0;
+                  currentChars = [];
+                  continue;
                 }
-                continue;
+
+                let pushBackCount = 0;
+                const nextChar = item.display[0];
+
+                if (isKinsokuHead(nextChar) && currentChars.length > 1) {
+                  pushBackCount = 1;
+                }
+
+                const lastChar = currentChars[currentChars.length - 1].display;
+                if (isKinsokuTail(lastChar) && currentChars.length > 1) {
+                  pushBackCount = Math.max(pushBackCount, 1);
+                }
+
+                if (pushBackCount > 0) {
+                  const popped = currentChars.splice(
+                    currentChars.length - pushBackCount,
+                    pushBackCount,
+                  );
+                  i -= popped.length + 1;
+
+                  currentRaw = currentChars.map((c) => c.raw).join("");
+                  lines.push(currentRaw);
+
+                  currentRaw = "";
+                  currentH = 0;
+                  currentChars = [];
+                  continue;
+                } else {
+                  lines.push(currentRaw);
+                  currentRaw = "";
+                  currentH = 0;
+                  currentChars = [];
+                  i--;
+                  continue;
+                }
               }
 
-              currentRaw += tok.raw;
-              currentH += tokH;
+              currentRaw += item.raw;
+              currentH += itemH;
+              currentChars.push(item);
             }
 
             if (currentRaw.length > 0) {
@@ -1532,7 +1640,7 @@
                 addLineToPage({ type: "empty" }, 1);
               } else if (item.type === "heading") {
                 const scales = { 1: 1.8, 2: 1.3, 3: 1.1 };
-                const costs = { 1: 2.2, 2: 1.6, 3: 1.3 };
+                const costs = { 1: 2.5, 2: 1.8, 3: 1.4 };
                 const scale = scales[item.level] || 1.0;
                 const cost = costs[item.level] || 1.2;
 
@@ -1560,7 +1668,7 @@
                       align: item.align,
                       isContinuation: qIdx > 0,
                     },
-                    1.1,
+                    1.25,
                   );
                 });
               } else if (item.type === "p") {
@@ -1615,11 +1723,7 @@
                 if (idx === 0) {
                   combinedText += parsed;
                 } else {
-                  if (qi.isContinuation) {
-                    combinedText += parsed;
-                  } else {
-                    combinedText += "<br />" + parsed;
-                  }
+                  combinedText += "<br />" + parsed;
                 }
               });
 
@@ -2081,7 +2185,7 @@
               "・太字指定：`**太字**`（例：**ここが太字**）\n" +
               "・見出し：`# 見出し1` や `## 見出し2` を使用\n" +
               "・引用枠：行頭に `>` をつける\n\n" +
-              "> 引用枠は、作中の手紙や古文書、回想シーン、または注釈などの表現に活用できます。\n\n" +
+              "> 引用枠は、作中の手紙や古文書、回想シーン、または注釈などの表現に活用できます。長文の引用であっても枠内で自動的に折り返されて表示されます。\n\n" +
               "[改ページ]\n\n" +
               "## 4. ページ制御と印刷・PDF保存\n\n" +
               "・手動改ページ：独立した行に `[改ページ]` と入力すると、任意の位置で次のページへ送ることができます。\n" +
