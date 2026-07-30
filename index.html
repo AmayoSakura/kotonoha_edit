@@ -18,7 +18,7 @@
         margin: 0;
       }
     </style>
-    <title>言ノ葉Editer v0.10</title>
+    <title>言ノ葉Editer v0.11</title>
 
     <style>
       @layer base, layout, editor, viewer, print;
@@ -86,6 +86,12 @@
           box-sizing: border-box;
         }
 
+        html,
+        body {
+          height: 100%;
+          overflow: hidden;
+        }
+
         html {
           font-family: var(--ui-font-family);
           background: var(--bg);
@@ -95,7 +101,6 @@
 
         body {
           margin: 0;
-          min-height: 100vh;
         }
 
         button,
@@ -113,18 +118,23 @@
 
       @layer layout {
         .app {
-          width: min(1500px, calc(100% - 48px));
+          width: min(1600px, calc(100% - 32px));
+          height: 100vh;
           margin: 0 auto;
-          padding: 36px 0 48px;
+          padding: 16px 0;
+          display: flex;
+          flex-direction: column;
+          box-sizing: border-box;
         }
 
         .hero {
-          margin-bottom: 28px;
+          margin-bottom: 16px;
           display: flex;
           justify-content: space-between;
           align-items: flex-end;
           border-bottom: 1px solid var(--line);
-          padding-bottom: 20px;
+          padding-bottom: 12px;
+          flex-shrink: 0;
         }
 
         .hero-title-group {
@@ -167,17 +177,17 @@
 
         .primary-button,
         .secondary-button {
-          min-height: 38px;
+          min-height: 36px;
           border: 1px solid var(--line);
           border-radius: 4px;
-          padding: 0 16px;
+          padding: 0 14px;
           font-weight: 500;
           font-size: 0.85rem;
           transition: all 0.15s ease;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          gap: 8px;
+          gap: 6px;
         }
 
         .primary-button {
@@ -206,13 +216,17 @@
         .editor-grid {
           display: grid;
           grid-template-columns: 480px 1fr;
-          gap: 28px;
-          align-items: start;
+          gap: 20px;
+          flex: 1;
+          min-height: 0;
+          align-items: stretch;
         }
 
         .editor-panel {
           display: flex;
           flex-direction: column;
+          height: 100%;
+          min-height: 0;
           overflow: hidden;
         }
 
@@ -220,11 +234,12 @@
           display: flex;
           background: var(--panel-sub);
           border-bottom: 1px solid var(--line);
+          flex-shrink: 0;
         }
 
         .editor-tab-btn {
           flex: 1;
-          padding: 14px 16px;
+          padding: 12px 16px;
           background: transparent;
           border: none;
           border-bottom: 2px solid transparent;
@@ -243,15 +258,21 @@
         }
 
         .tab-content-area {
-          padding: 24px;
+          padding: 18px;
+          flex: 1;
+          overflow-y: auto;
+          display: flex;
+          flex-direction: column;
         }
 
         .tab-pane {
           display: none;
+          height: 100%;
         }
 
         .tab-pane.active {
-          display: block;
+          display: flex;
+          flex-direction: column;
         }
 
         .setting-group {
@@ -260,6 +281,7 @@
           margin-bottom: 16px;
           background: var(--panel-sub);
           overflow: hidden;
+          flex-shrink: 0;
         }
 
         .setting-group summary {
@@ -304,6 +326,7 @@
 
         .form-row.two-cols {
           grid-template-columns: repeat(2, 1fr);
+          flex-shrink: 0;
         }
 
         .form-col {
@@ -338,22 +361,24 @@
 
         .text-input {
           width: 100%;
-          min-height: 440px;
-          padding: 16px;
+          flex: 1;
+          min-height: 200px;
+          padding: 14px;
           border: 1px solid var(--line);
           border-radius: 4px;
           background: var(--input-bg);
           color: var(--text);
           outline: none;
-          resize: vertical;
+          resize: none;
           line-height: 1.8;
         }
 
         .controls-main {
           display: flex;
           flex-wrap: wrap;
-          gap: 8px;
-          margin-top: 16px;
+          gap: 6px;
+          margin-top: 14px;
+          flex-shrink: 0;
         }
       }
 
@@ -369,8 +394,8 @@
         .preview-viewport {
           background-color: var(--panel-sub);
           border-radius: 6px;
-          padding: 40px;
-          max-height: calc(100vh - 120px);
+          padding: 30px;
+          height: 100%;
           overflow: auto;
           border: 1px solid var(--line);
           display: flex;
@@ -553,12 +578,28 @@
       }
 
       @media (max-width: 1100px) {
+        html,
+        body {
+          height: auto;
+          overflow: auto;
+        }
+
+        .app {
+          height: auto;
+        }
+
         .editor-grid {
           grid-template-columns: 1fr;
+          height: auto;
+        }
+
+        .text-input {
+          min-height: 350px;
         }
 
         .preview-viewport {
           max-height: 600px;
+          height: 600px;
         }
       }
 
@@ -572,6 +613,7 @@
             padding: 0 !important;
             background: #ffffff !important;
             color: #000000 !important;
+            overflow: visible !important;
           }
 
           .no-print,
@@ -585,16 +627,19 @@
             max-width: none !important;
             padding: 0 !important;
             margin: 0 !important;
+            height: auto !important;
           }
 
           .editor-grid {
             display: block !important;
+            height: auto !important;
           }
 
           .preview-viewport {
             background: transparent !important;
             padding: 0 !important;
             max-height: none !important;
+            height: auto !important;
             overflow: visible !important;
             border: none !important;
             display: block !important;
@@ -609,7 +654,6 @@
 
           .paper-page {
             contain: none !important;
-            /* 印刷時にレイアウトカットを解除 */
             box-shadow: none !important;
             padding: var(--page-padding-v) var(--page-padding-h) !important;
             margin: 0 !important;
@@ -626,7 +670,6 @@
 
           .md-body {
             overflow: visible !important;
-            /* 印刷時に文字切れを防止 */
           }
 
           .paper-page:last-child {
@@ -643,7 +686,7 @@
       <header class="hero no-print">
         <div class="hero-title-group">
           <h1>言ノ葉Editer</h1>
-          <span class="version-badge">v0.10</span>
+          <span class="version-badge">v0.11</span>
         </div>
         <div class="hero-actions">
           <select
@@ -712,7 +755,7 @@
                 </div>
               </div>
 
-              <div class="field-label" style="margin-top: 14px">
+              <div class="field-label" style="margin-top: 8px">
                 <label for="sourceText">本文テキスト</label>
                 <small id="charCount">0文字</small>
               </div>
@@ -723,6 +766,20 @@
               ></textarea>
 
               <div class="controls-main">
+                <button
+                  id="importButton"
+                  class="secondary-button"
+                  type="button"
+                >
+                  ファイル開く
+                </button>
+                <button
+                  id="exportButton"
+                  class="secondary-button"
+                  type="button"
+                >
+                  保存 (.txt)
+                </button>
                 <button
                   id="insertBreakButton"
                   class="secondary-button"
@@ -735,11 +792,17 @@
                   class="secondary-button"
                   type="button"
                 >
-                  サンプル表示
+                  サンプル
                 </button>
                 <button id="clearButton" class="secondary-button" type="button">
                   消去
                 </button>
+                <input
+                  type="file"
+                  id="fileInput"
+                  accept=".txt,.md"
+                  style="display: none"
+                />
               </div>
             </div>
 
@@ -995,6 +1058,7 @@
         const pagesContainer = document.getElementById("pagesContainer");
         const previewViewport = document.getElementById("previewViewport");
         const pageSizeStyle = document.getElementById("page-size-style");
+        const fileInput = document.getElementById("fileInput");
 
         const STORAGE_KEY = "md_vertical_editor_draft_v09_" + location.pathname;
         let debounceTimer = null;
@@ -1249,7 +1313,6 @@
           const marginVPx = mmToPx(margin.v);
           const marginHPx = mmToPx(margin.h);
 
-          // ルビ・行間ずれ防止のため安全幅（安全マージン）を拡張
           let colHPx = paperHPx - marginVPx * 2 - 24;
           if (isTwoColumn) {
             colHPx = (colHPx - mmToPx(6)) / 2;
@@ -1720,7 +1783,52 @@
             updatePreview();
           });
 
-        // 印刷用全ページ完全描画処理
+        // ファイル保存機能 (txt形式)
+        document
+          .getElementById("exportButton")
+          .addEventListener("click", function () {
+            const text = els.sourceText.value;
+            if (!text) {
+              alert("保存する本文がありません。");
+              return;
+            }
+            const title = els.pageTitle.value.trim() || "document";
+            const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `${title}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+          });
+
+        // ファイル読み込み機能 (txt / md)
+        document
+          .getElementById("importButton")
+          .addEventListener("click", function () {
+            fileInput.click();
+          });
+
+        fileInput.addEventListener("change", function (e) {
+          const file = e.target.files[0];
+          if (!file) return;
+
+          const reader = new FileReader();
+          reader.onload = function (evt) {
+            els.sourceText.value = evt.target.result;
+
+            // ファイル名から拡張子を除いた部分を表題（タイトル）に自動入力（空の場合）
+            const nameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
+            if (!els.pageTitle.value.trim()) {
+              els.pageTitle.value = nameWithoutExt;
+            }
+
+            updatePreview();
+            fileInput.value = ""; // ファイル選択をリセット
+          };
+          reader.readAsText(file, "UTF-8");
+        });
+
         function prepareAllPagesForPrint() {
           window.isPrinting = true;
           const allPages = pagesContainer.querySelectorAll(".paper-page");
@@ -1744,7 +1852,6 @@
           .getElementById("printButton")
           .addEventListener("click", function () {
             prepareAllPagesForPrint();
-            // レンダリング・スタイル描画の確定を待ってから印刷を実行
             requestAnimationFrame(() => {
               setTimeout(() => {
                 window.print();
