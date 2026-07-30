@@ -18,7 +18,7 @@
         margin: 0;
       }
     </style>
-    <title>言ノ葉Editer v0.13</title>
+    <title>言ノ葉Editer v0.15</title>
 
     <style>
       @layer base, layout, editor, viewer, print;
@@ -533,7 +533,7 @@
         }
 
         .paper-page.has-columns .md-body {
-          height: calc(50% - 4mm);
+          height: calc(50% - 6mm);
         }
 
         .column-divider {
@@ -643,6 +643,10 @@
 
       @layer print {
         @media print {
+          @page {
+            margin: 0;
+          }
+
           html,
           body {
             width: auto !important;
@@ -702,12 +706,13 @@
             page-break-inside: avoid !important;
             break-inside: avoid !important;
             overflow: hidden !important;
+            box-sizing: border-box !important;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
           }
 
           .md-body {
-            overflow: hidden !important;
+            overflow: visible !important;
           }
 
           .paper-page:last-child {
@@ -724,7 +729,7 @@
       <header class="hero no-print">
         <div class="hero-title-group">
           <h1>言ノ葉Editer</h1>
-          <span class="version-badge">v0.13</span>
+          <span class="version-badge">v0.15</span>
         </div>
         <div class="hero-actions">
           <select
@@ -1251,7 +1256,7 @@
           );
 
           if (pageSizeStyle) {
-            pageSizeStyle.innerHTML = `@page { size: ${conf.w}mm${conf.h}mm; margin: 0; }`;
+            pageSizeStyle.innerHTML = `@page { size: ${conf.w}mm ${conf.h}mm; margin: 0; }`;
           }
         }
 
@@ -1382,7 +1387,7 @@
           return sections;
         }
 
-        function computeLayoutWithCanvas(text, title) {
+        function computeLayoutWithCanvas(text) {
           const pageSize =
             PAGE_SIZES_MM[els.pageSizeSelect.value] || PAGE_SIZES_MM["A4"];
           const margin =
@@ -1396,17 +1401,17 @@
           const marginVPx = mmToPx(margin.v);
           const marginHPx = mmToPx(margin.h);
 
-          // 安全マージン（- mmToPx(4)）を持たせて文字切れを防ぐ
-          let colHPx = paperHPx - marginVPx * 2 - mmToPx(4);
+          // 印刷・出力時の文字切れを防ぐため、十分な領域バッファ（上下12mm、左右4mm）を確保
+          let colHPx = paperHPx - marginVPx * 2 - mmToPx(12);
           if (isTwoColumn) {
-            colHPx = (colHPx - mmToPx(6)) / 2 - mmToPx(2);
+            colHPx = (paperHPx - marginVPx * 2 - mmToPx(16)) / 2;
           }
 
-          const colWPx = paperWPx - marginHPx * 2;
+          const colWPx = paperWPx - marginHPx * 2 - mmToPx(4);
           const lineSpacingPx = fontSizePx * 1.8;
           const maxLinesPerCol = Math.max(
             1,
-            Math.floor((colWPx - 6) / lineSpacingPx),
+            Math.floor(colWPx / lineSpacingPx),
           );
 
           function getCharHeight(ch, fontScale = 1.0) {
@@ -1522,16 +1527,6 @@
               currentLineWidth = 0;
             }
 
-            if (sectionIdx === 0 && title) {
-              const titleLines = splitTextToLines(title, 1.8);
-              titleLines.forEach((tLine) => {
-                addLineToPage(
-                  { type: "heading", level: 1, text: tLine, isTitle: true },
-                  2.2,
-                );
-              });
-            }
-
             items.forEach((item) => {
               if (item.type === "empty") {
                 addLineToPage({ type: "empty" }, 1);
@@ -1557,9 +1552,14 @@
                 addLineToPage({ type: "hr" }, 1);
               } else if (item.type === "quote") {
                 const qLines = splitTextToLines(item.text, 0.95);
-                qLines.forEach((qLine) => {
+                qLines.forEach((qLine, qIdx) => {
                   addLineToPage(
-                    { type: "quote", text: qLine, align: item.align },
+                    {
+                      type: "quote",
+                      text: qLine,
+                      align: item.align,
+                      isContinuation: qIdx > 0,
+                    },
                     1.1,
                   );
                 });
@@ -1591,29 +1591,62 @@
         function buildLinesHtml(lines) {
           if (!lines || lines.length === 0) return "";
           let html = "";
-          lines.forEach((item) => {
+          let i = 0;
+
+          while (i < lines.length) {
+            const item = lines[i];
             const alignClass = item.align ? ` align-${item.align}` : "";
 
-            if (item.type === "empty") {
-              html += '<p class="no-indent">&nbsp;</p>';
-            } else if (item.type === "heading") {
-              const clsAttr = alignClass ? ` class="${alignClass.trim()}"` : "";
-              html += `<h${item.level}${clsAttr}>${parseInlineVerticalMarkdown(item.text)}</h${item.level}>`;
-            } else if (item.type === "hr") {
-              html += "<hr />";
-            } else if (item.type === "quote") {
-              const clsAttr = alignClass ? ` class="${alignClass.trim()}"` : "";
-              html += `<blockquote${clsAttr}>${parseInlineVerticalMarkdown(item.text)}</blockquote>`;
-            } else if (item.type === "p") {
-              const classes = [];
-              if (!item.isIndent || item.align) classes.push("no-indent");
-              if (item.align) classes.push(`align-${item.align}`);
+            if (item.type === "quote") {
+              const quoteItems = [];
+              const align = item.align;
+              while (
+                i < lines.length &&
+                lines[i].type === "quote" &&
+                lines[i].align === align
+              ) {
+                quoteItems.push(lines[i]);
+                i++;
+              }
 
-              const classAttr =
-                classes.length > 0 ? ` class="${classes.join(" ")}"` : "";
-              html += `<p${classAttr}>${parseInlineVerticalMarkdown(item.text)}</p>`;
+              let combinedText = "";
+              quoteItems.forEach((qi, idx) => {
+                const parsed = parseInlineVerticalMarkdown(qi.text);
+                if (idx === 0) {
+                  combinedText += parsed;
+                } else {
+                  if (qi.isContinuation) {
+                    combinedText += parsed;
+                  } else {
+                    combinedText += "<br />" + parsed;
+                  }
+                }
+              });
+
+              const clsAttr = align ? ` class="align-${align}"` : "";
+              html += `<blockquote${clsAttr}>${combinedText}</blockquote>`;
+            } else {
+              if (item.type === "empty") {
+                html += '<p class="no-indent">&nbsp;</p>';
+              } else if (item.type === "heading") {
+                const clsAttr = alignClass
+                  ? ` class="${alignClass.trim()}"`
+                  : "";
+                html += `<h${item.level}${clsAttr}>${parseInlineVerticalMarkdown(item.text)}</h${item.level}>`;
+              } else if (item.type === "hr") {
+                html += "<hr />";
+              } else if (item.type === "p") {
+                const classes = [];
+                if (!item.isIndent || item.align) classes.push("no-indent");
+                if (item.align) classes.push(`align-${item.align}`);
+
+                const classAttr =
+                  classes.length > 0 ? ` class="${classes.join(" ")}"` : "";
+                html += `<p${classAttr}>${parseInlineVerticalMarkdown(item.text)}</p>`;
+              }
+              i++;
             }
-          });
+          }
           return html;
         }
 
@@ -1860,10 +1893,7 @@
 
           updatePageCSSVariables();
 
-          computedPagesData = computeLayoutWithCanvas(
-            els.sourceText.value,
-            title,
-          );
+          computedPagesData = computeLayoutWithCanvas(els.sourceText.value);
 
           renderCurrentPages();
           saveToStorage();
