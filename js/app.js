@@ -1,11 +1,21 @@
 window.addEventListener("DOMContentLoaded", function () {
   "use strict";
 
+  const tabButtons = document.querySelectorAll(".editor-tab-btn");
+  const tabPanes = document.querySelectorAll(".tab-pane");
+  tabButtons.forEach((btn) => {
+    btn.addEventListener("click", function () {
+      tabButtons.forEach((b) => b.classList.remove("active"));
+      tabPanes.forEach((p) => p.classList.remove("active"));
+      this.classList.add("active");
+      const target = document.getElementById(this.dataset.target);
+      if (target) target.classList.add("active");
+    });
+  });
+
   const CONFIG_KEYS = {
     pageTitle: "title",
     pageHeader: "header",
-    writingModeSelect: "writingMode",
-    bindingSelect: "binding",
     headerDisplaySelect: "headerDisplay",
     headerPosSelect: "headerPos",
     headerSizeSelect: "headerSize",
@@ -21,10 +31,9 @@ window.addEventListener("DOMContentLoaded", function () {
     sourceText: "text",
     columnRuleSelect: "columnRule",
     nombreDisplaySelect: "nombreDisplay",
+    nombreFormatSelect: "nombreFormat",
     startPageInput: "startPage",
     nombrePosSelect: "nombrePos",
-    nombreFormatSelect: "nombreFormat",
-    nombreTypeSelect: "nombreType",
   };
 
   const els = {};
@@ -36,30 +45,32 @@ window.addEventListener("DOMContentLoaded", function () {
   const columnRuleCol = document.getElementById("columnRuleCol");
   const charCount = document.getElementById("charCount");
   const pagesContainer = document.getElementById("pagesContainer");
+  const previewViewport = document.getElementById("previewViewport");
   const pageSizeStyle = document.getElementById("page-size-style");
-  const viewport = document.querySelector(".preview-viewport");
-  const editorGrid = document.getElementById("editorGrid");
-  const STORAGE_KEY = "md_vertical_editor_draft_" + location.pathname;
-  let debounceTimer = null;
-  let preservedPageIndex = 0;
-  let isRendering = false;
-  let generatedPagesCache = [];
-  let activePageDOMs = new Map();
-  let currentCalcToken = 0;
+  const fileInput = document.getElementById("fileInput");
 
-  const PAGE_SIZES = {
-    A4: { w: "210mm", h: "297mm" },
-    B5: { w: "182mm", h: "257mm" },
-    A5: { w: "148mm", h: "210mm" },
-    B6: { w: "128mm", h: "182mm" },
-    A6: { w: "105mm", h: "148mm" },
-    Hagaki: { w: "100mm", h: "148mm" },
+  const nextPageBtn = document.getElementById("nextPageBtn");
+  const prevPageBtn = document.getElementById("prevPageBtn");
+  const pageNavStatus = document.getElementById("pageNavStatus");
+
+  const STORAGE_KEY = "md_vertical_editor_draft_v09_" + location.pathname;
+  let debounceTimer = null;
+  let computedPagesData = [];
+  let currentPageIndex = 0;
+
+  const PAGE_SIZES_MM = {
+    A4: { w: 210, h: 297 },
+    B5: { w: 182, h: 257 },
+    A5: { w: 148, h: 210 },
+    B6: { w: 128, h: 182 },
+    A6: { w: 105, h: 148 },
+    Hagaki: { w: 100, h: 148 },
   };
 
-  const MARGIN_SIZES = {
-    narrow: { v: "12mm", h: "10mm" },
-    normal: { v: "18mm", h: "14mm" },
-    wide: { v: "24mm", h: "18mm" },
+  const MARGIN_SIZES_MM = {
+    narrow: { v: 12, h: 10 },
+    normal: { v: 18, h: 14 },
+    wide: { v: 24, h: 18 },
   };
 
   const FONTS = {
@@ -69,194 +80,23 @@ window.addEventListener("DOMContentLoaded", function () {
     system: '"Hiragino Mincho ProN", "Yu Mincho", "MS Mincho", serif',
   };
 
-  // モバイル用表示タブ切り替え機能（「両方」は除去）
-  const mobileTabEdit = document.getElementById("mobileTabEdit");
-  const mobileTabPreview = document.getElementById("mobileTabPreview");
+  const KINSOKU_HEAD =
+    /[、。，．・：；？！?!ーぁぃぅぇぉっゃゅょゎァィUェォッャュョヮヶゝゞ」』】）〕〉》”’]/;
+  const KINSOKU_TAIL = /[「『（【〔〈ങ്ങള്‍“‘]/;
 
-  function setMobileMode(mode) {
-    if (!editorGrid) return;
-    editorGrid.classList.remove("mode-edit", "mode-preview");
-    editorGrid.classList.add("mode-" + mode);
-
-    [mobileTabEdit, mobileTabPreview].forEach((btn) => {
-      if (btn) btn.classList.remove("active");
-    });
-
-    if (mode === "edit" && mobileTabEdit) mobileTabEdit.classList.add("active");
-    if (mode === "preview" && mobileTabPreview)
-      mobileTabPreview.classList.add("active");
-
-    if (mode === "preview") {
-      requestAnimationFrame(() => {
-        updatePreviewScale();
-        renderAllPagesToDOM();
-      });
-    }
+  function isKinsokuHead(ch) {
+    return ch ? KINSOKU_HEAD.test(ch) : false;
   }
 
-  if (mobileTabEdit)
-    mobileTabEdit.addEventListener("click", () => setMobileMode("edit"));
-  if (mobileTabPreview)
-    mobileTabPreview.addEventListener("click", () => setMobileMode("preview"));
-
-  const exportBtn = document.getElementById("exportButton");
-  const importBtn = document.getElementById("importButton");
-  const fileInput = document.getElementById("fileInput");
-
-  if (exportBtn) {
-    exportBtn.addEventListener("click", function () {
-      const text = els.sourceText ? els.sourceText.value : "";
-      const titleInput = els.pageTitle ? els.pageTitle.value.trim() : "";
-      const fileName = (titleInput ? titleInput : "kotonoha_draft") + ".txt";
-
-      const blob = new Blob([text], { type: "text/plain;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    });
+  function isKinsokuTail(ch) {
+    return ch ? KINSOKU_TAIL.test(ch) : false;
   }
 
-  if (importBtn && fileInput) {
-    importBtn.addEventListener("click", function () {
-      fileInput.click();
-    });
-
-    fileInput.addEventListener("change", function (e) {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function (event) {
-        if (els.sourceText) {
-          els.sourceText.value = event.target.result;
-          updateCharCount();
-          updatePreview();
-        }
-
-        if (els.pageTitle && !els.pageTitle.value) {
-          const nameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
-          els.pageTitle.value = nameWithoutExt;
-        }
-        fileInput.value = "";
-      };
-      reader.readAsText(file, "utf-8");
-    });
+  function mmToPx(mm) {
+    return mm * 3.7795275591;
   }
-
-  function toKanjiNumber(num) {
-    const kanjiNums = [
-      "零",
-      "一",
-      "二",
-      "三",
-      "四",
-      "五",
-      "六",
-      "七",
-      "八",
-      "九",
-    ];
-    const units = ["", "十", "百", "千"];
-
-    if (num === 0) return kanjiNums[0];
-    if (num < 0) return "マイナス" + toKanjiNumber(Math.abs(num));
-
-    let str = num.toString();
-    let len = str.length;
-    let result = "";
-
-    for (let i = 0; i < len; i++) {
-      let n = parseInt(str[i], 10);
-      let unitIdx = len - 1 - i;
-
-      if (n !== 0) {
-        if (n === 1 && unitIdx > 0) {
-          result += units[unitIdx];
-        } else {
-          result += kanjiNums[n] + units[unitIdx];
-        }
-      }
-    }
-    return result;
-  }
-
-  function updatePreviewScale() {
-    if (!viewport) return 1;
-    let clientWidth = viewport.clientWidth;
-    if (clientWidth === 0) {
-      clientWidth = viewport.getBoundingClientRect().width;
-    }
-    if (clientWidth === 0) {
-      const appEl = document.querySelector(".app");
-      clientWidth = appEl ? appEl.clientWidth : window.innerWidth;
-    }
-    const paddingX = window.innerWidth <= 600 ? 24 : 40;
-    const availableWidth = Math.max(100, clientWidth - paddingX);
-    const rawWidth = getPageWidthPx();
-
-    let scale = 1;
-    if (availableWidth > 0 && availableWidth < rawWidth) {
-      scale = availableWidth / rawWidth;
-      if (scale < 0.3) scale = 0.3;
-    }
-    document.documentElement.style.setProperty("--preview-scale", scale);
-    return scale;
-  }
-
-  function getPageWidthPx() {
-    const conf =
-      PAGE_SIZES[els.pageSizeSelect ? els.pageSizeSelect.value : "A4"] ||
-      PAGE_SIZES["A4"];
-    return parseFloat(conf.w) * 3.77953;
-  }
-
-  function getPageHeightPx() {
-    const conf =
-      PAGE_SIZES[els.pageSizeSelect ? els.pageSizeSelect.value : "A4"] ||
-      PAGE_SIZES["A4"];
-    return parseFloat(conf.h) * 3.77953;
-  }
-
-  function getEffectiveScale() {
-    if (!viewport) return 1;
-
-    let clientWidth = viewport.clientWidth;
-    if (clientWidth === 0) {
-      clientWidth = viewport.getBoundingClientRect().width;
-    }
-    if (clientWidth === 0) {
-      const appEl = document.querySelector(".app");
-      clientWidth = appEl ? appEl.clientWidth : window.innerWidth;
-    }
-    const paddingX = window.innerWidth <= 600 ? 24 : 40;
-    const availableWidth = Math.max(100, clientWidth - paddingX);
-    const paperWpx = getPageWidthPx();
-
-    let previewScale = 1;
-    if (availableWidth > 0 && availableWidth < paperWpx) {
-      previewScale = availableWidth / paperWpx;
-      if (previewScale < 0.3) previewScale = 0.3;
-    }
-
-    const viewportH = viewport.clientHeight || window.innerHeight - 180;
-    const paperHpx = getPageHeightPx();
-    const vScale = (viewportH - 48) / paperHpx;
-
-    return Math.min(previewScale, vScale > 0 ? vScale : 1);
-  }
-
-  function getScaledPageWidthPx() {
-    const scale = getEffectiveScale();
-    const pageWpx = getPageWidthPx();
-    const GAP = 24;
-    return pageWpx * scale + GAP;
+  function ptToPx(pt) {
+    return parseFloat(pt) * 1.3333333333;
   }
 
   function saveToStorage() {
@@ -266,21 +106,16 @@ window.addEventListener("DOMContentLoaded", function () {
     }
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    } catch (e) {
-      console.warn("ローカルストレージへの保存に失敗しました", e);
-    }
+    } catch (e) {}
   }
 
   function loadFromStorage() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return false;
-
       const data = JSON.parse(raw);
       for (const [id, key] of Object.entries(CONFIG_KEYS)) {
-        if (data[key] !== undefined && els[id]) {
-          els[id].value = data[key];
-        }
+        if (data[key] !== undefined && els[id]) els[id].value = data[key];
       }
       if (data.theme !== undefined && els.themeSelect) {
         els.themeSelect.value = data.theme;
@@ -295,45 +130,24 @@ window.addEventListener("DOMContentLoaded", function () {
       }
       return true;
     } catch (e) {
-      console.warn("ローカルストレージからの読み込みに失敗しました", e);
       return false;
     }
   }
 
-  function isValidHttpUrl(string) {
-    try {
-      const url = new URL(string);
-      return url.protocol === "http:" || url.protocol === "https:";
-    } catch (_) {
-      return false;
-    }
-  }
-
-  function updatePageStyle() {
-    const conf = PAGE_SIZES[els.pageSizeSelect.value] || PAGE_SIZES["A4"];
+  function updatePageCSSVariables() {
+    const conf = PAGE_SIZES_MM[els.pageSizeSelect.value] || PAGE_SIZES_MM["A4"];
     const margin =
-      MARGIN_SIZES[els.marginSelect.value] || MARGIN_SIZES["normal"];
-    const writingMode = els.writingModeSelect
-      ? els.writingModeSelect.value
-      : "vertical";
-
-    document.documentElement.setAttribute("data-writing-mode", writingMode);
+      MARGIN_SIZES_MM[els.marginSelect.value] || MARGIN_SIZES_MM["normal"];
 
     let selectedFont = FONTS[els.fontSelect.value];
     if (els.fontSelect.value === "custom") {
-      const rawFamily = els.customFontFamily.value.trim();
-      selectedFont = rawFamily.replace(/[;{}<>] /g, "") || "serif";
-
+      selectedFont = els.customFontFamily.value.trim() || "serif";
       const url = els.customFontUrl.value.trim();
-      if (url && isValidHttpUrl(url)) {
-        document.getElementById("dynamic-font-link").href = url;
-      }
+      if (url) document.getElementById("dynamic-font-link").href = url;
     }
 
-    const cols = els.columnSelect.value;
-    document.documentElement.style.setProperty("--doc-column-count", cols);
-    document.documentElement.style.setProperty("--paper-w", conf.w);
-    document.documentElement.style.setProperty("--paper-h", conf.h);
+    document.documentElement.style.setProperty("--paper-w", conf.w + "mm");
+    document.documentElement.style.setProperty("--paper-h", conf.h + "mm");
     document.documentElement.style.setProperty(
       "--doc-font-size",
       els.fontSizeSelect.value,
@@ -342,11 +156,18 @@ window.addEventListener("DOMContentLoaded", function () {
       "--doc-font-family",
       selectedFont,
     );
-    document.documentElement.style.setProperty("--page-padding-v", margin.v);
-    document.documentElement.style.setProperty("--page-padding-h", margin.h);
+    document.documentElement.style.setProperty(
+      "--page-padding-v",
+      margin.v + "mm",
+    );
+    document.documentElement.style.setProperty(
+      "--page-padding-h",
+      margin.h + "mm",
+    );
 
-    pageSizeStyle.innerHTML =
-      "@page { size: " + conf.w + " " + conf.h + "; margin: 0; }";
+    if (pageSizeStyle) {
+      pageSizeStyle.innerHTML = `@page { size: ${conf.w}mm ${conf.h}mm; margin: 0; }`;
+    }
   }
 
   function escapeHtml(value) {
@@ -358,29 +179,13 @@ window.addEventListener("DOMContentLoaded", function () {
       .replace(/'/g, "&#039;");
   }
 
-  const inlineCache = new Map();
-  const MAX_CACHE_SIZE = 10000;
-
-  function parseInlineVerticalMarkdownCached(text) {
-    if (!text) return "";
-    let cached = inlineCache.get(text);
-    if (cached !== undefined) return cached;
-
-    if (inlineCache.size > MAX_CACHE_SIZE) {
-      inlineCache.clear();
-    }
-    cached = parseInlineVerticalMarkdown(text);
-    inlineCache.set(text, cached);
-    return cached;
-  }
-
   function parseInlineVerticalMarkdown(text) {
     let value = escapeHtml(text);
-
     const codeBlocks = [];
+
     value = value.replace(/`([^`]+)`/g, function (match, code) {
       codeBlocks.push('<code class="inline-code">' + code + "</code>");
-      return "___CODE_PLACEHOLDER_" + (codeBlocks.length - 1) + "___";
+      return "___CODE_PLACEHOLDER_BLOCK___";
     });
 
     value = value.replace(
@@ -392,215 +197,597 @@ window.addEventListener("DOMContentLoaded", function () {
       "<ruby>$1<rt>$2</rt></ruby>",
     );
     value = value.replace(
-      /([\u3005\u3007\u303b\u4e00-\u9faf]+)《([^》\n]+)》/g,
+      /([一-龯]+)《([^》\n]+)》/g,
       "<ruby>$1<rt>$2</rt></ruby>",
     );
-    value = value.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-    value = value.replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>");
 
-    const isVertical =
-      (els.writingModeSelect ? els.writingModeSelect.value : "vertical") ===
-      "vertical";
-    if (isVertical) {
-      value = value.replace(
-        /(!\?|\?!|!!|\?\?|！？|？！|！！|？？)/g,
-        '<span class="tcy">$1</span>',
-      );
-      value = value.replace(/\b(\d{1,2})\b/g, '<span class="tcy">$1</span>');
-    }
+    value = value.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    value = value.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+    value = value.replace(
+      /(!\?|\?!|!!|\?\?|！？|？！|！！|？？)/g,
+      '<span class="tcy">$1</span>',
+    );
+    value = value.replace(/(\d{1,2})/g, '<span class="tcy">$1</span>');
     value = value.replace(/(――+|……+|──+)/g, '<span class="nobreak">$1</span>');
 
-    value = value.replace(
-      /___CODE_PLACEHOLDER_(\d+)___/g,
-      function (match, index) {
-        return codeBlocks[index];
-      },
-    );
+    let blockIndex = 0;
+    value = value.replace(/___CODE_PLACEHOLDER_BLOCK___/g, function () {
+      return codeBlocks[blockIndex++];
+    });
 
     return value;
   }
 
   function parseToAST(markdown) {
-    const normalized = String(markdown).replace(/\r\n?/g, "\n");
+    const normalized = String(markdown).replace(/\r?\n/g, "\n");
     if (!normalized.trim()) return [];
 
+    const rawSections = normalized.split(
+      /(?:\n|^)\s*(?:\[改ページ\]|< !--\ s *pagebreak\ s*- ->)\s*(?=\n|$)/i,
+    );
     const sections = [];
-    const regex =
-      /(?:\n|^)\s*(?:\[改ページ\]|< !--\s *pagebreak\ s*- ->)\s*(?=\n|$)/gi;
-    let match;
-    let lastIndex = 0;
-    const rawSections = [];
 
-    while ((match = regex.exec(normalized)) !== null) {
-      rawSections.push({
-        text: normalized.substring(lastIndex, match.index),
-        startIndex: lastIndex,
-      });
-      lastIndex = regex.lastIndex;
-    }
-    rawSections.push({
-      text: normalized.substring(lastIndex),
-      startIndex: lastIndex,
-    });
-
-    for (let s = 0; s < rawSections.length; s++) {
-      const secText = rawSections[s].text;
-      const secStart = rawSections[s].startIndex;
-
-      const lines = secText.split("\n");
+    rawSections.forEach((sectionStr) => {
+      const lines = sectionStr.split("\n");
       const items = [];
-      let lineStart = secStart;
 
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
+      lines.forEach((line) => {
         const trimmed = line.trim();
-        const itemStart = lineStart;
-        const itemEnd = lineStart + line.length;
-
-        lineStart += line.length + 1;
-
         if (trimmed === "") {
-          items.push({
-            type: "empty",
-            startIndex: itemStart,
-            endIndex: itemEnd,
-          });
-          continue;
+          items.push({ type: "empty" });
+          return;
         }
 
-        const heading = trimmed.match(/^(#{1,6})\s+(.+)$/);
+        let align = null;
+        let textToParse = trimmed;
+
+        const centerMatch = textToParse.match(
+          /^(?:\[(?:中央|center)\]|［(?:中央|center)］)\s*(.*)$/i,
+        );
+        const rightMatch = textToParse.match(
+          /^(?:\[(?:右|right)\]|［(?:右|right)］)\s*(.*)$/i,
+        );
+
+        if (centerMatch) {
+          align = "center";
+          textToParse = centerMatch[1];
+        } else if (rightMatch) {
+          align = "right";
+          textToParse = rightMatch[1];
+        }
+
+        const heading = textToParse.match(/^(#{1,6})\s+(.+)$/);
         if (heading) {
           items.push({
             type: "heading",
             level: heading[1].length,
             text: heading[2].trim(),
-            startIndex: itemStart,
-            endIndex: itemEnd,
+            align: align,
           });
-          continue;
+          return;
         }
 
-        if (/^(?:-{3,}|\*{3,}|_{3,})$/.test(trimmed)) {
-          items.push({ type: "hr", startIndex: itemStart, endIndex: itemEnd });
-          continue;
+        if (/^(?:-{3,}|\*{3,}|_{3,})$/.test(textToParse)) {
+          items.push({ type: "hr" });
+          return;
         }
 
-        const quote = trimmed.match(/^>\s?(.*)$/);
+        const quote = textToParse.match(/^>\s?(.*)$/);
         if (quote) {
-          items.push({
-            type: "quote",
-            text: quote[1],
-            startIndex: itemStart,
-            endIndex: itemEnd,
-          });
-          continue;
+          items.push({ type: "quote", text: quote[1], align: align });
+          return;
         }
 
-        const alignMatch = trimmed.match(
-          /^\[(center|right|中央|中央寄せ|右|右寄せ|下|下寄せ|地|地寄せ)\]\s*(.*)$/i,
-        );
-        let align = null;
-        let contentText = trimmed;
-
-        if (alignMatch) {
-          const tag = alignMatch[1].toLowerCase();
-          if (["center", "中央", "中央寄せ"].includes(tag)) align = "center";
-          else if (
-            ["right", "右", "右寄せ", "下", "下寄せ", "地", "地寄せ"].includes(
-              tag,
-            )
-          )
-            align = "right";
-          contentText = alignMatch[2];
-        }
-
-        const isBracket = /^[「『（【〔〈《“‘]/.test(contentText);
-        const isList =
-          /^[・\-\*]/.test(contentText) || /^\d+[\.．]/.test(contentText);
+        const isBracket = /^[「『（【〔〈《“‘]/.test(textToParse);
         items.push({
           type: "p",
+          isBracket,
+          text: textToParse,
           align: align,
-          isBracket: isBracket || isList || !!align,
-          text: contentText,
-          startIndex: itemStart,
-          endIndex: itemEnd,
         });
-      }
+      });
 
-      if (items.length > 0) {
-        sections.push(items);
-      }
-    }
+      if (items.length > 0) sections.push(items);
+    });
 
     return sections;
   }
 
-  function createPageData(pageIdx, isTwoColumn) {
+  function computeLayoutWithCanvas(text) {
+    const pageSize =
+      PAGE_SIZES_MM[els.pageSizeSelect.value] || PAGE_SIZES_MM["A4"];
+    const margin =
+      MARGIN_SIZES_MM[els.marginSelect.value] || MARGIN_SIZES_MM["normal"];
+    const fontSizePx = ptToPx(els.fontSizeSelect.value);
+    const isTwoColumn = els.columnSelect.value === "2";
     const isGutterOn = els.gutterSelect && els.gutterSelect.value === "on";
-    const bindingDir = els.bindingSelect ? els.bindingSelect.value : "right";
+
+    const paperHPx = mmToPx(pageSize.h);
+    const paperWPx = mmToPx(pageSize.w);
+    const marginVPx = mmToPx(margin.v);
+    const marginHPx = mmToPx(margin.h);
+
+    // .paper-page は box-sizing: border-box で padding: var(--page-padding-v) var(--page-padding-h)。
+    // border は無いので、内側の実高さは「用紙の高さ - 上下padding」で理論値と一致する。
+    const innerHPx = paperHPx - marginVPx * 2;
+
+    let colHPx = innerHPx;
+    if (isTwoColumn) {
+      // CSS: .paper-page.has-columns .md-body { height: calc(50% - 3mm); }
+      // 50% の基準は .columns-wrapper の height:100%（= innerHPx と同じ）。
+      // column-divider の margin(2mm×2=4mm)+border(1px)は、
+      // 2つの .md-body（合計 100% - 6mm）の残り 6mm 分に収まる設計のため、
+      // ここで別途 divider 分を引く必要はない（二重引きになるため削除）。
+      colHPx = innerHPx / 2 - mmToPx(3);
+    }
+
+    const gutterWidth = isGutterOn ? mmToPx(6) : 0;
+    const colWPx = paperWPx - marginHPx * 2 - gutterWidth;
+    const lineSpacingPx = fontSizePx * 1.8;
+    const maxLinesPerCol = Math.max(1, Math.floor(colWPx / lineSpacingPx));
+
+    function getCharHeight(ch, fontScale = 1.0) {
+      // 半角文字・英数字の幅係数を 0.65 に修正してレイアウト計算のズレ（はみ出し・切れ）を防ぐ
+      if (/[a-zA-Z0-9\s]/.test(ch)) return fontSizePx * 0.65 * fontScale;
+      return fontSizePx * fontScale;
+    }
+
+    // .inline-code は font-size: 0.88em で本文より縮小して描画される。
+    // 従来の計算はこの縮小率を無視して本文と同じ幅で見積もっていたため、
+    // コードブロックを含む行で「実際より短く」見積もられ、はみ出し（文字切れ）の原因になっていた。
+    const INLINE_CODE_FONT_SCALE = 0.88;
+    // .inline-code の padding: 1px 4px のうち、縦書きで行送り方向に効くのは上下の 1px×2。
+    // トークン単位で1回だけ加算する（文字ごとではなく、コード片全体で1回）。
+    const INLINE_CODE_PADDING_PX = 2;
+
+    function parseTextTokens(str) {
+      const tokens = [];
+      // fallback（最後の代替パターン）は1文字ずつマッチさせる。
+      // 以前は [^...]+ で連続文字を貪欲に食っていたため、
+      // 「色の空に、鳳凰《ほうおう》」のように平文の直後に自動判定ルビ
+      // （｜なしの「漢字+《...》」パターン）が続く場合、
+      // 手前の平文が「鳳凰」まで巻き込んでトークン化してしまい、
+      // ルビが《の前後で分断される不具合があった。1文字ずつにすることで、
+      // 毎文字ごとに改めてルビパターンとのマッチを試みられるようにする。
+      const pattern =
+        /(!\?|\?!|!!|\?\?|！？|？！|！！|！！|？？)|(\b\d{1,2}\b)|([\|｜][^《\n]+《[^》\n]+》)|([一-龯]+《[^》\n]+》)|(《《[^》\n]+》》)|(\*\*[^*]+\*\*)|(\*[^*\n]+\*)|(`[^`]+`)|([^\|｜《\*`!\?\d])/g;
+      let match;
+      while ((match = pattern.exec(str)) !== null) {
+        const raw = match[0];
+        let display = raw;
+
+        if (match[1] || match[2]) {
+          display = "あ";
+        } else if (raw.startsWith("《《") && raw.endsWith("》》")) {
+          display = raw.slice(2, -2);
+        } else if (raw.includes("《") && raw.endsWith("》")) {
+          display = raw.replace(/[\|｜]/g, "").replace(/《[^》]+》/g, "");
+        } else if (raw.startsWith("**") && raw.endsWith("**")) {
+          display = raw.slice(2, -2);
+        } else if (raw.startsWith("*") && raw.endsWith("*")) {
+          display = raw.slice(1, -1);
+        } else if (raw.startsWith("`") && raw.endsWith("`")) {
+          display = raw.slice(1, -1);
+        }
+        tokens.push({ raw, display });
+      }
+      return tokens;
+    }
+
+    function splitTextToLines(rawText, fontScale = 1.0, hasIndent = false) {
+      const tokens = parseTextTokens(rawText);
+      const charItems = [];
+
+      tokens.forEach((tok) => {
+        const isSplittable =
+          (tok.raw.startsWith("**") && tok.raw.endsWith("**")) ||
+          (tok.raw.startsWith("*") &&
+            tok.raw.endsWith("*") &&
+            !tok.raw.startsWith("**")) ||
+          (tok.raw.startsWith("《《") && tok.raw.endsWith("》》")) ||
+          (tok.raw.startsWith("`") && tok.raw.endsWith("`"));
+
+        if (tok.raw !== tok.display && !isSplittable) {
+          const isRuby =
+            tok.raw.includes("《") &&
+            tok.raw.endsWith("》") &&
+            !tok.raw.startsWith("《《");
+          charItems.push({
+            raw: tok.raw,
+            display: tok.display,
+            isAtomic: true,
+            isRuby: isRuby,
+          });
+        } else {
+          let prefix = "";
+          let suffix = "";
+          let text = tok.raw;
+          let isCode = false;
+
+          if (text.startsWith("**") && text.endsWith("**")) {
+            prefix = "**";
+            suffix = "**";
+            text = text.slice(2, -2);
+          } else if (text.startsWith("*") && text.endsWith("*")) {
+            prefix = "*";
+            suffix = "*";
+            text = text.slice(1, -1);
+          } else if (text.startsWith("`") && text.endsWith("`")) {
+            prefix = "`";
+            suffix = "`";
+            text = text.slice(1, -1);
+            isCode = true;
+          } else if (text.startsWith("《《") && text.endsWith("》》")) {
+            prefix = "《《";
+            suffix = "》》";
+            text = text.slice(2, -2);
+          }
+
+          for (let i = 0; i < text.length; i++) {
+            const ch = text[i];
+            charItems.push({
+              raw: prefix ? prefix + ch + suffix : ch,
+              display: ch,
+              isAtomic: false,
+              // コードブロックの1文字目にのみ isCodeStart を立て、
+              // padding分の加算をトークンごとに1回だけ行えるようにする。
+              isCode: isCode,
+              isCodeStart: isCode && i === 0,
+            });
+          }
+        }
+      });
+
+      const lines = [];
+      let currentRaw = "";
+      let currentH = 0;
+      let currentChars = [];
+
+      // 段落の1行目には CSS の text-indent: 1em が入るため、
+      // 実際に文字を置ける幅は colHPx より 1em（fontSizePx * fontScale）分狭い。
+      // これを考慮せずに colHPx いっぱいまで詰め込むと、1行目だけ実際の描画で
+      // 最後の1文字がインデント分に押し出されてはみ出し、画面から消えて見える不具合があった。
+      const indentPx = hasIndent ? fontSizePx * fontScale : 0;
+
+      for (let i = 0; i < charItems.length; i++) {
+        const item = charItems[i];
+        // 現在組み立て中の行が段落の1行目かどうか（まだ1行も確定していない = lines.length === 0）。
+        const effectiveColHPx =
+          hasIndent && lines.length === 0 ? colHPx - indentPx : colHPx;
+        let itemH = 0;
+        if (item.isCode) {
+          // .inline-code は font-size: 0.88em で描画されるため、通常文字と同じ幅計算では
+          // 実際より大きく（=行に多く収まると）見積もられ、はみ出しの原因になる。
+          for (let c = 0; c < item.display.length; c++) {
+            itemH += getCharHeight(
+              item.display[c],
+              fontScale * INLINE_CODE_FONT_SCALE,
+            );
+          }
+          // padding: 1px 4px の上下1px×2分を、コード片の先頭文字のみ1回加算する。
+          if (item.isCodeStart) {
+            itemH += INLINE_CODE_PADDING_PX;
+          }
+        } else if (item.isRuby) {
+          // ルビ付き文字の幅計算。
+          // 過去に「読み仮名の分の余裕」として RUBY_EXTRA_SCALE(1.15) を掛けていたが、
+          // CSS側の line-height: 1.8 に既にルビを収める余裕が織り込まれている可能性が高く、
+          // 追加の倍率は二重計上となって早期改行（本来入るはずの文字数より少なく見積もる）
+          // を引き起こしていたため撤去。対象文字数分の基本幅のみで計算する。
+          for (let c = 0; c < item.display.length; c++) {
+            itemH += getCharHeight(item.display[c], fontScale);
+          }
+        } else {
+          for (let c = 0; c < item.display.length; c++) {
+            itemH += getCharHeight(item.display[c], fontScale);
+          }
+        }
+
+        if (window.DEBUG_LAYOUT) {
+          console.log(
+            "[ITEM]",
+            JSON.stringify(item.display),
+            "raw=",
+            JSON.stringify(item.raw),
+            "isCode=",
+            !!item.isCode,
+            "isRuby=",
+            !!item.isRuby,
+            "itemH=",
+            itemH.toFixed(2),
+            "effectiveColHPx=",
+            effectiveColHPx.toFixed(1),
+          );
+        }
+
+        if (currentH + itemH > effectiveColHPx) {
+          if (currentChars.length === 0) {
+            currentRaw += item.raw;
+            currentH += itemH;
+            currentChars.push(item);
+            lines.push(currentRaw);
+            currentRaw = "";
+            currentH = 0;
+            currentChars = [];
+            continue;
+          }
+
+          let pushBackCount = 0;
+          const nextChar = item.display[0];
+
+          if (isKinsokuHead(nextChar) && currentChars.length > 1) {
+            pushBackCount = 1;
+          }
+
+          const lastChar = currentChars[currentChars.length - 1].display;
+          if (isKinsokuTail(lastChar) && currentChars.length > 1) {
+            pushBackCount = Math.max(pushBackCount, 1);
+          }
+
+          if (pushBackCount > 0) {
+            const popped = currentChars.splice(
+              currentChars.length - pushBackCount,
+              pushBackCount,
+            );
+            i -= popped.length + 1;
+
+            currentRaw = currentChars.map((c) => c.raw).join("");
+            if (window.DEBUG_LAYOUT) {
+              console.log(
+                "[LINE:kinsoku]",
+                JSON.stringify(currentRaw),
+                "chars=",
+                currentChars.length,
+                "H=",
+                currentH.toFixed(1),
+                "/ effectiveColHPx=",
+                effectiveColHPx.toFixed(1),
+              );
+            }
+            lines.push(currentRaw);
+
+            currentRaw = "";
+            currentH = 0;
+            currentChars = [];
+            continue;
+          } else {
+            if (window.DEBUG_LAYOUT) {
+              console.log(
+                "[LINE]",
+                JSON.stringify(currentRaw),
+                "chars=",
+                currentChars.length,
+                "H=",
+                currentH.toFixed(1),
+                "/ effectiveColHPx=",
+                effectiveColHPx.toFixed(1),
+              );
+            }
+            lines.push(currentRaw);
+            currentRaw = "";
+            currentH = 0;
+            currentChars = [];
+            i--;
+            continue;
+          }
+        }
+
+        currentRaw += item.raw;
+        currentH += itemH;
+        currentChars.push(item);
+      }
+
+      if (currentRaw.length > 0) {
+        lines.push(currentRaw);
+      }
+
+      return lines;
+    }
+
+    const sections = parseToAST(text);
+    const pages = [];
+
+    let currentPage = { pageIdx: 0, col1: [], col2: [] };
+    let currentColIdx = 0;
+    let currentLines = currentPage.col1;
+    let currentLineWidth = 0;
+
+    function addLineToPage(lineObj, widthCost = 1) {
+      if (
+        currentLineWidth + widthCost > maxLinesPerCol &&
+        currentLines.length > 0
+      ) {
+        if (isTwoColumn && currentColIdx === 0) {
+          currentColIdx = 1;
+          currentLines = currentPage.col2;
+          currentLineWidth = 0;
+        } else {
+          pages.push(currentPage);
+          currentPage = { pageIdx: pages.length, col1: [], col2: [] };
+          currentColIdx = 0;
+          currentLines = currentPage.col1;
+          currentLineWidth = 0;
+        }
+      }
+      currentLines.push(lineObj);
+      currentLineWidth += widthCost;
+    }
+
+    sections.forEach((items, sectionIdx) => {
+      if (
+        sectionIdx > 0 &&
+        (currentPage.col1.length > 0 || currentPage.col2.length > 0)
+      ) {
+        pages.push(currentPage);
+        currentPage = { pageIdx: pages.length, col1: [], col2: [] };
+        currentColIdx = 0;
+        currentLines = currentPage.col1;
+        currentLineWidth = 0;
+      }
+
+      items.forEach((item) => {
+        if (item.type === "empty") {
+          addLineToPage({ type: "empty" }, 1);
+        } else if (item.type === "heading") {
+          const scales = { 1: 1.8, 2: 1.3, 3: 1.1 };
+          const costs = { 1: 2.5, 2: 1.8, 3: 1.4 };
+          const scale = scales[item.level] || 1.0;
+          const cost = costs[item.level] || 1.2;
+
+          const hLines = splitTextToLines(item.text, scale);
+          hLines.forEach((hLine) => {
+            addLineToPage(
+              {
+                type: "heading",
+                level: item.level,
+                text: hLine,
+                align: item.align,
+              },
+              cost,
+            );
+          });
+        } else if (item.type === "hr") {
+          addLineToPage({ type: "hr" }, 1);
+        } else if (item.type === "quote") {
+          const qLines = splitTextToLines(item.text, 0.95);
+          qLines.forEach((qLine, qIdx) => {
+            addLineToPage(
+              {
+                type: "quote",
+                text: qLine,
+                align: item.align,
+                isContinuation: qIdx > 0,
+              },
+              1.25,
+            );
+          });
+        } else if (item.type === "p") {
+          // CSSでは isBracket または align 指定がある段落は no-indent（インデント無し）になるため、
+          // 1行目の幅計算でインデント分を差し引く対象もそれに合わせる。
+          const pHasIndent = !item.isBracket && !item.align;
+          const pLines = splitTextToLines(item.text, 1.0, pHasIndent);
+          pLines.forEach((pLine, idx) => {
+            addLineToPage(
+              {
+                type: "p",
+                text: pLine,
+                isBracket: item.isBracket,
+                isIndent: idx === 0 && !item.isBracket && !item.align,
+                align: item.align,
+              },
+              1,
+            );
+          });
+        }
+      });
+    });
+
+    if (currentPage.col1.length > 0 || currentPage.col2.length > 0) {
+      pages.push(currentPage);
+    }
+
+    return pages;
+  }
+
+  function buildLinesHtml(lines) {
+    if (!lines || lines.length === 0) return "";
+    let html = "";
+    let i = 0;
+
+    while (i < lines.length) {
+      const item = lines[i];
+      const alignClass = item.align ? ` align-${item.align}` : "";
+
+      if (item.type === "quote") {
+        const quoteItems = [];
+        const align = item.align;
+        while (
+          i < lines.length &&
+          lines[i].type === "quote" &&
+          lines[i].align === align
+        ) {
+          quoteItems.push(lines[i]);
+          i++;
+        }
+
+        let combinedText = "";
+        quoteItems.forEach((qi, idx) => {
+          const parsed = parseInlineVerticalMarkdown(qi.text);
+          if (idx === 0) {
+            combinedText += parsed;
+          } else {
+            combinedText += "<br />" + parsed;
+          }
+        });
+
+        const clsAttr = align ? ` class="align-${align}"` : "";
+        html += `<blockquote${clsAttr}>${combinedText}</blockquote>`;
+      } else {
+        if (item.type === "empty") {
+          html += '<p class="no-indent">&nbsp;</p>';
+        } else if (item.type === "heading") {
+          const clsAttr = alignClass ? ` class="${alignClass.trim()}"` : "";
+          html += `<h${item.level}${clsAttr}>${parseInlineVerticalMarkdown(item.text)}</h${item.level}>`;
+        } else if (item.type === "hr") {
+          html += "<hr />";
+        } else if (item.type === "p") {
+          const classes = [];
+          if (!item.isIndent || item.align) classes.push("no-indent");
+          if (item.align) classes.push(`align-${item.align}`);
+
+          const classAttr =
+            classes.length > 0 ? ` class="${classes.join(" ")}"` : "";
+          html += `<p${classAttr}>${parseInlineVerticalMarkdown(item.text)}</p>`;
+        }
+        i++;
+      }
+    }
+    return html;
+  }
+
+  function renderPageDom(pageEl, pageIdx) {
+    const pageData = computedPagesData[pageIdx];
+    if (!pageData) return;
+
+    const isTwoColumn = els.columnSelect.value === "2";
+    const isGutterOn = els.gutterSelect && els.gutterSelect.value === "on";
     const startPageNum =
       parseInt(els.startPageInput ? els.startPageInput.value : 1, 10) || 1;
     const pageNum = pageIdx + startPageNum;
     const isOdd = (pageIdx + 1) % 2 !== 0;
 
     let gutterClass = "";
-    if (isGutterOn) {
-      if (bindingDir === "right") {
-        gutterClass = isOdd ? " gutter-right" : " gutter-left";
-      } else {
-        gutterClass = isOdd ? " gutter-left" : " gutter-right";
-      }
-    }
+    if (isGutterOn) gutterClass = isOdd ? " gutter-odd" : " gutter-even";
 
-    let headerTitleHtml = "";
+    pageEl.className =
+      "paper-page" + (isTwoColumn ? " has-columns" : "") + gutterClass;
 
-    const headerText = els.pageHeader ? els.pageHeader.value.trim() : "";
-    const displayVal = els.headerDisplaySelect
-      ? els.headerDisplaySelect.value
-      : "all";
-    const posVal = els.headerPosSelect ? els.headerPosSelect.value : "right";
-    const sizeVal = els.headerSizeSelect
-      ? els.headerSizeSelect.value
-      : "0.65rem";
+    const headerText = els.pageHeader.value.trim();
+    const displayVal = els.headerDisplaySelect.value;
+    const posVal = els.headerPosSelect.value;
+    const sizeVal = els.headerSizeSelect.value;
 
     let showHeader = false;
     if (headerText) {
-      if (displayVal === "all" || displayVal === "alternate") {
-        showHeader = true;
-      } else if (displayVal === "odd" && isOdd) {
-        showHeader = true;
-      } else if (displayVal === "even" && !isOdd) {
-        showHeader = true;
-      }
+      if (displayVal === "all" || displayVal === "alternate") showHeader = true;
+      else if (displayVal === "odd" && isOdd) showHeader = true;
+      else if (displayVal === "even" && !isOdd) showHeader = true;
     }
 
     let headerTagHtml = "";
     if (showHeader) {
       let currentPos = posVal;
-      if (displayVal === "alternate") {
-        if (bindingDir === "right") {
-          currentPos = isOdd ? "left" : "right";
-        } else {
-          currentPos = isOdd ? "right" : "left";
-        }
-      }
+      if (displayVal === "alternate") currentPos = isOdd ? "left" : "right";
 
       let posStyle = "";
-      if (currentPos === "center") {
+      if (currentPos === "center")
         posStyle = "left: 50%; right: auto; transform: translateX(-50%);";
-      } else if (currentPos === "left") {
+      else if (currentPos === "left")
         posStyle = "left: var(--page-padding-h); right: auto; transform: none;";
-      } else {
+      else
         posStyle = "right: var(--page-padding-h); left: auto; transform: none;";
-      }
 
-      const styleAttr = "font-size: " + sizeVal + "; " + posStyle;
-      headerTagHtml =
-        '<div class="page-header-tag" style="' +
-        styleAttr +
-        '">' +
-        escapeHtml(headerText) +
-        "</div>";
+      headerTagHtml = `<div class="page-header-tag" style="font-size:${sizeVal}; ${posStyle}">${escapeHtml(headerText)}</div>`;
     }
 
     const showRule = els.columnRuleSelect
@@ -610,697 +797,204 @@ window.addEventListener("DOMContentLoaded", function () {
       ? "column-divider"
       : "column-divider no-border";
 
+    let bodyHtml = "";
+    if (isTwoColumn) {
+      bodyHtml =
+        '<div class="columns-wrapper">' +
+        `<article class="md-body col-top">${buildLinesHtml(pageData.col1)}</article>` +
+        `<div class="${dividerClass}"></div>` +
+        `<article class="md-body col-bottom">${buildLinesHtml(pageData.col2)}</article>` +
+        "</div>";
+    } else {
+      bodyHtml = `<article class="md-body">${buildLinesHtml(pageData.col1)}</article>`;
+    }
+
     const nombreVal = els.nombreDisplaySelect
       ? els.nombreDisplaySelect.value
       : "all";
+    const nombreFormat = els.nombreFormatSelect
+      ? els.nombreFormatSelect.value
+      : "dash";
     const nombrePosVal = els.nombrePosSelect
       ? els.nombrePosSelect.value
       : "center";
-    const nombreFormat = els.nombreFormatSelect
-      ? els.nombreFormatSelect.value
-      : "hyphen";
-    const nombreType = els.nombreTypeSelect
-      ? els.nombreTypeSelect.value
-      : "arabic";
 
     let nombreHtml = "";
     if (nombreVal === "all" || (nombreVal === "skip-first" && pageIdx > 0)) {
       let currentNombrePos = nombrePosVal;
-      if (nombrePosVal === "alternate") {
-        if (bindingDir === "right") {
-          currentNombrePos = isOdd ? "left" : "right";
-        } else {
-          currentNombrePos = isOdd ? "right" : "left";
-        }
-      }
+      if (nombrePosVal === "alternate")
+        currentNombrePos = isOdd ? "left" : "right";
 
       let nombrePosStyle = "";
-      if (currentNombrePos === "right") {
+      if (currentNombrePos === "right")
         nombrePosStyle =
           "right: var(--page-padding-h); left: auto; transform: none;";
-      } else if (currentNombrePos === "left") {
+      else if (currentNombrePos === "left")
         nombrePosStyle =
           "left: var(--page-padding-h); right: auto; transform: none;";
-      } else {
+      else
         nombrePosStyle = "left: 50%; right: auto; transform: translateX(-50%);";
+
+      let nombreText = `- ${pageNum} -`;
+      if (nombreFormat === "p") {
+        nombreText = `P.${pageNum}`;
+      } else if (nombreFormat === "slash") {
+        nombreText = `/ ${pageNum} /`;
+      } else if (nombreFormat === "number") {
+        nombreText = `${pageNum}`;
       }
 
-      let numStr = nombreType === "kanji" ? toKanjiNumber(pageNum) : pageNum;
-
-      let formattedNombre = "";
-      switch (nombreFormat) {
-        case "plain":
-          formattedNombre = numStr;
-          break;
-        case "bracket":
-          formattedNombre = "（ " + numStr + " ）";
-          break;
-        case "square":
-          formattedNombre = "[ " + numStr + " ]";
-          break;
-        case "slash":
-          formattedNombre = "/ " + numStr + " /";
-          break;
-        case "page":
-          formattedNombre = "P." + numStr;
-          break;
-        case "hyphen":
-        default:
-          formattedNombre = "- " + numStr + " -";
-          break;
-      }
-
-      nombreHtml =
-        '<div class="page-number-tag" style="' +
-        nombrePosStyle +
-        '">' +
-        escapeHtml(formattedNombre) +
-        "</div>";
+      nombreHtml = `<div class="page-number-tag" style="${nombrePosStyle}">${nombreText}</div>`;
     }
 
-    return {
-      pageIdx: pageIdx,
-      isTwoColumn: isTwoColumn,
-      gutterClass: gutterClass,
-      headerTitleHtml: headerTitleHtml,
-      headerTagHtml: headerTagHtml,
-      dividerClass: dividerClass,
-      nombreHtml: nombreHtml,
-      articlesHtml: isTwoColumn ? ["", ""] : [""],
-      firstTextCharIndex: undefined,
-    };
+    pageEl.innerHTML = headerTagHtml + bodyHtml + nombreHtml;
   }
 
-  function createPageDOMFromData(data) {
-    const paperEl = document.createElement("div");
-    paperEl.className =
-      "paper-page" +
-      (data.isTwoColumn ? " has-columns" : "") +
-      data.gutterClass;
+  function fitPagesToViewport() {
+    if (window.isPrinting) return;
+    if (!previewViewport || !pagesContainer) return;
 
-    let bodyHtml = "";
-    if (data.isTwoColumn) {
-      bodyHtml =
-        '<div class="columns-wrapper">' +
-        '<article class="md-body col-top">' +
-        (data.articlesHtml[0] || "") +
-        "</article>" +
-        '<div class="' +
-        data.dividerClass +
-        '"></div>' +
-        '<article class="md-body col-bottom">' +
-        (data.articlesHtml[1] || "") +
-        "</article>" +
-        "</div>";
-    } else {
-      bodyHtml =
-        '<article class="md-body">' +
-        (data.articlesHtml[0] || "") +
-        "</article>";
-    }
+    pagesContainer.style.transform = "none";
 
-    paperEl.innerHTML = data.headerTagHtml + bodyHtml + data.nombreHtml;
-    return paperEl;
-  }
+    const pages = pagesContainer.querySelectorAll(".paper-page");
+    if (pages.length === 0) return;
 
-  const loadingIndicator = document.getElementById("loadingIndicator");
-  let loadingHideTimer = null;
+    const padding = 32;
+    const availableW = previewViewport.clientWidth - padding;
+    const availableH = previewViewport.clientHeight - padding;
 
-  function showLoading() {
-    clearTimeout(loadingHideTimer);
-    if (loadingIndicator) loadingIndicator.classList.add("active");
-  }
+    const containerW = pagesContainer.offsetWidth;
+    const containerH = pagesContainer.offsetHeight;
 
-  function hideLoading(delay = 250) {
-    clearTimeout(loadingHideTimer);
-    loadingHideTimer = setTimeout(() => {
-      if (loadingIndicator && !isRendering)
-        loadingIndicator.classList.remove("active");
-    }, delay);
-  }
-
-  // プレビューの先頭文章とテキストエディタの連動調整（折り返しを考慮した精密スクロール）
-  function syncEditorToPage(pageIndex) {
     if (
-      !els.sourceText ||
-      !generatedPagesCache ||
-      !generatedPagesCache[pageIndex]
+      availableW <= 0 ||
+      availableH <= 0 ||
+      containerW <= 0 ||
+      containerH <= 0
     )
       return;
-    const pageData = generatedPagesCache[pageIndex];
-    // 最初のページの場合は強制的に0文字目（一番最初）に連動させる
-    const startIdx =
-      pageIndex === 0
-        ? 0
-        : (pageData.firstTextCharIndex ?? pageData.startCharIndex ?? 0);
 
-    const fullText = els.sourceText.value;
-    if (!fullText) return;
+    const scaleW = availableW / containerW;
+    const scaleH = availableH / containerH;
+    const scale = Math.min(1, scaleW, scaleH);
 
-    let measurerContainer = document.getElementById("measurerContainer");
-    if (!measurerContainer) return;
-
-    let textMeasurer = document.getElementById("textMeasurer");
-    if (!textMeasurer) {
-      textMeasurer = document.createElement("div");
-      textMeasurer.id = "textMeasurer";
-      measurerContainer.appendChild(textMeasurer);
-    }
-
-    const computedStyle = window.getComputedStyle(els.sourceText);
-
-    textMeasurer.style.cssText = `
-          position: absolute;
-          visibility: hidden;
-          white-space: pre-wrap;
-          word-break: ${computedStyle.wordBreak};
-          overflow-wrap: ${computedStyle.overflowWrap};
-          font-family: ${computedStyle.fontFamily};
-          font-size: ${computedStyle.fontSize};
-          line-height: ${computedStyle.lineHeight};
-          letter-spacing: ${computedStyle.letterSpacing};
-          width: ${els.sourceText.clientWidth}px;
-          box-sizing: border-box;
-          padding: ${computedStyle.paddingTop} ${computedStyle.paddingRight} ${computedStyle.paddingBottom} ${computedStyle.paddingLeft};
-          border: ${computedStyle.borderWidth} solid transparent;
-          margin: 0;
-        `;
-
-    const targetText = fullText.substring(0, startIdx);
-    textMeasurer.innerHTML =
-      escapeHtml(targetText) + '<span id="scrollTargetMarker">&#8203;</span>';
-    const marker = textMeasurer.querySelector("#scrollTargetMarker");
-    const targetTop = marker ? marker.offsetTop : 0;
-
-    const paddingTop = parseFloat(computedStyle.paddingTop) || 0;
-    els.sourceText.scrollTop =
-      startIdx === 0 ? 0 : Math.max(0, targetTop - paddingTop);
-  }
-
-  // テキストエリアのカーソル位置からプレビューの対応ページへスクロール連動
-  function syncPageToEditor() {
-    if (!els.sourceText || generatedPagesCache.length === 0) return;
-    const cursorPos = els.sourceText.selectionStart;
-
-    let targetPageIndex = 0;
-    for (let i = 0; i < generatedPagesCache.length; i++) {
-      const page = generatedPagesCache[i];
-      if (
-        page.startCharIndex !== undefined &&
-        page.endCharIndex !== undefined
-      ) {
-        if (
-          cursorPos >= page.startCharIndex &&
-          cursorPos <= page.endCharIndex
-        ) {
-          targetPageIndex = i;
-          break;
-        } else if (cursorPos > page.endCharIndex) {
-          targetPageIndex = i;
-        }
-      }
-    }
-
-    if (preservedPageIndex !== targetPageIndex) {
-      preservedPageIndex = targetPageIndex;
-      const pageWidth = getScaledPageWidthPx();
-      const isVertical =
-        (els.writingModeSelect ? els.writingModeSelect.value : "vertical") ===
-        "vertical";
-      if (viewport) {
-        const scrollPos = isVertical
-          ? -(targetPageIndex * pageWidth)
-          : targetPageIndex * pageWidth;
-        viewport.scrollTo({
-          left: scrollPos,
-          behavior: "smooth",
-        });
-      }
-      updatePageNavUI();
+    if (scale < 0.999) {
+      pagesContainer.style.transform = `scale(${scale})`;
+      pagesContainer.style.transformOrigin = "center center";
+    } else {
+      pagesContainer.style.transform = "none";
     }
   }
 
-  async function renderPagesWithPrecisePagination(isSyncForce = false) {
-    if (!pagesContainer || !els.sourceText) return;
+  window.addEventListener("resize", fitPagesToViewport);
 
-    const myToken = ++currentCalcToken;
-    isRendering = true;
-    if (!isSyncForce) showLoading();
+  function renderCurrentPages() {
+    if (window.isPrinting) return;
 
-    const savedPageIndex = preservedPageIndex;
-    generatedPagesCache = [];
-
-    const isTwoColumn = els.columnSelect
-      ? els.columnSelect.value === "2"
-      : false;
-    const isVertical =
-      (els.writingModeSelect ? els.writingModeSelect.value : "vertical") ===
-      "vertical";
-    let totalPageIndex = 0;
-
-    let measurerContainer = document.getElementById("measurerContainer");
-    if (!measurerContainer) {
-      measurerContainer = document.createElement("div");
-      measurerContainer.id = "measurerContainer";
-      measurerContainer.style.cssText =
-        "position: absolute; top: -9999px; left: -9999px; visibility: hidden; pointer-events: none; opacity: 0; z-index: -9999;";
-      document.body.appendChild(measurerContainer);
-    }
-    measurerContainer.innerHTML = "";
-
-    let currentData = createPageData(totalPageIndex, isTwoColumn);
-    let currentPageEl = createPageDOMFromData(currentData);
-    measurerContainer.appendChild(currentPageEl);
-
-    let currentArticles = Array.from(
-      currentPageEl.querySelectorAll(".md-body"),
-    );
-    let currentColIdx = 0;
-    let currentArticle = currentArticles[currentColIdx];
-
-    const checkOverflow = () => {
-      if (!currentArticle) return false;
-      const containerRect = currentArticle.getBoundingClientRect();
-      const lastChild = currentArticle.lastElementChild;
-      if (!lastChild) return false;
-      const childRect = lastChild.getBoundingClientRect();
-
-      if (isVertical) {
-        return childRect.left < containerRect.left - 1;
-      } else {
-        return childRect.bottom > containerRect.bottom + 1;
-      }
-    };
-
-    const flushCurrentPage = () => {
-      currentData.articlesHtml = currentArticles.map((a) => a.innerHTML);
-      generatedPagesCache.push(currentData);
-    };
-
-    const nextArticle = () => {
-      if (isTwoColumn && currentColIdx === 0) {
-        currentColIdx = 1;
-        currentArticle = currentArticles[currentColIdx];
-        return currentArticle;
-      }
-
-      flushCurrentPage();
-
-      totalPageIndex++;
-      currentData = createPageData(totalPageIndex, isTwoColumn);
-      measurerContainer.innerHTML = "";
-      currentPageEl = createPageDOMFromData(currentData);
-      measurerContainer.appendChild(currentPageEl);
-      currentArticles = Array.from(currentPageEl.querySelectorAll(".md-body"));
-      currentColIdx = 0;
-      currentArticle = currentArticles[currentColIdx];
-      return currentArticle;
-    };
-
-    const appendWithOverflowCheck = (el) => {
-      currentArticle.appendChild(el);
-      if (checkOverflow()) {
-        currentArticle.removeChild(el);
-        currentArticle = nextArticle();
-        currentArticle.appendChild(el);
-      }
-    };
-
-    const registerPageCharRange = (startIdx, endIdx, isTextContent = false) => {
-      if (startIdx === undefined || endIdx === undefined) return;
-      // ページ内の最初の要素の開始位置を正確に記録する
-      if (
-        currentData.startCharIndex === undefined ||
-        startIdx < currentData.startCharIndex
-      ) {
-        currentData.startCharIndex = startIdx;
-      }
-      if (
-        currentData.endCharIndex === undefined ||
-        endIdx > currentData.endCharIndex
-      ) {
-        currentData.endCharIndex = endIdx;
-      }
-      if (isTextContent && currentData.firstTextCharIndex === undefined) {
-        currentData.firstTextCharIndex = startIdx;
-      }
-    };
-
-    const sections = parseToAST(els.sourceText.value);
-    let processedItems = 0;
-    const CHUNK_SIZE = 150;
-    let lastFitsCharCountEstimate = 400;
-
-    const secLen = sections.length;
-    for (let sectionIdx = 0; sectionIdx < secLen; sectionIdx++) {
-      if (currentCalcToken !== myToken) return;
-
-      const items = sections[sectionIdx];
-      if (sectionIdx > 0) {
-        flushCurrentPage();
-        totalPageIndex++;
-        currentData = createPageData(totalPageIndex, isTwoColumn);
-        measurerContainer.innerHTML = "";
-        currentPageEl = createPageDOMFromData(currentData);
-        measurerContainer.appendChild(currentPageEl);
-        currentArticles = Array.from(
-          currentPageEl.querySelectorAll(".md-body"),
-        );
-        currentColIdx = 0;
-        currentArticle = currentArticles[currentColIdx];
-      }
-
-      const itemLen = items.length;
-      for (let itemIdx = 0; itemIdx < itemLen; itemIdx++) {
-        if (currentCalcToken !== myToken) return;
-
-        const item = items[itemIdx];
-        processedItems++;
-
-        if (!isSyncForce && processedItems % CHUNK_SIZE === 0) {
-          await new Promise((resolve) => setTimeout(resolve, 0));
-          if (currentCalcToken !== myToken) {
-            isRendering = false;
-            hideLoading();
-            return;
-          }
-        }
-
-        if (item.type === "empty") {
-          const p = document.createElement("p");
-          p.className = "no-indent";
-          p.innerHTML = "&nbsp;";
-          registerPageCharRange(item.startIndex, item.endIndex, false);
-          appendWithOverflowCheck(p);
-        } else if (item.type === "heading") {
-          const h = document.createElement("h" + item.level);
-          h.innerHTML = parseInlineVerticalMarkdownCached(item.text);
-          registerPageCharRange(item.startIndex, item.endIndex, true);
-          appendWithOverflowCheck(h);
-        } else if (item.type === "hr") {
-          const hr = document.createElement("hr");
-          registerPageCharRange(item.startIndex, item.endIndex, true);
-          appendWithOverflowCheck(hr);
-        } else if (item.type === "quote") {
-          const bq = document.createElement("blockquote");
-          bq.innerHTML = parseInlineVerticalMarkdownCached(item.text);
-          registerPageCharRange(item.startIndex, item.endIndex, true);
-          appendWithOverflowCheck(bq);
-        } else if (item.type === "p") {
-          let remainingText = item.text;
-          let isFirstPiece = true;
-
-          while (remainingText.length > 0) {
-            const p = document.createElement("p");
-
-            const classNames = [];
-            if (item.isBracket || !isFirstPiece) {
-              classNames.push("no-indent");
-            }
-            if (item.align) {
-              classNames.push("align-" + item.align);
-            }
-            if (classNames.length > 0) {
-              p.className = classNames.join(" ");
-            }
-            currentArticle.appendChild(p);
-
-            let fitsCharCount = 0;
-            let low = 1;
-            let high = Math.min(
-              remainingText.length,
-              Math.max(100, Math.ceil(lastFitsCharCountEstimate * 1.4)),
-            );
-
-            while (low <= high) {
-              const mid = Math.floor((low + high) / 2);
-              p.innerHTML = parseInlineVerticalMarkdownCached(
-                remainingText.substring(0, mid),
-              );
-
-              if (!checkOverflow()) {
-                fitsCharCount = mid;
-                low = mid + 1;
-              } else {
-                high = mid - 1;
-              }
-            }
-
-            if (fitsCharCount === high && high < remainingText.length) {
-              low = high + 1;
-              high = remainingText.length;
-              while (low <= high) {
-                const mid = Math.floor((low + high) / 2);
-                p.innerHTML = parseInlineVerticalMarkdownCached(
-                  remainingText.substring(0, mid),
-                );
-
-                if (!checkOverflow()) {
-                  fitsCharCount = mid;
-                  low = mid + 1;
-                } else {
-                  high = mid - 1;
-                }
-              }
-            }
-
-            if (fitsCharCount === 0) {
-              currentArticle.removeChild(p);
-              currentArticle = nextArticle();
-            } else {
-              lastFitsCharCountEstimate = fitsCharCount;
-              if (fitsCharCount < remainingText.length) {
-                let adjustedCount = fitsCharCount;
-
-                const isGyoutouKinsoku = (ch) =>
-                  /[・、。，．？！?!：；・ー—–〜～ぁぃぅぇぉっゃゅょゎァィゥェォッャュょヮヵヶ\)\}\]］〕〉》〕】〞"’]/.test(
-                    ch,
-                  );
-                const isDashOrLeader = (ch) => /[―…──]/.test(ch);
-
-                while (adjustedCount > 0) {
-                  const nextChar = remainingText[adjustedCount];
-                  const prevChar = remainingText[adjustedCount - 1];
-
-                  const sliced = remainingText.substring(0, adjustedCount);
-                  const openBrackets = (sliced.match(/《/g) || []).length;
-                  const closeBrackets = (sliced.match(/》/g) || []).length;
-
-                  if (openBrackets > closeBrackets) {
-                    const lastOpen = sliced.lastIndexOf("《");
-                    const pipeIndex = sliced.lastIndexOf("｜", lastOpen);
-                    if (pipeIndex !== -1 && pipeIndex < lastOpen) {
-                      adjustedCount = pipeIndex;
-                    } else {
-                      adjustedCount = lastOpen;
-                    }
-                    adjustedCount--;
-                    continue;
-                  }
-
-                  if (isGyoutouKinsoku(nextChar)) {
-                    adjustedCount--;
-                    continue;
-                  }
-
-                  if (isDashOrLeader(prevChar) && isDashOrLeader(nextChar)) {
-                    adjustedCount--;
-                    continue;
-                  }
-
-                  const starCount = (sliced.match(/\*\*/g) || []).length;
-                  if (starCount % 2 !== 0) {
-                    const lastStar = sliced.lastIndexOf("**");
-                    if (lastStar >= 0) {
-                      adjustedCount = lastStar;
-                      continue;
-                    }
-                  }
-
-                  if (prevChar === "｜") {
-                    adjustedCount--;
-                    continue;
-                  }
-
-                  break;
-                }
-
-                if (adjustedCount > 0) {
-                  fitsCharCount = adjustedCount;
-                }
-              }
-
-              p.innerHTML = parseInlineVerticalMarkdownCached(
-                remainingText.substring(0, fitsCharCount),
-              );
-
-              // 禁則調整後の確定内容が実際に収まっているかを再検証する。
-              // 見た目上は「減らす方向」の調整だが、結合文字（《》や｜、**）の
-              // 境界跨ぎにより実際のレンダリング幅が想定と食い違うケースがあるため、
-              // ここで検証を挟まないと誤差が後続ページへ蓄積してしまう。
-              while (fitsCharCount > 0 && checkOverflow()) {
-                fitsCharCount--;
-                p.innerHTML = parseInlineVerticalMarkdownCached(
-                  remainingText.substring(0, fitsCharCount),
-                );
-              }
-
-              const offset = item.text.length - remainingText.length;
-              const pieceStart = item.startIndex + offset;
-              const pieceEnd = pieceStart + fitsCharCount;
-              registerPageCharRange(pieceStart, pieceEnd, true);
-
-              remainingText = remainingText.substring(fitsCharCount);
-
-              if (remainingText.length > 0) {
-                currentArticle = nextArticle();
-                isFirstPiece = false;
-              }
-            }
-          }
-        }
-      }
-    }
-
-    flushCurrentPage();
-    measurerContainer.innerHTML = "";
-
-    isRendering = false;
-    hideLoading();
-
-    if (!isSyncForce) {
-      renderAllPagesToDOM();
-
-      const totalPages = generatedPagesCache.length;
-      const pageWidth = getScaledPageWidthPx();
-
-      if (viewport) {
-        const restoredIdx = Math.max(
-          0,
-          Math.min(savedPageIndex, totalPages - 1),
-        );
-        preservedPageIndex = restoredIdx;
-        const scrollPos = isVertical
-          ? -(restoredIdx * pageWidth)
-          : restoredIdx * pageWidth;
-        viewport.scrollLeft = scrollPos;
-      }
-    }
-  }
-
-  function renderAllPagesToDOM() {
-    if (!pagesContainer || generatedPagesCache.length === 0) return;
-    const scale = getEffectiveScale();
-    const pageWpx = getPageWidthPx();
-    const GAP = 24;
-    const effectivePageWidth = pageWpx * scale + GAP;
-    const totalPages = generatedPagesCache.length;
-    const isVertical =
-      (els.writingModeSelect ? els.writingModeSelect.value : "vertical") ===
-      "vertical";
-
-    pagesContainer.style.width = totalPages * effectivePageWidth + "px";
     pagesContainer.innerHTML = "";
-    activePageDOMs.clear();
+    pagesContainer.style.transform = "none";
 
-    const fragment = document.createDocumentFragment();
-    for (let idx = 0; idx < totalPages; idx++) {
-      const pageEl = createPageDOMFromData(generatedPagesCache[idx]);
-      pageEl.style.position = "absolute";
-      pageEl.style.top = "0";
-
-      if (isVertical) {
-        pageEl.style.right = "0";
-        pageEl.style.left = "auto";
-        pageEl.style.transformOrigin = "top right";
-        pageEl.style.transform = `scale(${scale}) translateX(${-idx * (pageWpx + GAP / scale)}px)`;
-      } else {
-        pageEl.style.left = "0";
-        pageEl.style.right = "auto";
-        pageEl.style.transformOrigin = "top left";
-        pageEl.style.transform = `scale(${scale}) translateX(${idx * (pageWpx + GAP / scale)}px)`;
-      }
-
-      fragment.appendChild(pageEl);
-      activePageDOMs.set(idx, pageEl);
+    const total = computedPagesData.length;
+    if (total === 0) {
+      pagesContainer.innerHTML =
+        '<div class="paper-page"><article class="md-body"><p style="color:#888;">ここに縦書きプレビューが表示されます。</p></article></div>';
+      updatePageCounter();
+      requestAnimationFrame(fitPagesToViewport);
+      return;
     }
-    pagesContainer.appendChild(fragment);
 
-    updatePageNavUI();
+    if (currentPageIndex % 2 !== 0) {
+      currentPageIndex = Math.max(0, currentPageIndex - 1);
+    }
+    if (currentPageIndex >= total) {
+      currentPageIndex = Math.max(0, Math.floor((total - 1) / 2) * 2);
+    }
+
+    const endIdx = Math.min(currentPageIndex + 2, total);
+    for (let idx = currentPageIndex; idx < endIdx; idx++) {
+      const pageEl = document.createElement("div");
+      pageEl.className = "paper-page";
+      pageEl.dataset.pageIndex = idx;
+      pagesContainer.appendChild(pageEl);
+      renderPageDom(pageEl, idx);
+    }
+
+    updatePageCounter();
+    requestAnimationFrame(fitPagesToViewport);
   }
 
-  function updateColumnRuleVisibility() {
-    if (columnRuleCol && els.columnSelect) {
-      columnRuleCol.style.display =
-        els.columnSelect.value === "2" ? "block" : "none";
+  function updatePageCounter() {
+    const total = computedPagesData.length;
+    if (total === 0) {
+      pageNavStatus.textContent = "0 / 0 ページ";
+      nextPageBtn.disabled = true;
+      prevPageBtn.disabled = true;
+      return;
     }
+
+    const endIdx = Math.min(currentPageIndex + 2, total);
+    let statusStr = "";
+    if (currentPageIndex + 1 === endIdx) {
+      statusStr = `${currentPageIndex + 1} / ${total} ページ`;
+    } else {
+      statusStr = `${currentPageIndex + 1}-${endIdx} / ${total} ページ`;
+    }
+    pageNavStatus.textContent = statusStr;
+
+    nextPageBtn.disabled = currentPageIndex + 2 >= total;
+    prevPageBtn.disabled = currentPageIndex <= 0;
   }
+
+  nextPageBtn.addEventListener("click", function () {
+    if (currentPageIndex + 2 < computedPagesData.length) {
+      currentPageIndex += 2;
+      renderCurrentPages();
+    }
+  });
+
+  prevPageBtn.addEventListener("click", function () {
+    if (currentPageIndex - 2 >= 0) {
+      currentPageIndex -= 2;
+      renderCurrentPages();
+    }
+  });
 
   function updatePreview() {
-    updateColumnRuleVisibility();
-    updatePageStyle();
-    updatePreviewScale();
-
-    // フォント変更直後などは、指定フォントの読み込みが完了していない
-    // 場合がある。その状態で計算すると誤差の起点になるため、
-    // document.fonts.ready を待ってから計算する。
-    if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(() => {
-        renderPagesWithPrecisePagination();
-      });
-    } else {
-      renderPagesWithPrecisePagination();
+    if (columnRuleCol) {
+      columnRuleCol.style.display =
+        els.columnSelect.value === "2" ? "" : "none";
     }
+
+    const totalChars = els.sourceText.value.length;
+    const genkoPages = (totalChars / 400).toFixed(1);
+    charCount.textContent =
+      totalChars.toLocaleString("ja-JP") +
+      "文字（400字詰：約" +
+      genkoPages +
+      "枚）";
+
+    const title = els.pageTitle.value.trim();
+    document.title = title || "言ノ葉Editer";
+
+    updatePageCSSVariables();
+
+    computedPagesData = computeLayoutWithCanvas(els.sourceText.value);
+
+    renderCurrentPages();
     saveToStorage();
   }
 
-  function getDebounceMs() {
-    if (!els.sourceText) return 300;
-    const len = els.sourceText.value.length;
-    if (len > 500000) return 1000;
-    if (len > 200000) return 600;
-    if (len > 50000) return 400;
-    return 300;
-  }
-
-  function updateCharCount() {
-    if (charCount && els.sourceText) {
-      charCount.textContent =
-        els.sourceText.value.length.toLocaleString("ja-JP") + "文字";
-    }
-  }
-
   function debounceUpdatePreview() {
-    updateCharCount();
-    if (charCount && els.sourceText) {
-      charCount.textContent =
-        els.sourceText.value.length.toLocaleString("ja-JP") + "文字";
-    }
-    showLoading();
+    charCount.textContent =
+      els.sourceText.value.length.toLocaleString("ja-JP") + "文字";
     clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => {
-      updatePreview();
-      syncPageToEditor();
-    }, getDebounceMs());
-  }
-  if (els.sourceText) {
-    ["keyup", "click", "select", "paste"].forEach((eventType) => {
-      els.sourceText.addEventListener(eventType, function () {
-        if (eventType === "paste") {
-          // ★ペースト完了後に値が反映されるのを待ってから更新
-          setTimeout(debounceUpdatePreview, 0);
-        }
-        syncPageToEditor();
-      });
-    });
+    debounceTimer = setTimeout(updatePreview, 250);
   }
 
   if (els.fontSelect) {
     els.fontSelect.addEventListener("change", function () {
-      if (customFontRow) {
-        customFontRow.style.display =
-          els.fontSelect.value === "custom" ? "flex" : "none";
-      }
+      customFontRow.style.display =
+        els.fontSelect.value === "custom" ? "flex" : "none";
       updatePreview();
     });
   }
@@ -1316,8 +1010,6 @@ window.addEventListener("DOMContentLoaded", function () {
   }
 
   const CHANGE_EVENT_IDS = [
-    "writingModeSelect",
-    "bindingSelect",
     "pageSizeSelect",
     "columnSelect",
     "fontSizeSelect",
@@ -1330,7 +1022,6 @@ window.addEventListener("DOMContentLoaded", function () {
     "columnRuleSelect",
     "nombreDisplaySelect",
     "nombreFormatSelect",
-    "nombreTypeSelect",
   ];
   CHANGE_EVENT_IDS.forEach((id) => {
     if (els[id]) els[id].addEventListener("change", updatePreview);
@@ -1348,20 +1039,10 @@ window.addEventListener("DOMContentLoaded", function () {
     if (els[id]) els[id].addEventListener("input", debounceUpdatePreview);
   });
 
-  // テキストエリアでのカーソル移動やキー入力、クリック時にプレビュー側を連動させる
-  if (els.sourceText) {
-    ["keyup", "click", "select"].forEach((eventType) => {
-      els.sourceText.addEventListener(eventType, function () {
-        syncPageToEditor();
-      });
-    });
-  }
-
-  const insertBreakBtn = document.getElementById("insertBreakButton");
-  if (insertBreakBtn) {
-    insertBreakBtn.addEventListener("click", function () {
-      if (!els.sourceText) return;
-      const insertText = "\n[改ページ]\n";
+  document
+    .getElementById("insertBreakButton")
+    .addEventListener("click", function () {
+      const insertText = "\n\n[改ページ]\n\n";
       const start = els.sourceText.selectionStart;
       const end = els.sourceText.selectionEnd;
       els.sourceText.value =
@@ -1373,255 +1054,146 @@ window.addEventListener("DOMContentLoaded", function () {
       els.sourceText.focus();
       updatePreview();
     });
-  }
-  async function preparePrintDOM() {
-    currentCalcToken++;
-    await renderPagesWithPrecisePagination(true);
 
-    if (!pagesContainer) return;
-    pagesContainer.innerHTML = "";
-    pagesContainer.style.width = "100%";
-    activePageDOMs.clear();
-
-    const fragment = document.createDocumentFragment();
-    generatedPagesCache.forEach((data) => {
-      const pageEl = createPageDOMFromData(data);
-      pageEl.style.position = "relative";
-      pageEl.style.right = "auto";
-      pageEl.style.left = "auto";
-      pageEl.style.top = "auto";
-      pageEl.style.transform = "none";
-      pageEl.style.breakAfter = "page";
-      pageEl.style.pageBreakAfter = "always";
-      pageEl.style.breakInside = "avoid";
-      pageEl.style.pageBreakInside = "avoid";
-      pageEl.style.boxSizing = "border-box";
-      fragment.appendChild(pageEl);
-    });
-    pagesContainer.appendChild(fragment);
-  }
-
-  const printBtn = document.getElementById("printButton");
-  if (printBtn) {
-    printBtn.addEventListener("click", async function () {
-      const titleInput = els.pageTitle ? els.pageTitle.value.trim() : "";
-      const originalTitle = document.title;
-      if (titleInput) {
-        document.title = titleInput;
+  document
+    .getElementById("exportButton")
+    .addEventListener("click", function () {
+      const text = els.sourceText.value;
+      if (!text) {
+        alert("保存する本文がありません。");
+        return;
       }
-      await preparePrintDOM();
-      setTimeout(() => {
-        window.print();
-        setTimeout(() => {
-          document.title = originalTitle;
-          updatePreview();
-        }, 1000);
-      }, 50);
+      const title = els.pageTitle.value.trim() || "document";
+      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${title}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
     });
-  }
 
-  const sampleBtn = document.getElementById("sampleButton");
-  if (sampleBtn) {
-    sampleBtn.addEventListener("click", function () {
-      if (els.pageTitle) els.pageTitle.value = "言ノ葉Editer 取扱説明書";
-      if (els.pageHeader) els.pageHeader.value = "～機能と特殊記法のご案内～";
-      if (els.fontSelect) els.fontSelect.value = "noto";
-      if (els.pageSizeSelect) els.pageSizeSelect.value = "B6";
-      if (els.fontSizeSelect) els.fontSizeSelect.value = "9.5pt";
+  document
+    .getElementById("importButton")
+    .addEventListener("click", function () {
+      fileInput.click();
+    });
 
-      if (els.sourceText) {
-        els.sourceText.value =
-          "『言ノ葉Editer』へようこそ。\n" +
-          "本ツールは、Markdown記法や多彩な組版設定を用いて、小説、エッセイ、論文などを美しくレイアウト・プレビューできる縦書き・横書き対応のエディタです。\n\n" +
-          "はじめての方に向けて、**Markdown記法**の使い方と、本ツールの**全機能の活用ガイド**を解説します。\n\n" +
-          "## 1. 使えるMarkdown記法（初心者向けガイド）\n\n" +
-          "Markdown（マークダウン）とは、シンプルな記号で文字を装飾する書き方です。以下のルールを覚えるだけで、美しく整った誌面が作れます。\n\n" +
-          "・**見出し**：行頭に `#` をつけると見出しになります（例: `# 第1章`、`## 節タイトル`、`### 項`）。\n" +
-          "・**太字**：強調したい文字を `**` で挟みます（例: `**重要な部分**`）。\n" +
-          "・**斜体**：文字を `*` で挟みます（例: `*斜体の文字*`）\n" +
-          " ※環境や日本語フォントによっては、正しく斜体で表示されない場合があります。\n" +
-          "・**引用**：行頭に `>` をつけると引用文になります（例: `> 心に響く言葉`）。\n" +
-          "・**水平線**：`-` を3つ以上並べると区切り線になります。\n\n" +
-          "---\n\n" +
-          "[改ページ]\n\n" +
-          "## 2. 執筆を彩る特殊記法（ルビ・傍点・縦中横）\n\n" +
-          "文芸・同人誌の執筆に欠かせない特殊な表現に対応しています。\n\n" +
-          "・**ルビ（振り仮名）**：\n" +
-          "`｜漢字《かんじ》` または `漢字《かんじ》` と記述します。\n" +
-          "（例：麗《うるわ》しき｜言ノ葉《ことのは》）\n\n" +
-          "・**傍点（ゴシック点など）**：\n" +
-          "`《《強調したい文字列》》` と記述します。\n" +
-          "（例：ここが《《最も大切なポイント》》です）\n\n" +
-          "・**縦中横**：\n" +
-          "縦書き時、半角数字（1〜2桁）や `!?` などの連続記号は、自動的に横向きに整列して読みやすくなります（例：12月 31日、!?、？！）。\n\n" +
-          "・**テキスト配置**：\n" +
-          "`[center]``[中央]``[中央寄せ]`のいずれかで一文を中央寄せ（上下中央）に配置します。\n\n" +
-          "[center]中央寄せ（上下中央）サンプル\n\n" +
-          "`[右]``[右寄せ]``[下]``[下寄せ]``[地]``[地寄せ]`のいずれかで一文を右側（下側）に配置します。\n\n" +
-          "[右]右寄せ（下寄せ）サンプル\n\n" +
-          "・**手動改ページ**：\n" +
-          "独立した行に `[改ページ]` と記述するか、エディタ下の「改ページ挿入」ボタンで、任意の場所でページを強制的に区切ることができます。\n\n" +
-          "[改ページ]\n\n" +
-          "## 3. 組版・書字・用紙設定の使い方\n\n" +
-          "左側パネルの「組版・表示設定」タブから、発行スタイルに合わせた詳細なレイアウト調整が可能です。\n\n" +
-          "・**書字・綴じ方向**：縦書き（右綴じ・左綴じ）と横書きをワンタッチで切り替え可能。「のど（綴じ代）」を有効にすると、見開きページの左右交互に余白が自動調整されます。\n" +
-          "・**用紙サイズ**：Ａ４からＢ５、Ａ５、Ｂ６、Ａ６、ハガキサイズまで幅広くサポート。\n" +
-          "・**段組・境界線**：1段組のほか、文芸誌や資料に便利な2段組（実線/なしの境界線選択付き）を選べます。\n" +
-          "・**フォント・テーマ**：しっぽり明朝、Noto Serif、さわらび明朝、システム明朝のほか、カスタムWebフォントの指定も可能。テーマはセピア、ライト、ダークから切り替えられます。\n\n" +
-          "[改ページ]\n\n" +
-          "## 4. ヘッダー・ノンブル詳細設定\n\n" +
-          "書籍らしい体裁を整えるための高度な設定項目です。\n\n" +
-          "・**ヘッダー（柱）**：表題や章名を全ページ、奇数/偶数ページ、あるいは小口側への左右交互に配置できます。位置（右上/中央/左上）や文字サイズも変更可能です。\n" +
-          "・**ノンブル（ページ番号）**：算用数字（`1, 2, 3...`）のほか、縦書きに映える漢数字（`一, 二, 三...`）表記に対応。ハイフン（`- 1 -`）、丸括弧（`（ 1 ）`）、角括弧、スラッシュ、P.Nなどの装飾スタイルが選べます。\n\n" +
-          "[改ページ]\n\n" +
-          "## 5. 保存・インポート・印刷機能\n\n" +
-          "・**自動保存・データ管理**：執筆中の文章はローカルストレージに自動保存されます。「保存」「開く」からテキスト・Markdownファイルの入出力も自由に行えます。\n" +
-          "・**印刷・PDF保存**：画面右上の「印刷 / PDF保存」ボタンを押すだけで、余白やノンブルが整ったプレビュー通りの美しい印刷・PDF出力が実行できます。\n\n" +
-          "> 『言ノ葉Editer』を活用して、あなたの素敵な作品を形にしてください。";
+  fileInput.addEventListener("change", function (e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function (evt) {
+      els.sourceText.value = evt.target.result;
+
+      const nameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
+      if (!els.pageTitle.value.trim()) {
+        els.pageTitle.value = nameWithoutExt;
       }
 
+      currentPageIndex = 0;
       updatePreview();
-    });
-  }
-
-  const clearBtn = document.getElementById("clearButton");
-  if (clearBtn) {
-    clearBtn.addEventListener("click", function () {
-      if (confirm("入力した内容をすべて消去しますか？")) {
-        if (els.pageTitle) els.pageTitle.value = "";
-        if (els.pageHeader) els.pageHeader.value = "";
-        if (els.sourceText) els.sourceText.value = "";
-        localStorage.removeItem(STORAGE_KEY);
-        updatePreview();
-        if (els.sourceText) els.sourceText.focus();
-      }
-    });
-  }
-
-  if (viewport) {
-    viewport.addEventListener("scroll", function () {
-      if (isRendering || generatedPagesCache.length === 0) return;
-      const pageWidth = getScaledPageWidthPx();
-      const scrollPos = Math.abs(viewport.scrollLeft);
-      const newIndex = Math.min(
-        generatedPagesCache.length - 1,
-        Math.max(0, Math.round(scrollPos / pageWidth)),
-      );
-      if (preservedPageIndex !== newIndex) {
-        preservedPageIndex = newIndex;
-        updatePageNavUI();
-        syncEditorToPage(preservedPageIndex);
-      }
-    });
-  }
-
-  const prevPageBtn = document.getElementById("prevPageBtn");
-  const nextPageBtn = document.getElementById("nextPageBtn");
-  const pageNavInfo = document.getElementById("pageNavInfo");
-
-  function scrollToCurrentPage() {
-    const pageWidth = getScaledPageWidthPx();
-    const isVertical =
-      (els.writingModeSelect ? els.writingModeSelect.value : "vertical") ===
-      "vertical";
-    if (viewport) {
-      const scrollPos = isVertical
-        ? -(preservedPageIndex * pageWidth)
-        : preservedPageIndex * pageWidth;
-      viewport.scrollTo({
-        left: scrollPos,
-        behavior: "smooth",
-      });
-    }
-    updatePageNavUI();
-    syncEditorToPage(preservedPageIndex);
-  }
-
-  function updatePageNavUI() {
-    if (!pageNavInfo) return;
-    const totalPages = generatedPagesCache.length || 1;
-    const currentIdx = Math.max(
-      0,
-      Math.min(preservedPageIndex, totalPages - 1),
-    );
-    const currentPageNum = currentIdx + 1;
-    const isVertical =
-      (els.writingModeSelect ? els.writingModeSelect.value : "vertical") ===
-      "vertical";
-
-    pageNavInfo.textContent = currentPageNum + " / " + totalPages + " ページ";
-
-    if (isVertical) {
-      if (prevPageBtn) {
-        prevPageBtn.disabled = currentIdx >= totalPages - 1;
-        prevPageBtn.textContent = "◀";
-        prevPageBtn.title = "次のページ（左へ）";
-      }
-      if (nextPageBtn) {
-        nextPageBtn.disabled = currentIdx <= 0;
-        nextPageBtn.textContent = "▶";
-        nextPageBtn.title = "前のページ（右へ）";
-      }
-    } else {
-      if (prevPageBtn) {
-        prevPageBtn.disabled = currentIdx <= 0;
-        prevPageBtn.textContent = "◀";
-        prevPageBtn.title = "前のページ（左へ）";
-      }
-      if (nextPageBtn) {
-        nextPageBtn.disabled = currentIdx >= totalPages - 1;
-        nextPageBtn.textContent = "▶";
-        nextPageBtn.title = "次のページ（右へ）";
-      }
-    }
-  }
-
-  if (prevPageBtn) {
-    prevPageBtn.addEventListener("click", function () {
-      const isVertical =
-        (els.writingModeSelect ? els.writingModeSelect.value : "vertical") ===
-        "vertical";
-      if (isVertical) {
-        preservedPageIndex = Math.min(
-          (generatedPagesCache.length || 1) - 1,
-          preservedPageIndex + 1,
-        );
-      } else {
-        preservedPageIndex = Math.max(0, preservedPageIndex - 1);
-      }
-      scrollToCurrentPage();
-    });
-  }
-
-  if (nextPageBtn) {
-    nextPageBtn.addEventListener("click", function () {
-      const isVertical =
-        (els.writingModeSelect ? els.writingModeSelect.value : "vertical") ===
-        "vertical";
-      if (isVertical) {
-        preservedPageIndex = Math.max(0, preservedPageIndex - 1);
-      } else {
-        preservedPageIndex = Math.min(
-          (generatedPagesCache.length || 1) - 1,
-          preservedPageIndex + 1,
-        );
-      }
-      scrollToCurrentPage();
-    });
-  }
-
-  let resizeTimer = null;
-  window.addEventListener("resize", function () {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => {
-      updatePreview();
-    }, 200);
+      fileInput.value = "";
+    };
+    reader.readAsText(file, "UTF-8");
   });
 
+  function prepareAllPagesForPrint() {
+    window.isPrinting = true;
+    pagesContainer.style.transform = "none";
+    pagesContainer.innerHTML = "";
+    computedPagesData.forEach((pageData, idx) => {
+      const pageEl = document.createElement("div");
+      pageEl.className = "paper-page";
+      pageEl.dataset.pageIndex = idx;
+      pagesContainer.appendChild(pageEl);
+      renderPageDom(pageEl, idx);
+    });
+  }
+
+  window.isPrinting = false;
+  window.addEventListener("beforeprint", () => {
+    prepareAllPagesForPrint();
+  });
+
+  window.addEventListener("afterprint", () => {
+    window.isPrinting = false;
+    renderCurrentPages();
+  });
+
+  document.getElementById("printButton").addEventListener("click", function () {
+    prepareAllPagesForPrint();
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        window.print();
+      }, 150);
+    });
+  });
+
+  document
+    .getElementById("sampleButton")
+    .addEventListener("click", function () {
+      els.pageTitle.value = "言ノ葉Editer 取扱説明書";
+      els.pageHeader.value = "～機能と特殊記法のご案内～";
+      els.fontSelect.value = "system";
+      els.pageSizeSelect.value = "B6";
+      els.fontSizeSelect.value = "9.5pt";
+
+      els.sourceText.value =
+        "『言ノ葉Editer』へようこそ。\n" +
+        "このツールは、Markdown記法や独自の執筆用記法を使って、美しい縦書き文章をリアルタイムに作成・組版するためのエディタです。\n\n" +
+        "## 1. 執筆用記法（ルビ・傍点・配置）\n\n" +
+        "小説執筆に欠かせないルビ（ふりがな）や傍点（圏点）、配置の指定に対応しています。\n\n" +
+        "・ルビ指定：`｜漢字《かんじ》` または `漢字《かんじ》`\n" +
+        "（例：｜瑠璃《るり》色の空に、鳳凰《ほうおう》が舞う。）\n\n" +
+        "・傍点指定：`《《強調したい文字》》`\n" +
+        "（例：ここが《《一番重要な場面》》です。）\n\n" +
+        "## 2. 縦中横の自動変換\n\n" +
+        "半角数字（1〜2桁）や、連続する感嘆符・疑問符は、自動的に縦中横に変換されます。\n\n" +
+        "・数字指定：`12`月 `31`日\n" +
+        "（例：12月31日 15時03分）\n\n" +
+        "・記号指定：`!?` `？！` `！！` など\n" +
+        "（例：本当!? 嘘で嘘でしょ？！ 信じられない！！）\n\n" +
+        "## 3. Markdown記法と装飾\n\n" +
+        "標準的なMarkdown記法で文章を修飾できます。\n\n" +
+        "・太字指定：`**太字**`（例：**ここが太字**）\n" +
+        "・見出し：`# 見出し1` や `## 見出し2` を使用\n" +
+        "・引用枠：行頭に `>` をつける\n\n" +
+        "> 引用枠は、作中の手紙や古文書、回想シーン、または注釈などの表現に活用できます。長文の引用であっても枠内で自動的に折り返されて表示されます。\n\n" +
+        "[改ページ]\n\n" +
+        "## 4. ページ制御と印刷・PDF保存\n\n" +
+        "・手動改ページ：独立した行に `[改ページ]` と入力すると、任意の位置で次のページへ送ることができます。\n" +
+        "・印刷・PDF保存：画面右上のボタンを押すことで、プレビュー通りの縦書きレイアウトで印刷やPDF出力が可能です。\n\n" +
+        "## 5. 各種レイアウト設定\n\n" +
+        "画面左側の「組版・設定」タブから、以下の項目を自在に変更できます。\n\n" +
+        "・用紙サイズ（A4、B5、A5、B6、A6、ハガキ）\n" +
+        "・段組（1段組 / 上下2段組）\n" +
+        "・本文文字サイズ、余白、のど（綴じ代）設定\n" +
+        "・明朝体フォントの変更（しっぽり明朝、Noto Serif JPなど）\n" +
+        "・UIテーマ（ダーク、ライト、セピア）\n\n" +
+        "入力したテキストや設定はブラウザに自動保存されますので、安心してご執筆をお楽しみください。";
+
+      currentPageIndex = 0;
+      updatePreview();
+    });
+
+  document.getElementById("clearButton").addEventListener("click", function () {
+    if (confirm("入力した内容をすべて消去しますか？")) {
+      els.pageTitle.value = "";
+      els.pageHeader.value = "";
+      els.sourceText.value = "";
+      localStorage.removeItem(STORAGE_KEY);
+      currentPageIndex = 0;
+      updatePreview();
+      els.sourceText.focus();
+    }
+  });
+
+  // デバッグ用：レイアウト計算のログをコンソールに出力する。
+  // 検証が終わったらこのフラグと関連する console.log 呼び出しは削除すること。
+  window.DEBUG_LAYOUT = true;
+
   loadFromStorage();
-  updateCharCount();
-  updateColumnRuleVisibility();
-  updatePageStyle();
-  updatePreviewScale();
-  renderPagesWithPrecisePagination();
+  updatePreview();
 });
