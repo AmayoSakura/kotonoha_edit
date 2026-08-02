@@ -489,11 +489,18 @@
   .md-body .align-center {
     text-align: center;
     text-indent: 0 !important;
+    /* text-align は要素の専有幅（縦書きでは height）いっぱいの中で
+           テキストを揃える仕組み。p 要素の height: fit-content により
+           高さがテキストぴったりになってしまうと、揃える余地自体がなくなり
+           中央揃えが効かなくなっていたため、ここで高さを親基準に戻す。 */
+    height: auto !important;
   }
 
   .md-body .align-right {
     text-align: right;
     text-indent: 0 !important;
+    /* align-center と同じ理由。 */
+    height: auto !important;
   }
 
   .nobreak {
@@ -536,8 +543,9 @@
     padding-left: 8px;
     line-height: 1.4;
     white-space: nowrap;
-    /* p要素と同じ理由（縦書きでのheight暗黙継承）で追加。詳細はmd-body pのコメント参照。 */
-    height: fit-content;
+    /* border-left（見出しの罫線）は段の高さいっぱいに伸びるのが正しい仕様のため、
+           height は明示指定しない（暗黙的に親の高さを継承する挙動のままにする）。
+           <p>で問題になった暗黙継承は、罫線を持つ見出しにとっては逆に必要な挙動。 */
   }
 
   .md-body h2 {
@@ -547,8 +555,8 @@
     font-size: 1.3em;
     line-height: 1.5;
     white-space: nowrap;
-    /* p要素と同じ理由（縦書きでのheight暗黙継承）で追加。詳細はmd-body pのコメント参照。 */
-    height: fit-content;
+    /* border-left（見出しの罫線）は段の高さいっぱいに伸びるのが正しい仕様のため、
+           height は明示指定しない（h1と同じ理由）。 */
   }
 
   .md-body h3 {
