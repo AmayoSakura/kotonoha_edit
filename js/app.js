@@ -207,7 +207,12 @@ window.addEventListener("DOMContentLoaded", function () {
       /(!\?|\?!|!!|\?\?|！？|？！|！！|？？)/g,
       '<span class="tcy">$1</span>',
     );
-    value = value.replace(/(\d{1,2})/g, '<span class="tcy">$1</span>');
+    // \b（単語境界）を付けることで、レイアウト計算側(parseTextTokens)の
+    // \b\d{1,2}\b と同じ基準に揃える。\bなしだと「1234567890」のような
+    // 3桁以上の連続数字が「12」「34」「56」...と2桁ずつ縦中横化されてしまい、
+    // JS側の計算（3桁以上は1文字ずつの通常文字として幅計算）と実描画が
+    // 食い違って、実際の専有幅がズレる不具合があった。
+    value = value.replace(/(\b\d{1,2}\b)/g, '<span class="tcy">$1</span>');
     value = value.replace(/(――+|……+|──+)/g, '<span class="nobreak">$1</span>');
 
     let blockIndex = 0;
@@ -279,12 +284,7 @@ window.addEventListener("DOMContentLoaded", function () {
         }
 
         const isBracket = /^[「『（【〔〈《“‘]/.test(textToParse);
-        items.push({
-          type: "p",
-          isBracket,
-          text: textToParse,
-          align: align,
-        });
+        items.push({ type: "p", isBracket, text: textToParse, align: align });
       });
 
       if (items.length > 0) sections.push(items);
@@ -301,6 +301,29 @@ window.addEventListener("DOMContentLoaded", function () {
     const fontSizePx = ptToPx(els.fontSizeSelect.value);
     const isTwoColumn = els.columnSelect.value === "2";
     const isGutterOn = els.gutterSelect && els.gutterSelect.value === "on";
+
+    // 実際に描画される --doc-font-family を取得し、Canvas で文字幅を実測する。
+    // これまでの「全角文字は常に fontSizePx(1文字=1em)固定」という概算計算では、
+    // 「」などの約物がフォント側で持つ実際の字送り幅（Shippori Minchoのような
+    // 縦書き専用フォントでは約物に固有のアキが設定されていることが多い）を
+    // 反映できず、約物が連続する文章で実描画とのズレが蓄積する不具合があった。
+    const measureCanvas = document.createElement("canvas");
+    const measureCtx = measureCanvas.getContext("2d");
+    const docFontFamily =
+      getComputedStyle(document.documentElement).getPropertyValue(
+        "--doc-font-family",
+      ) || "serif";
+
+    // 実測結果をキャッシュして、同じ文字を何度も測る際のパフォーマンス低下を防ぐ。
+    const charWidthCache = new Map();
+    function measureCharWidth(ch, scale) {
+      const cacheKey = ch + "|" + scale.toFixed(4);
+      if (charWidthCache.has(cacheKey)) return charWidthCache.get(cacheKey);
+      measureCtx.font = (fontSizePx * scale).toFixed(2) + "px " + docFontFamily;
+      const w = measureCtx.measureText(ch).width;
+      charWidthCache.set(cacheKey, w);
+      return w;
+    }
 
     const paperHPx = mmToPx(pageSize.h);
     const paperWPx = mmToPx(pageSize.w);
@@ -327,9 +350,19 @@ window.addEventListener("DOMContentLoaded", function () {
     const maxLinesPerCol = Math.max(1, Math.floor(colWPx / lineSpacingPx));
 
     function getCharHeight(ch, fontScale = 1.0) {
-      // 半角文字・英数字の幅係数を 0.65 に修正してレイアウト計算のズレ（はみ出し・切れ）を防ぐ
+      // 半角文字・英数字は text-orientation: mixed の影響で複数文字がまとめて
+      // 横倒しなしで配置されるなど、Canvas実測（横書き前提のAPI）では
+      // 正確に再現しきれない挙動があるため、従来の経験則(0.65倍)を維持する。
       if (/[a-zA-Z0-9\s]/.test(ch)) return fontSizePx * 0.65 * fontScale;
-      return fontSizePx * fontScale;
+      // 全角文字（漢字・かな・約物含む）は Canvas で実際のフォントの字送り幅を測る。
+      // 「」などの約物は、Shippori Minchoのような縦書き用フォントで固有のアキを
+      // 持つことがあり、fontSizePx固定の概算では実描画とズレが蓄積していた。
+      const measured = measureCharWidth(ch, fontScale);
+      // 実測が0や異常値になるケース（フォント未読込等）へのフォールバック。
+      if (!measured || !isFinite(measured) || measured <= 0) {
+        return fontSizePx * fontScale;
+      }
+      return measured;
     }
 
     // .inline-code は font-size: 0.88em で本文より縮小して描画される。
@@ -349,8 +382,16 @@ window.addEventListener("DOMContentLoaded", function () {
       // 手前の平文が「鳳凰」まで巻き込んでトークン化してしまい、
       // ルビが《の前後で分断される不具合があった。1文字ずつにすることで、
       // 毎文字ごとに改めてルビパターンとのマッチを試みられるようにする。
+      //
+      // また、fallback の文字クラスから \d（数字）を除外していたため、
+      // 「1234567890」のような3桁以上の連続した数字は、\b\d{1,2}\b
+      // （前後が数字でない1〜2桁の数字にのみマッチ）にも fallback にも
+      // 拾われず、丸ごとトークンとして消滅する不具合があった。
+      // \d を fallback から除外しないことで、1〜2桁の独立した数字は
+      // 引き続き縦中横化パターンが優先的に拾い、3桁以上の連続数字は
+      // fallback で1文字ずつ通常文字として表示されるようにする。
       const pattern =
-        /(!\?|\?!|!!|\?\?|！？|？！|！！|！！|？？)|(\b\d{1,2}\b)|([\|｜][^《\n]+《[^》\n]+》)|([一-龯]+《[^》\n]+》)|(《《[^》\n]+》》)|(\*\*[^*]+\*\*)|(\*[^*\n]+\*)|(`[^`]+`)|([^\|｜《\*`!\?\d])/g;
+        /(!\?|\?!|!!|\?\?|！？|？！|！！|！！|？？)|(\b\d{1,2}\b)|([\|｜][^《\n]+《[^》\n]+》)|([一-龯]+《[^》\n]+》)|(《《[^》\n]+》》)|(\*\*[^*]+\*\*)|(\*[^*\n]+\*)|(`[^`]+`)|([^\|｜《\*`!\?])/g;
       let match;
       while ((match = pattern.exec(str)) !== null) {
         const raw = match[0];
@@ -1143,12 +1184,16 @@ window.addEventListener("DOMContentLoaded", function () {
       els.sourceText.value =
         "『言ノ葉Editer』へようこそ。\n" +
         "このツールは、Markdown記法や独自の執筆用記法を使って、美しい縦書き文章をリアルタイムに作成・組版するためのエディタです。\n\n" +
+        "[中央]― 寄せの機能表記例 ―\n" +
+        "[右]執筆者：言ノ葉太郎\n\n" +
         "## 1. 執筆用記法（ルビ・傍点・配置）\n\n" +
         "小説執筆に欠かせないルビ（ふりがな）や傍点（圏点）、配置の指定に対応しています。\n\n" +
         "・ルビ指定：`｜漢字《かんじ》` または `漢字《かんじ》`\n" +
         "（例：｜瑠璃《るり》色の空に、鳳凰《ほうおう》が舞う。）\n\n" +
         "・傍点指定：`《《強調したい文字》》`\n" +
         "（例：ここが《《一番重要な場面》》です。）\n\n" +
+        "・中央寄せ：`[中央]文字` または `[center]文字`\n" +
+        "・右寄せ（下寄せ）：`[右]文字` または `[right]文字`\n\n" +
         "## 2. 縦中横の自動変換\n\n" +
         "半角数字（1〜2桁）や、連続する感嘆符・疑問符は、自動的に縦中横に変換されます。\n\n" +
         "・数字指定：`12`月 `31`日\n" +
