@@ -390,8 +390,18 @@ window.addEventListener("DOMContentLoaded", function () {
       // \d を fallback から除外しないことで、1〜2桁の独立した数字は
       // 引き続き縦中横化パターンが優先的に拾い、3桁以上の連続数字は
       // fallback で1文字ずつ通常文字として表示されるようにする。
+      //
+      // 「――」「……」「──」（2文字以上連続）は、実描画側
+      // （parseInlineVerticalMarkdown）が nobreak（white-space: nowrap）
+      // で囲んで泣き別れ（行末・行頭での分断）を防いでいるが、
+      // レイアウト計算側（このパターン）が1文字ずつしか拾えていなかったため、
+      // 実際には行の途中で平気で改行位置が決まってしまい、nobreak が
+      // 機能する保証がなかった。まとめて1トークンとして拾うグループを追加し、
+      // splitTextToLines 側で isNobreak な1単位として扱うことで対応する。
+      // 既存の isRuby（読み仮名考慮の幅計算）とは独立したフラグとして扱い、
+      // ルビ側の仕様変更やこのnobreak側の調整が互いに波及しないようにする。
       const pattern =
-        /(!\?|\?!|!!|\?\?|！？|？！|！！|！！|？？)|(\b\d{1,2}\b)|([\|｜][^《\n]+《[^》\n]+》)|([一-龯]+《[^》\n]+》)|(《《[^》\n]+》》)|(\*\*[^*]+\*\*)|(\*[^*\n]+\*)|(`[^`]+`)|([^\|｜《\*`!\?])/g;
+        /(!\?|\?!|!!|\?\?|！？|？！|！！|！！|？？)|(\b\d{1,2}\b)|([\|｜][^《\n]+《[^》\n]+》)|([一-龯]+《[^》\n]+》)|(《《[^》\n]+》》)|(\*\*[^*]+\*\*)|(\*[^*\n]+\*)|(`[^`]+`)|(―{2,}|…{2,}|─{2,})|([―…─])|([^\|｜《\*`!\?―…─])/g;
       let match;
       while ((match = pattern.exec(str)) !== null) {
         const raw = match[0];
@@ -428,7 +438,15 @@ window.addEventListener("DOMContentLoaded", function () {
           (tok.raw.startsWith("《《") && tok.raw.endsWith("》》")) ||
           (tok.raw.startsWith("`") && tok.raw.endsWith("`"));
 
-        if (tok.raw !== tok.display && !isSplittable) {
+        // 「――」「……」「──」（2文字以上連続）は display === raw
+        // （変換不要）だが、行の途中で分断されないよう isAtomic 扱いに
+        // したいトークン。raw !== display という既存の判定だけでは
+        // 拾えないため、文字種のみで別途判定する。
+        // isRuby とは独立したフラグとして扱い、互いの計算ロジックが
+        // 影響し合わないようにする。
+        const isNobreak = tok.raw.length >= 2 && /^(―+|…+|─+)$/.test(tok.raw);
+
+        if ((tok.raw !== tok.display || isNobreak) && !isSplittable) {
           const isRuby =
             tok.raw.includes("《") &&
             tok.raw.endsWith("》") &&
@@ -438,6 +456,7 @@ window.addEventListener("DOMContentLoaded", function () {
             display: tok.display,
             isAtomic: true,
             isRuby: isRuby,
+            isNobreak: isNobreak,
           });
         } else {
           let prefix = "";
@@ -518,6 +537,14 @@ window.addEventListener("DOMContentLoaded", function () {
           for (let c = 0; c < item.display.length; c++) {
             itemH += getCharHeight(item.display[c], fontScale);
           }
+        } else if (item.isNobreak) {
+          // 「――」「……」等の泣き別れ防止トークン。
+          // 特殊な倍率は不要で、構成文字の基本幅の合計のみで計算する
+          // （isRuby分岐と式は同一だが、ルビ側の将来の仕様変更が
+          // こちらに波及しないよう、フラグと分岐を独立させている）。
+          for (let c = 0; c < item.display.length; c++) {
+            itemH += getCharHeight(item.display[c], fontScale);
+          }
         } else {
           for (let c = 0; c < item.display.length; c++) {
             itemH += getCharHeight(item.display[c], fontScale);
@@ -534,6 +561,8 @@ window.addEventListener("DOMContentLoaded", function () {
             !!item.isCode,
             "isRuby=",
             !!item.isRuby,
+            "isNobreak=",
+            !!item.isNobreak,
             "itemH=",
             itemH.toFixed(2),
             "effectiveColHPx=",
@@ -560,7 +589,12 @@ window.addEventListener("DOMContentLoaded", function () {
             pushBackCount = 1;
           }
 
-          const lastChar = currentChars[currentChars.length - 1].display;
+          const lastItem = currentChars[currentChars.length - 1];
+          // display が複数文字（isNobreak トークンの「――」等）の場合でも、
+          // isKinsokuTail は1文字前提の判定のため、必ず末尾の1文字だけを渡す。
+          // これを怠ると、display文字列全体が正規表現に渡され、
+          // 本来は禁則対象でない文字列でも意図せずマッチしてしまう恐れがある。
+          const lastChar = lastItem.display[lastItem.display.length - 1];
           if (isKinsokuTail(lastChar) && currentChars.length > 1) {
             pushBackCount = Math.max(pushBackCount, 1);
           }
