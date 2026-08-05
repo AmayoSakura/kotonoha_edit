@@ -1548,7 +1548,7 @@ window.addEventListener("DOMContentLoaded", function () {
     .addEventListener("click", function () {
       els.pageTitle.value = "言ノ葉Editer 取扱説明書";
       els.pageHeader.value = "～機能と特殊記法のご案内～";
-      els.fontSelect.value = "system";
+      els.fontSelect.value = "noto";
       els.pageSizeSelect.value = "B6";
       els.fontSizeSelect.value = "9.5pt";
 
@@ -1570,7 +1570,7 @@ window.addEventListener("DOMContentLoaded", function () {
         "・数字指定：`12`月 `31`日\n" +
         "（例：12月31日 15時03分）\n\n" +
         "・記号指定：`!?` `？！` `！！` など\n" +
-        "（例：本当!? 嘘で嘘でしょ？！ 信じられない！！）\n\n" +
+        "（例：本当!? 嘘でしょ？！ 信じられない！！）\n\n" +
         "## 3. Markdown記法と装飾\n\n" +
         "標準的なMarkdown記法で文章を修飾できます。\n\n" +
         "・太字指定：`**太字**`（例：**ここが太字**）\n" +

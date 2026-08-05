@@ -491,7 +491,7 @@ section {
 }
 .mini-paper p {
   margin: 0;
-  text-indent: 1em;
+  text-indent: 0.5em;
 }
 .mini-paper p + p {
   margin-top: 1.6em;
