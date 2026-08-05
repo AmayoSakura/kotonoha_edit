@@ -58,6 +58,23 @@ window.addEventListener("DOMContentLoaded", function () {
   let computedPagesData = [];
   let currentPageIndex = 0;
 
+  // スマホ幅（.pages-containerが縦積みレイアウトに切り替わる
+  // @media (max-width: 1100px) と同じブレークポイント）では、
+  // 見開き2ページ表示だと1ページあたりが小さくなりすぎて
+  // 視認性が悪いため、1ページ表示に切り替える。
+  const mobileLayoutQuery = window.matchMedia("(max-width: 1100px)");
+  function getPagesPerView() {
+    return mobileLayoutQuery.matches ? 1 : 2;
+  }
+  // 画面幅が変わった（ウィンドウリサイズ、スマホの画面回転等）際に、
+  // 表示ページ数の基準も切り替わるよう再描画する。
+  mobileLayoutQuery.addEventListener("change", function () {
+    // 奇数ページを起点にしていた場合、2ページ表示に戻ったときの
+    // 見開き基準（偶数開始）とズレないよう、renderCurrentPages側の
+    // 補正ロジックに委ねる。
+    renderCurrentPages();
+  });
+
   const PAGE_SIZES_MM = {
     A4: { w: 210, h: 297 },
     B5: { w: 182, h: 257 },
@@ -143,7 +160,12 @@ window.addEventListener("DOMContentLoaded", function () {
     if (els.fontSelect.value === "custom") {
       selectedFont = els.customFontFamily.value.trim() || "serif";
       const url = els.customFontUrl.value.trim();
-      if (url) document.getElementById("dynamic-font-link").href = url;
+      // 入力値を検証せずに <link href> へ直接セットすると、
+      // javascript: 等の不正なスキームや意図しない外部リソースの
+      // 読み込みを許してしまう。https:// で始まる文字列のみ許可する。
+      if (url && /^https:\/\/[^\s"'<>]+$/i.test(url)) {
+        document.getElementById("dynamic-font-link").href = url;
+      }
     }
 
     document.documentElement.style.setProperty("--paper-w", conf.w + "mm");
@@ -183,9 +205,22 @@ window.addEventListener("DOMContentLoaded", function () {
     let value = escapeHtml(text);
     const codeBlocks = [];
 
+    // 固定文字列のプレースホルダーだと、本文中に偶然同じ文字列が
+    // 含まれていた場合（小説内でシステム的な説明文を書く等）に、
+    // 意図しない置換・undefined展開が起きうる。呼び出しごとに
+    // ユニークなプレフィックスを生成し、衝突の可能性を実質的に無くす。
+    const placeholderPrefix =
+      "___CODE_PH_" +
+      Date.now().toString(36) +
+      "_" +
+      Math.random().toString(36).slice(2) +
+      "_";
+    const placeholderFor = (idx) => placeholderPrefix + idx + "___";
+
     value = value.replace(/`([^`]+)`/g, function (match, code) {
+      const idx = codeBlocks.length;
       codeBlocks.push('<code class="inline-code">' + code + "</code>");
-      return "___CODE_PLACEHOLDER_BLOCK___";
+      return placeholderFor(idx);
     });
 
     value = value.replace(
@@ -215,10 +250,9 @@ window.addEventListener("DOMContentLoaded", function () {
     value = value.replace(/(\b\d{1,2}\b)/g, '<span class="tcy">$1</span>');
     value = value.replace(/(――+|……+|──+)/g, '<span class="nobreak">$1</span>');
 
-    let blockIndex = 0;
-    value = value.replace(/___CODE_PLACEHOLDER_BLOCK___/g, function () {
-      return codeBlocks[blockIndex++];
-    });
+    for (let idx = 0; idx < codeBlocks.length; idx++) {
+      value = value.replace(placeholderFor(idx), codeBlocks[idx]);
+    }
 
     return value;
   }
@@ -228,7 +262,7 @@ window.addEventListener("DOMContentLoaded", function () {
     if (!normalized.trim()) return [];
 
     const rawSections = normalized.split(
-      /(?:\n|^)\s*(?:\[改ページ\]|< !--\ s *pagebreak\ s*- ->)\s*(?=\n|$)/i,
+      /(?:\n|^)\s*(?:\[改ページ\]|<!--\s*pagebreak\s*-->)\s*(?=\n|$)/i,
     );
     const sections = [];
 
@@ -293,7 +327,88 @@ window.addEventListener("DOMContentLoaded", function () {
     return sections;
   }
 
+  // 「」等の約物が連続する行で、Canvas実測（1文字ずつの字送り幅の単純合計）が
+  // 実際のブラウザの縦書きカーニング（詰め）を反映できていない問題への対策。
+  // 該当する行の候補文字列だけを、本番の .md-body p と同じCSS継承を持つ
+  // 画面外の隠し要素に実際に流し込み、getBoundingClientRect().height で
+  // 実測する。writing-mode: vertical-rl では height が「文字が積み上がる
+  // 方向の専有量」を表すため、effectiveColHPx と直接比較できる値になる。
+  // 全行に対して行うと再フローのコストが高いため、約物隣接がない大多数の
+  // 行は従来の理論値のみで確定し、約物隣接を含む行だけこの実測で補正する
+  // ハイブリッド方式にしている。
+  let measureContainerEl = null;
+  function getMeasureContainer() {
+    if (measureContainerEl && document.body.contains(measureContainerEl)) {
+      return measureContainerEl;
+    }
+    const wrapper = document.createElement("div");
+    // position: fixed + 画面外座標で、画面には一切表示されないが
+    // レイアウト計算（getBoundingClientRect）は正常に機能する。
+    // display: none にすると計算自体が走らなくなるため使わない。
+    wrapper.style.position = "fixed";
+    wrapper.style.top = "-99999px";
+    wrapper.style.left = "-99999px";
+    wrapper.style.visibility = "hidden";
+    wrapper.style.pointerEvents = "none";
+    const article = document.createElement("article");
+    article.className = "md-body";
+    // .md-body は本来 width/height: 100% で親基準だが、測定用途では
+    // 十分大きな固定値にして、意図しない折返しや高さ制限が
+    // 測定結果に影響しないようにする。
+    article.style.width = "2000px";
+    article.style.height = "2000px";
+    wrapper.appendChild(article);
+    document.body.appendChild(wrapper);
+    measureContainerEl = article;
+    return measureContainerEl;
+  }
+
+  // 同じ候補文字列を何度も実測することがあるため（例えば同じ段落を
+  // 再計算するたびに同じ切れ目候補が出てくる場合）、呼び出しをまたいで
+  // 結果をキャッシュする。ただしフォント設定が変わるとキャッシュは
+  // 無効になるため、computeLayoutWithCanvas 側で設定が変わるたびに
+  // resetMeasureCache() を呼んでクリアする。
+  let measureCache = new Map();
+  function resetMeasureCache() {
+    measureCache = new Map();
+  }
+
+  // candidateRaw（<p>に入れるべき生のHTML片、raw文字列をそのまま結合したもの）を
+  // 実際にDOMへ描画し、専有する高さ(px)を実測する。
+  // hasIndent は本番の <p> と同じ text-indent: 1em の有無を揃えるためのフラグ。
+  function measureLineHeightPx(candidateRaw, hasIndent) {
+    const cacheKey = (hasIndent ? "1|" : "0|") + candidateRaw;
+    if (measureCache.has(cacheKey)) return measureCache.get(cacheKey);
+
+    const container = getMeasureContainer();
+    const p = document.createElement("p");
+    if (!hasIndent) p.className = "no-indent";
+    // parseInlineVerticalMarkdown は nobreak span化などを行うため、
+    // 実際の描画パス（buildLinesHtml側）と同じ変換を通す。
+    p.innerHTML = parseInlineVerticalMarkdown(candidateRaw);
+    container.innerHTML = "";
+    container.appendChild(p);
+    const height = p.getBoundingClientRect().height;
+    measureCache.set(cacheKey, height);
+    return height;
+  }
+
+  // 文字幅測定用のCanvasは、computeLayoutWithCanvas が呼ばれるたびに
+  // 都度生成すると無駄なDOM生成コストがかかる。モジュールレベルで
+  // 1つだけ保持し、呼び出しをまたいで再利用する。
+  const measureCanvas = document.createElement("canvas");
+  const measureCtx = measureCanvas.getContext("2d");
+  // 文字幅キャッシュも呼び出しをまたいで使い回す。ただしフォントや
+  // フォントサイズが変わった場合は古いキャッシュ値が無効になるため、
+  // キャッシュキーに現在のフォント設定を含めることで、設定が変われば
+  // 自然に別キーとして扱われ、古い値を誤って使うことがないようにする。
+  const charWidthCache = new Map();
+
   function computeLayoutWithCanvas(text) {
+    // フォント・サイズ等の設定が変わった可能性があるため、
+    // DOM実測のキャッシュ（measureLineHeightPx用）を都度クリアする。
+    resetMeasureCache();
+
     const pageSize =
       PAGE_SIZES_MM[els.pageSizeSelect.value] || PAGE_SIZES_MM["A4"];
     const margin =
@@ -307,17 +422,24 @@ window.addEventListener("DOMContentLoaded", function () {
     // 「」などの約物がフォント側で持つ実際の字送り幅（Shippori Minchoのような
     // 縦書き専用フォントでは約物に固有のアキが設定されていることが多い）を
     // 反映できず、約物が連続する文章で実描画とのズレが蓄積する不具合があった。
-    const measureCanvas = document.createElement("canvas");
-    const measureCtx = measureCanvas.getContext("2d");
     const docFontFamily =
       getComputedStyle(document.documentElement).getPropertyValue(
         "--doc-font-family",
       ) || "serif";
 
-    // 実測結果をキャッシュして、同じ文字を何度も測る際のパフォーマンス低下を防ぐ。
-    const charWidthCache = new Map();
     function measureCharWidth(ch, scale) {
-      const cacheKey = ch + "|" + scale.toFixed(4);
+      // フォントファミリーに加えてfontSizePx（絶対px値）もキーに含める。
+      // scaleは相対倍率でしかないため、フォントサイズ設定自体が変わった
+      // 場合、scaleとdocFontFamilyだけをキーにしていると、古いフォント
+      // サイズでの測定結果（px単位の絶対値）を誤って使い回してしまう。
+      const cacheKey =
+        docFontFamily +
+        "|" +
+        fontSizePx.toFixed(2) +
+        "|" +
+        ch +
+        "|" +
+        scale.toFixed(4);
       if (charWidthCache.has(cacheKey)) return charWidthCache.get(cacheKey);
       measureCtx.font = (fontSizePx * scale).toFixed(2) + "px " + docFontFamily;
       const w = measureCtx.measureText(ch).width;
@@ -423,6 +545,136 @@ window.addEventListener("DOMContentLoaded", function () {
         tokens.push({ raw, display });
       }
       return tokens;
+    }
+
+    // 禁則分類（isKinsokuHead=行末に来る側の句読点・閉じ約物、
+    // isKinsokuTail=行頭に来ない側の開き約物）を使って、
+    // 確定候補の行 chars の中に「詰まりが起きうる約物隣接」が
+    // 1箇所でも含まれているかを調べる。含まれない大多数の行は
+    // 実測コストをかけず理論値のまま確定させるためのフィルタ。
+    function hasKinsokuAdjacency(chars) {
+      for (let k = 1; k < chars.length; k++) {
+        const prev = chars[k - 1].display;
+        const cur = chars[k].display;
+        const prevLast = prev[prev.length - 1];
+        const curFirst = cur[0];
+        if (isKinsokuHead(prevLast) && isKinsokuTail(curFirst)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    // 理論値ベースで一旦確定した行候補 chars について、約物隣接を
+    // 含む場合のみDOM実測で「実際にはあと何文字入るか／逆にはみ出して
+    // いないか」を検証し、収まる最大文字数まで chars を伸縮させる。
+    // 戻り値は伸縮後の chars 配列。呼び出し側は、伸ばした/縮めた
+    // 差分だけ charItems の走査位置 i を調整する。
+    // fontScale は現時点では未使用（実測はDOM描画結果をそのまま使うため、
+    // フォントスケールの違いはCSS側の描画に自動的に反映される）。
+    // 将来、ルビや会話文などスケールの異なるトークンが絡む行の
+    // 補正で使う可能性があるため、呼び出し元との引数構成を揃えて残している。
+    function extendLineByMeasurement(
+      chars,
+      charItems,
+      startIdx,
+      hasIndent,
+      effectiveColHPx,
+      fontScale,
+    ) {
+      if (chars.length === 0 || !hasKinsokuAdjacency(chars)) {
+        return { chars, consumedExtra: 0 };
+      }
+
+      let working = chars.slice();
+      let idx = startIdx;
+      let consumedExtra = 0;
+      // 禁則違反回避のためだけに強制追加した回数。通常の文章では
+      // 同じ約物が3連続以上禁則違反を引き起こすことはまず無いため、
+      // 異常な入力（禁則対象文字の異常な連続）での無限追加を防ぐ
+      // 安全弁として上限を設ける。
+      let forcedAddCount = 0;
+      const FORCED_ADD_LIMIT = 5;
+
+      const rawOf = (arr) => arr.map((c) => c.raw).join("");
+
+      // 「打ち止めても禁則違反にならないか」を判定する。
+      // ①working末尾の文字が行末禁止（isKinsokuHead）でないこと、
+      // ②次に来る予定の未消費トークン（＝もし打ち止めた場合、次行の
+      //   先頭に来る文字）が行頭禁止（isKinsokuTail）でないこと、
+      // の両方を満たして初めて、そこで行を終えてよい。
+      function isSafeStopPoint(arr, nextIdx) {
+        if (arr.length === 0) return true;
+        const lastItem = arr[arr.length - 1];
+        const lastCh = lastItem.display[lastItem.display.length - 1];
+        if (isKinsokuHead(lastCh) && arr.length > 1) return false;
+        if (nextIdx < charItems.length) {
+          const nextCh = charItems[nextIdx].display[0];
+          if (isKinsokuTail(nextCh) && arr.length > 1) return false;
+        }
+        return true;
+      }
+
+      // 実測で収まる限りは、後続トークンを1つずつ足していく。
+      // 収まらなくなった時点でも、そこで打ち止めると禁則違反になる
+      // 場合は、違反が解消するまで追加を続ける（理論値ベースの
+      // pushback処理と同じ考え方を、実測ループの中でも適用する）。
+      while (idx < charItems.length) {
+        const nextItem = charItems[idx];
+        const candidate = working.concat([nextItem]);
+        const measured = measureLineHeightPx(rawOf(candidate), hasIndent);
+        const withinLimit = measured <= effectiveColHPx;
+        const currentStopIsSafe = isSafeStopPoint(working, idx);
+
+        if (
+          withinLimit ||
+          (!currentStopIsSafe && forcedAddCount < FORCED_ADD_LIMIT)
+        ) {
+          // 枠に収まっている、または今の時点で打ち止めると禁則違反に
+          // なる場合は、次のトークンを足して続行する。
+          working = candidate;
+          idx++;
+          consumedExtra++;
+          if (!withinLimit) forcedAddCount++;
+          if (window.DEBUG_LAYOUT) {
+            console.log(
+              "[MEASURE:extend]",
+              JSON.stringify(rawOf(working)),
+              "measured=",
+              measured.toFixed(1),
+              "/ effectiveColHPx=",
+              effectiveColHPx.toFixed(1),
+              withinLimit ? "" : "(禁則違反回避のため許容超過)",
+            );
+          }
+          if (withinLimit) continue;
+          // ここに到達するのは「枠は超えたが禁則違反回避のため強制追加した」ケース。
+          // 追加した結果、安全な打ち止め点になったかどうかは次のループ先頭で再評価される。
+        } else {
+          break;
+        }
+      }
+
+      // 理論値では収まる想定だったのに実測でオーバーしていた場合の保険。
+      // Canvas実測とDOM実測の丸め誤差等でごく稀に起こりうるケースに備える。
+      while (working.length > 1) {
+        const measured = measureLineHeightPx(rawOf(working), hasIndent);
+        if (measured <= effectiveColHPx) break;
+        working = working.slice(0, -1);
+        consumedExtra--;
+        if (window.DEBUG_LAYOUT) {
+          console.log(
+            "[MEASURE:shrink]",
+            JSON.stringify(rawOf(working)),
+            "measured=",
+            measured.toFixed(1),
+            "/ effectiveColHPx=",
+            effectiveColHPx.toFixed(1),
+          );
+        }
+      }
+
+      return { chars: working, consumedExtra };
     }
 
     function splitTextToLines(rawText, fontScale = 1.0, hasIndent = false) {
@@ -551,6 +803,12 @@ window.addEventListener("DOMContentLoaded", function () {
           }
         }
 
+        // 直前文字が「行末に来る側」（句読点・閉じ約物）、かつ
+        // 現在の文字（トークンの先頭1文字）が「行頭に来ない側」
+        // （開き約物）の組み合わせのときは、行確定時にDOM実測で
+        // 補正する（measureAndExtendLine 参照）。ここでは理論値の
+        // ままitemHを積み上げ、「切れ目候補」を出すだけに留める。
+
         if (window.DEBUG_LAYOUT) {
           console.log(
             "[ITEM]",
@@ -582,11 +840,31 @@ window.addEventListener("DOMContentLoaded", function () {
             continue;
           }
 
+          // はみ出した item（次に来るはずだった文字）が行頭禁止
+          // （isKinsokuHead。句読点・閉じ約物・小書き文字など）なら、
+          // currentChars の末尾を押し戻して次の行の先頭に回す。
+          // ただし「ちょっと」の「ょ」「っ」のように行頭禁止文字が
+          // 連続するケースでは、1文字だけ押し戻しても新しい行頭が
+          // まだ行頭禁止のままということがあるため、行頭禁止が
+          // 解消するまでループで押し戻す。
+          // 押し戻しすぎて行が空になる事態を避けるため、
+          // currentChars.length は常に1以上を維持する。
           let pushBackCount = 0;
           const nextChar = item.display[0];
 
           if (isKinsokuHead(nextChar) && currentChars.length > 1) {
             pushBackCount = 1;
+            // 押し戻した範囲の先頭文字（＝次の行の先頭になる文字）が
+            // まだ行頭禁止なら、解消するまでさらに押し戻す。
+            // currentChars[currentChars.length - pushBackCount] が
+            // 「押し戻される文字列の中で最初に来る（＝次の行頭になる）文字」。
+            while (pushBackCount < currentChars.length) {
+              const candidateItem =
+                currentChars[currentChars.length - pushBackCount];
+              const candidateCh = candidateItem.display[0];
+              if (!isKinsokuHead(candidateCh)) break;
+              pushBackCount++;
+            }
           }
 
           const lastItem = currentChars[currentChars.length - 1];
@@ -599,12 +877,52 @@ window.addEventListener("DOMContentLoaded", function () {
             pushBackCount = Math.max(pushBackCount, 1);
           }
 
+          // 押し戻しの結果、行に1文字も残らなくなってしまう場合は、
+          // 押し戻しを諦める。ただし、その場合でも「今のまま確定」
+          // すると次の行の先頭が禁則違反のままになってしまうため、
+          // 単純にpushBackCountを0にはせず、代わりに「はみ出した
+          // item自体をこの行に強制的に含めて、まだ確定しない」形にする
+          // （行頭禁止の連続よりは、多少のはみ出しの方が
+          // 版面として綺麗という判断）。次のループで、追加後の新しい
+          // itemに対して同じ超過判定が再度行われる。
+          let forceIncludeOverflow = false;
+          if (pushBackCount >= currentChars.length) {
+            // 小書き文字等の禁則対象が異常に連続する場合の暴走防止。
+            // 通常の日本語文章では起こり得ないが、理論値の高さが
+            // 枠の3倍を超えてなお解消しない場合は、禁則より行の
+            // 確定を優先する（諦めて現状のまま確定する）。
+            if (currentH + itemH > effectiveColHPx * 3) {
+              pushBackCount = 0;
+            } else {
+              pushBackCount = 0;
+              forceIncludeOverflow = true;
+            }
+          }
+
+          if (forceIncludeOverflow) {
+            currentRaw += item.raw;
+            currentH += itemH;
+            currentChars.push(item);
+            continue;
+          }
+
           if (pushBackCount > 0) {
             const popped = currentChars.splice(
               currentChars.length - pushBackCount,
               pushBackCount,
             );
             i -= popped.length + 1;
+
+            const result = extendLineByMeasurement(
+              currentChars,
+              charItems,
+              i + 1,
+              hasIndent && lines.length === 0,
+              effectiveColHPx,
+              fontScale,
+            );
+            currentChars = result.chars;
+            i += result.consumedExtra;
 
             currentRaw = currentChars.map((c) => c.raw).join("");
             if (window.DEBUG_LAYOUT) {
@@ -613,8 +931,6 @@ window.addEventListener("DOMContentLoaded", function () {
                 JSON.stringify(currentRaw),
                 "chars=",
                 currentChars.length,
-                "H=",
-                currentH.toFixed(1),
                 "/ effectiveColHPx=",
                 effectiveColHPx.toFixed(1),
               );
@@ -626,14 +942,24 @@ window.addEventListener("DOMContentLoaded", function () {
             currentChars = [];
             continue;
           } else {
+            const result = extendLineByMeasurement(
+              currentChars,
+              charItems,
+              i,
+              hasIndent && lines.length === 0,
+              effectiveColHPx,
+              fontScale,
+            );
+            currentChars = result.chars;
+            i += result.consumedExtra;
+            currentRaw = currentChars.map((c) => c.raw).join("");
+
             if (window.DEBUG_LAYOUT) {
               console.log(
                 "[LINE]",
                 JSON.stringify(currentRaw),
                 "chars=",
                 currentChars.length,
-                "H=",
-                currentH.toFixed(1),
                 "/ effectiveColHPx=",
                 effectiveColHPx.toFixed(1),
               );
@@ -978,14 +1304,22 @@ window.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    if (currentPageIndex % 2 !== 0) {
+    const pagesPerView = getPagesPerView();
+
+    // 見開き（2ページ）表示のときのみ、偶数ページ始まりに揃える
+    // （右ページ・左ページの対応がズレないようにするため）。
+    // 1ページ表示では見開きの概念がないため、この補正は不要。
+    if (pagesPerView === 2 && currentPageIndex % 2 !== 0) {
       currentPageIndex = Math.max(0, currentPageIndex - 1);
     }
     if (currentPageIndex >= total) {
-      currentPageIndex = Math.max(0, Math.floor((total - 1) / 2) * 2);
+      currentPageIndex =
+        pagesPerView === 2
+          ? Math.max(0, Math.floor((total - 1) / 2) * 2)
+          : Math.max(0, total - 1);
     }
 
-    const endIdx = Math.min(currentPageIndex + 2, total);
+    const endIdx = Math.min(currentPageIndex + pagesPerView, total);
     for (let idx = currentPageIndex; idx < endIdx; idx++) {
       const pageEl = document.createElement("div");
       pageEl.className = "paper-page";
@@ -1007,7 +1341,8 @@ window.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    const endIdx = Math.min(currentPageIndex + 2, total);
+    const pagesPerView = getPagesPerView();
+    const endIdx = Math.min(currentPageIndex + pagesPerView, total);
     let statusStr = "";
     if (currentPageIndex + 1 === endIdx) {
       statusStr = `${currentPageIndex + 1} / ${total} ページ`;
@@ -1016,20 +1351,22 @@ window.addEventListener("DOMContentLoaded", function () {
     }
     pageNavStatus.textContent = statusStr;
 
-    nextPageBtn.disabled = currentPageIndex + 2 >= total;
+    nextPageBtn.disabled = currentPageIndex + pagesPerView >= total;
     prevPageBtn.disabled = currentPageIndex <= 0;
   }
 
   nextPageBtn.addEventListener("click", function () {
-    if (currentPageIndex + 2 < computedPagesData.length) {
-      currentPageIndex += 2;
+    const pagesPerView = getPagesPerView();
+    if (currentPageIndex + pagesPerView < computedPagesData.length) {
+      currentPageIndex += pagesPerView;
       renderCurrentPages();
     }
   });
 
   prevPageBtn.addEventListener("click", function () {
-    if (currentPageIndex - 2 >= 0) {
-      currentPageIndex -= 2;
+    const pagesPerView = getPagesPerView();
+    if (currentPageIndex - pagesPerView >= 0) {
+      currentPageIndex -= pagesPerView;
       renderCurrentPages();
     }
   });
@@ -1211,7 +1548,7 @@ window.addEventListener("DOMContentLoaded", function () {
     .addEventListener("click", function () {
       els.pageTitle.value = "言ノ葉Editer 取扱説明書";
       els.pageHeader.value = "～機能と特殊記法のご案内～";
-      els.fontSelect.value = "system";
+      els.fontSelect.value = "noto";
       els.pageSizeSelect.value = "B6";
       els.fontSizeSelect.value = "9.5pt";
 
@@ -1233,25 +1570,33 @@ window.addEventListener("DOMContentLoaded", function () {
         "・数字指定：`12`月 `31`日\n" +
         "（例：12月31日 15時03分）\n\n" +
         "・記号指定：`!?` `？！` `！！` など\n" +
-        "（例：本当!? 嘘で嘘でしょ？！ 信じられない！！）\n\n" +
+        "（例：本当!? 嘘でしょ？！ 信じられない！！）\n\n" +
         "## 3. Markdown記法と装飾\n\n" +
         "標準的なMarkdown記法で文章を修飾できます。\n\n" +
         "・太字指定：`**太字**`（例：**ここが太字**）\n" +
         "・見出し：`# 見出し1` や `## 見出し2` を使用\n" +
+        "・区切り線：独立した行に `---` （またはアスタリスク・アンダースコアを3つ以上）\n\n" +
+        "---\n\n" +
         "・引用枠：行頭に `>` をつける\n\n" +
         "> 引用枠は、作中の手紙や古文書、回想シーン、または注釈などの表現に活用できます。長文の引用であっても枠内で自動的に折り返されて表示されます。\n\n" +
+        "## 4. 自動で整う組版の工夫\n\n" +
+        "特別な記法を打たなくても、読みやすさのために自動で調整される仕組みがあります。\n\n" +
+        "・会話文の字下げ省略：「」『』などの括弧で始まる段落は、自動的に一字下げが省略されます。\n" +
+        "・ダッシュ／三点リーダーの分断防止：「――」「……」のように2文字以上連続する場合、行の途中で分断されないよう自動的にまとめて扱われます。\n\n" +
         "[改ページ]\n\n" +
-        "## 4. ページ制御と印刷・PDF保存\n\n" +
+        "## 5. ページ制御と印刷・PDF保存\n\n" +
         "・手動改ページ：独立した行に `[改ページ]` と入力すると、任意の位置で次のページへ送ることができます。\n" +
         "・印刷・PDF保存：画面右上のボタンを押すことで、プレビュー通りの縦書きレイアウトで印刷やPDF出力が可能です。\n\n" +
-        "## 5. 各種レイアウト設定\n\n" +
+        "## 6. 各種レイアウト設定\n\n" +
         "画面左側の「組版・設定」タブから、以下の項目を自在に変更できます。\n\n" +
         "・用紙サイズ（A4、B5、A5、B6、A6、ハガキ）\n" +
         "・段組（1段組 / 上下2段組）\n" +
         "・本文文字サイズ、余白、のど（綴じ代）設定\n" +
         "・明朝体フォントの変更（しっぽり明朝、Noto Serif JPなど）\n" +
         "・UIテーマ（ダーク、ライト、セピア）\n\n" +
-        "入力したテキストや設定はブラウザに自動保存されますので、安心してご執筆をお楽しみください。";
+        "## 7. 保存について\n\n" +
+        "入力中の内容はブラウザ内に自動保存され、ページを閉じても再度開いたときに復元されます。ただし、これはブラウザの履歴やサイトデータを削除すると失われる一時的な保存です。\n\n" +
+        "大切な原稿は、画面上部の「保存 (.txt)」ボタンでテキストファイルとして端末に書き出しておくことをおすすめします。書き出したファイルは「読込」ボタンでいつでも呼び戻せます。区切りのよいところで、こまめに保存しておくと安心です。";
 
       currentPageIndex = 0;
       updatePreview();
@@ -1270,9 +1615,31 @@ window.addEventListener("DOMContentLoaded", function () {
   });
 
   // デバッグ用：レイアウト計算のログをコンソールに出力する。
-  // 検証が終わったらこのフラグと関連する console.log 呼び出しは削除すること。
-  window.DEBUG_LAYOUT = true;
+  // 通常は false にしておき、レイアウト絡みの不具合調査が必要になった
+  // ときだけ true に切り替える（コンソールで window.DEBUG_LAYOUT = true
+  // と打てば、リロードなしでも即座に有効化できる）。
+  window.DEBUG_LAYOUT = false;
 
   loadFromStorage();
   updatePreview();
+
+  // Google Fonts は display=swap で読み込んでいるため、初回描画時点では
+  // まだWebフォント（しっぽり明朝等）の読み込みが完了しておらず、
+  // フォールバックフォントで実測・描画されてしまうことがある
+  // （FOUT: Flash of Unstyled Text）。この状態で行の折り返し位置を
+  // 確定してしまうと、フォント読み込み完了後の実際の字送り幅と
+  // 食い違い、見た目が崩れる原因になる。
+  // document.fonts.ready でフォント読み込み完了を検知し、その時点で
+  // 改めてレイアウトを計算し直すことで、この食い違いを解消する。
+  // モバイル環境などフォント読み込みが遅れやすい環境で特に有効。
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready
+      .then(function () {
+        updatePreview();
+      })
+      .catch(function () {
+        // フォント読み込み監視自体に失敗しても、初回描画は既に
+        // 完了しているため、ここでは静かに無視して構わない。
+      });
+  }
 });
