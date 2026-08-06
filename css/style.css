@@ -390,9 +390,46 @@
     font-size: 0.88rem;
     font-weight: 600;
     color: var(--text);
-    min-width: 130px;
     text-align: center;
     user-select: none;
+    white-space: nowrap;
+  }
+
+  .icon-button {
+    padding: 0 10px;
+    font-size: 0.95rem;
+  }
+
+  .page-jump-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .page-jump-input {
+    width: 56px;
+    min-height: 36px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 0 8px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-align: center;
+    color: var(--text);
+    background: var(--panel-sub);
+    -moz-appearance: textfield;
+  }
+
+  .page-jump-input::-webkit-outer-spin-button,
+  .page-jump-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .page-jump-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: var(--panel);
   }
 
   .inline-code {
@@ -472,7 +509,14 @@
     width: 100%;
     height: 100%;
     box-sizing: border-box;
-    overflow: hidden;
+    /* 理論値ベースのレイアウト計算と実際の描画幅の間にわずかな
+       誤差が生じることがあり、hidden のままだと行の折り返し部分が
+       中途半端に見切れて見えることがあった。印刷（PDF）出力側は
+       元々 overflow: visible にしてこの誤差を許容しているため、
+       プレビュー側も同じ挙動に揃える。
+       枠外へのはみ出し自体は .paper-page 側の overflow: hidden で
+       依然として抑えられる。 */
+    overflow: visible;
   }
 
   .md-body strong,
@@ -599,7 +643,7 @@
   .md-body hr {
     margin: 0 12px;
     border: 0;
-    border-right: 1px solid #d4cfc4;
+    border-right: 1px solid #cccccc;
     height: 100%;
   }
 
@@ -617,11 +661,15 @@
   }
 
   .paper-page.gutter-odd {
-    padding-right: calc(var(--page-padding-h) + 6mm) !important;
+    padding-right: calc(
+      var(--page-padding-h) + var(--gutter-width, 6mm)
+    ) !important;
   }
 
   .paper-page.gutter-even {
-    padding-left: calc(var(--page-padding-h) + 6mm) !important;
+    padding-left: calc(
+      var(--page-padding-h) + var(--gutter-width, 6mm)
+    ) !important;
   }
 }
 

@@ -26,7 +26,10 @@ window.addEventListener("DOMContentLoaded", function () {
     columnSelect: "column",
     fontSizeSelect: "fontSize",
     marginSelect: "margin",
+    marginVInput: "marginV",
+    marginHInput: "marginH",
     gutterSelect: "gutter",
+    gutterWidthInput: "gutterWidth",
     themeSelect: "theme",
     sourceText: "text",
     columnRuleSelect: "columnRule",
@@ -42,6 +45,8 @@ window.addEventListener("DOMContentLoaded", function () {
   });
 
   const customFontRow = document.getElementById("customFontRow");
+  const customMarginRow = document.getElementById("customMarginRow");
+  const gutterWidthRow = document.getElementById("gutterWidthRow");
   const columnRuleCol = document.getElementById("columnRuleCol");
   const charCount = document.getElementById("charCount");
   const pagesContainer = document.getElementById("pagesContainer");
@@ -52,6 +57,9 @@ window.addEventListener("DOMContentLoaded", function () {
   const nextPageBtn = document.getElementById("nextPageBtn");
   const prevPageBtn = document.getElementById("prevPageBtn");
   const pageNavStatus = document.getElementById("pageNavStatus");
+  const firstPageBtn = document.getElementById("firstPageBtn");
+  const lastPageBtn = document.getElementById("lastPageBtn");
+  const pageJumpInput = document.getElementById("pageJumpInput");
 
   const STORAGE_KEY = "md_vertical_editor_draft_v09_" + location.pathname;
   let debounceTimer = null;
@@ -74,6 +82,69 @@ window.addEventListener("DOMContentLoaded", function () {
     // 補正ロジックに委ねる。
     renderCurrentPages();
   });
+
+  // ==== 本の見開き表示ルール ====
+  // ページ番号（1始まり）で「1ページ目は単独、2ページ目以降は
+  // 偶数始まりのペア（2-3, 4-5, 6-7…）」という、実際の書籍の
+  // 見開き（表紙をめくった直後は右ページ単独、以降は左右セット）
+  // に合わせた表示ルール。0始まりのpageIndexで計算する：
+  //   pageIndex=0        → 単独（1ページ目のみ）
+  //   pageIndex=1,2       → ペア（2-3ページ目）
+  //   pageIndex=3,4       → ペア（4-5ページ目）
+  // 一般化すると、pageIndex>=1のとき、そのpageIndexが属する見開きの
+  // 開始indexは「奇数なら自分自身、偶数ならその1つ前」。
+
+  // pageIndex（0始まり）が属する見開きの開始indexを返す。
+  // pagesPerViewが1（モバイル）のときは常に自分自身（1ページ単独）。
+  function getSpreadStartIndex(pageIndex, pagesPerView) {
+    if (pagesPerView !== 2) return pageIndex;
+    if (pageIndex <= 0) return 0;
+    // pageIndex=1,2 → 1 / pageIndex=3,4 → 3 / pageIndex=5,6 → 5 ...
+    return pageIndex % 2 === 1 ? pageIndex : pageIndex - 1;
+  }
+
+  // startIndex（見開きの開始index）から、その見開きに含まれる
+  // ページ数（1 or 2）を返す。総ページ数totalの都合で2枚目が
+  // 存在しない場合は1を返す。
+  function getSpreadPageCount(startIndex, total, pagesPerView) {
+    if (pagesPerView !== 2) return 1;
+    if (startIndex === 0) return 1; // 1ページ目は常に単独
+    const remaining = total - startIndex;
+    return Math.min(2, Math.max(1, remaining));
+  }
+
+  // startIndexの見開きから「次の見開き」の開始indexを返す。
+  // 総ページ数を超える場合はnullを返す（呼び出し側で「これ以上進めない」と判断）。
+  function getNextSpreadStartIndex(startIndex, total, pagesPerView) {
+    if (pagesPerView !== 2) {
+      return startIndex + 1 < total ? startIndex + 1 : null;
+    }
+    const count = getSpreadPageCount(startIndex, total, pagesPerView);
+    const next = startIndex + count;
+    return next < total ? next : null;
+  }
+
+  // startIndexの見開きから「前の見開き」の開始indexを返す。
+  // 1ページ目より前は存在しないためnullを返す。
+  function getPrevSpreadStartIndex(startIndex, total, pagesPerView) {
+    if (pagesPerView !== 2) {
+      return startIndex - 1 >= 0 ? startIndex - 1 : null;
+    }
+    if (startIndex <= 0) return null;
+    // 現在の見開き開始indexより前にある見開きの開始indexを計算する。
+    // startIndex=1（2-3ページ目）の前は0（1ページ目単独）。
+    // startIndex=3（4-5ページ目）の前は1（2-3ページ目）。
+    if (startIndex === 1) return 0;
+    return startIndex - 2;
+  }
+
+  // 任意のpageIndexを、その見開きの開始indexに正規化する
+  // （現在の総ページ数totalとpagesPerViewを踏まえて範囲内に収める）。
+  function normalizeSpreadStartIndex(pageIndex, total, pagesPerView) {
+    if (total <= 0) return 0;
+    const clamped = Math.min(Math.max(pageIndex, 0), total - 1);
+    return getSpreadStartIndex(clamped, pagesPerView);
+  }
 
   const PAGE_SIZES_MM = {
     A4: { w: 210, h: 297 },
@@ -99,7 +170,7 @@ window.addEventListener("DOMContentLoaded", function () {
 
   const KINSOKU_HEAD =
     /[、。，．・：；？！?!ーぁぃぅぇぉっゃゅょゎァィUェォッャュョヮヶゝゞ」』】）〕〉》”’]/;
-  const KINSOKU_TAIL = /[「『（【〔〈ങ്ങള്‍“‘]/;
+  const KINSOKU_TAIL = /[「『（【〔〈“‘]/;
 
   function isKinsokuHead(ch) {
     return ch ? KINSOKU_HEAD.test(ch) : false;
@@ -114,6 +185,37 @@ window.addEventListener("DOMContentLoaded", function () {
   }
   function ptToPx(pt) {
     return parseFloat(pt) * 1.3333333333;
+  }
+
+  // 余白（上下・左右）を mm 単位で取得する。
+  // 「カスタム」選択時は marginVInput / marginHInput の数値を使い、
+  // それ以外（narrow/normal/wide）は MARGIN_SIZES_MM のプリセット値を使う。
+  // カスタム値が未入力・不正（NaN、負数）な場合は "normal" にフォールバックする。
+  function getCurrentMarginMm() {
+    if (els.marginSelect && els.marginSelect.value === "custom") {
+      const v = parseFloat(els.marginVInput && els.marginVInput.value);
+      const h = parseFloat(els.marginHInput && els.marginHInput.value);
+      const fallback = MARGIN_SIZES_MM["normal"];
+      return {
+        v: Number.isFinite(v) && v >= 0 ? v : fallback.v,
+        h: Number.isFinite(h) && h >= 0 ? h : fallback.h,
+      };
+    }
+    return (
+      MARGIN_SIZES_MM[els.marginSelect && els.marginSelect.value] ||
+      MARGIN_SIZES_MM["normal"]
+    );
+  }
+
+  // 綴じ代（のど）幅を mm 単位で取得する。
+  // 「綴じ代：あり」でなければ 0（=綴じ代なし）。
+  // 数値が未入力・不正な場合はデフォルトの 6mm にフォールバックする。
+  const GUTTER_WIDTH_DEFAULT_MM = 6;
+  function getCurrentGutterWidthMm() {
+    const isGutterOn = els.gutterSelect && els.gutterSelect.value === "on";
+    if (!isGutterOn) return 0;
+    const w = parseFloat(els.gutterWidthInput && els.gutterWidthInput.value);
+    return Number.isFinite(w) && w >= 0 ? w : GUTTER_WIDTH_DEFAULT_MM;
   }
 
   function saveToStorage() {
@@ -145,6 +247,20 @@ window.addEventListener("DOMContentLoaded", function () {
       ) {
         customFontRow.style.display = "flex";
       }
+      if (
+        els.marginSelect &&
+        els.marginSelect.value === "custom" &&
+        customMarginRow
+      ) {
+        customMarginRow.style.display = "flex";
+      }
+      if (
+        els.gutterSelect &&
+        els.gutterSelect.value === "on" &&
+        gutterWidthRow
+      ) {
+        gutterWidthRow.style.display = "flex";
+      }
       return true;
     } catch (e) {
       return false;
@@ -153,8 +269,8 @@ window.addEventListener("DOMContentLoaded", function () {
 
   function updatePageCSSVariables() {
     const conf = PAGE_SIZES_MM[els.pageSizeSelect.value] || PAGE_SIZES_MM["A4"];
-    const margin =
-      MARGIN_SIZES_MM[els.marginSelect.value] || MARGIN_SIZES_MM["normal"];
+    const margin = getCurrentMarginMm();
+    const gutterWidthMm = getCurrentGutterWidthMm();
 
     let selectedFont = FONTS[els.fontSelect.value];
     if (els.fontSelect.value === "custom") {
@@ -185,6 +301,10 @@ window.addEventListener("DOMContentLoaded", function () {
     document.documentElement.style.setProperty(
       "--page-padding-h",
       margin.h + "mm",
+    );
+    document.documentElement.style.setProperty(
+      "--gutter-width",
+      gutterWidthMm + "mm",
     );
 
     if (pageSizeStyle) {
@@ -411,8 +531,7 @@ window.addEventListener("DOMContentLoaded", function () {
 
     const pageSize =
       PAGE_SIZES_MM[els.pageSizeSelect.value] || PAGE_SIZES_MM["A4"];
-    const margin =
-      MARGIN_SIZES_MM[els.marginSelect.value] || MARGIN_SIZES_MM["normal"];
+    const margin = getCurrentMarginMm();
     const fontSizePx = ptToPx(els.fontSizeSelect.value);
     const isTwoColumn = els.columnSelect.value === "2";
     const isGutterOn = els.gutterSelect && els.gutterSelect.value === "on";
@@ -466,7 +585,7 @@ window.addEventListener("DOMContentLoaded", function () {
       colHPx = innerHPx / 2 - mmToPx(3);
     }
 
-    const gutterWidth = isGutterOn ? mmToPx(6) : 0;
+    const gutterWidth = isGutterOn ? mmToPx(getCurrentGutterWidthMm()) : 0;
     const colWPx = paperWPx - marginHPx * 2 - gutterWidth;
     const lineSpacingPx = fontSizePx * 1.8;
     const maxLinesPerCol = Math.max(1, Math.floor(colWPx / lineSpacingPx));
@@ -601,8 +720,16 @@ window.addEventListener("DOMContentLoaded", function () {
       // 「打ち止めても禁則違反にならないか」を判定する。
       // ①working末尾の文字が行末禁止（isKinsokuHead）でないこと、
       // ②次に来る予定の未消費トークン（＝もし打ち止めた場合、次行の
-      //   先頭に来る文字）が行頭禁止（isKinsokuTail）でないこと、
+      //   先頭に来る文字）が「行頭に来てはいけない文字」でないこと、
       // の両方を満たして初めて、そこで行を終えてよい。
+      // 「行頭に来てはいけない文字」には二種類ある：
+      //   - isKinsokuHead側（句読点・閉じ約物・小書き文字等）：
+      //     これらは行末には来られるが行頭には来られない文字。
+      //   - isKinsokuTail側（開き約物）：
+      //     これらは行頭には来られず、必ず次の文字と共に送られる文字。
+      // 元の実装は isKinsokuTail のみを見ており、句読点・閉じ約物が
+      // 実測補正で行頭に送られてしまう抜け穴があったため、
+      // isKinsokuHead 側の判定を追加する。
       function isSafeStopPoint(arr, nextIdx) {
         if (arr.length === 0) return true;
         const lastItem = arr[arr.length - 1];
@@ -610,6 +737,7 @@ window.addEventListener("DOMContentLoaded", function () {
         if (isKinsokuHead(lastCh) && arr.length > 1) return false;
         if (nextIdx < charItems.length) {
           const nextCh = charItems[nextIdx].display[0];
+          if (isKinsokuHead(nextCh) && arr.length > 1) return false;
           if (isKinsokuTail(nextCh) && arr.length > 1) return false;
         }
         return true;
@@ -619,19 +747,30 @@ window.addEventListener("DOMContentLoaded", function () {
       // 収まらなくなった時点でも、そこで打ち止めると禁則違反になる
       // 場合は、違反が解消するまで追加を続ける（理論値ベースの
       // pushback処理と同じ考え方を、実測ループの中でも適用する）。
+      //
+      // 優先順位に注意：「実測で枠に収まるかどうか」より
+      // 「ここで打ち止めても禁則違反にならないか」を優先する。
+      // 元の実装は withinLimit を優先していたため、pushback処理で
+      // 一度押し戻した句読点・閉じ約物が、実測では枠に収まってしまう
+      // ケースで再び取り込まれてしまい、結果的に句読点が行頭に
+      // 来てしまう不具合があった（呼び出し元でpushback済みの
+      // currentChars を渡してくる文脈で顕著）。
+      // 安全な打ち止め点にいったん到達したら、たとえ実測でまだ
+      // 余裕があっても追加を止める。
       while (idx < charItems.length) {
+        const currentStopIsSafe = isSafeStopPoint(working, idx);
+        if (currentStopIsSafe) {
+          break;
+        }
+
         const nextItem = charItems[idx];
         const candidate = working.concat([nextItem]);
         const measured = measureLineHeightPx(rawOf(candidate), hasIndent);
         const withinLimit = measured <= effectiveColHPx;
-        const currentStopIsSafe = isSafeStopPoint(working, idx);
 
-        if (
-          withinLimit ||
-          (!currentStopIsSafe && forcedAddCount < FORCED_ADD_LIMIT)
-        ) {
-          // 枠に収まっている、または今の時点で打ち止めると禁則違反に
-          // なる場合は、次のトークンを足して続行する。
+        if (withinLimit || forcedAddCount < FORCED_ADD_LIMIT) {
+          // 枠に収まっている、または禁則違反回避のためやむを得ず
+          // 追加する場合は、次のトークンを足して続行する。
           working = candidate;
           idx++;
           consumedExtra++;
@@ -647,9 +786,6 @@ window.addEventListener("DOMContentLoaded", function () {
               withinLimit ? "" : "(禁則違反回避のため許容超過)",
             );
           }
-          if (withinLimit) continue;
-          // ここに到達するのは「枠は超えたが禁則違反回避のため強制追加した」ケース。
-          // 追加した結果、安全な打ち止め点になったかどうかは次のループ先頭で再評価される。
         } else {
           break;
         }
@@ -1306,20 +1442,26 @@ window.addEventListener("DOMContentLoaded", function () {
 
     const pagesPerView = getPagesPerView();
 
-    // 見開き（2ページ）表示のときのみ、偶数ページ始まりに揃える
-    // （右ページ・左ページの対応がズレないようにするため）。
-    // 1ページ表示では見開きの概念がないため、この補正は不要。
-    if (pagesPerView === 2 && currentPageIndex % 2 !== 0) {
-      currentPageIndex = Math.max(0, currentPageIndex - 1);
-    }
+    // currentPageIndexを、現在の表示モード（見開き/単独）における
+    // 見開き開始indexに正規化する。書籍の見開きルールでは、
+    // 「1ページ目は単独、2ページ目以降は偶数始まりペア」となるため、
+    // 単純な「偶数なら揃える」補正ではなく getSpreadStartIndex を使う。
     if (currentPageIndex >= total) {
-      currentPageIndex =
-        pagesPerView === 2
-          ? Math.max(0, Math.floor((total - 1) / 2) * 2)
-          : Math.max(0, total - 1);
+      currentPageIndex = normalizeSpreadStartIndex(
+        total - 1,
+        total,
+        pagesPerView,
+      );
+    } else {
+      currentPageIndex = getSpreadStartIndex(currentPageIndex, pagesPerView);
     }
 
-    const endIdx = Math.min(currentPageIndex + pagesPerView, total);
+    const spreadCount = getSpreadPageCount(
+      currentPageIndex,
+      total,
+      pagesPerView,
+    );
+    const endIdx = Math.min(currentPageIndex + spreadCount, total);
     for (let idx = currentPageIndex; idx < endIdx; idx++) {
       const pageEl = document.createElement("div");
       pageEl.className = "paper-page";
@@ -1335,39 +1477,116 @@ window.addEventListener("DOMContentLoaded", function () {
   function updatePageCounter() {
     const total = computedPagesData.length;
     if (total === 0) {
-      pageNavStatus.textContent = "0 / 0 ページ";
+      pageNavStatus.textContent = "/ 0 ページ";
       nextPageBtn.disabled = true;
       prevPageBtn.disabled = true;
+      firstPageBtn.disabled = true;
+      lastPageBtn.disabled = true;
+      pageJumpInput.disabled = true;
+      pageJumpInput.value = "";
+      pageJumpInput.title = "ページ番号を指定してジャンプ";
       return;
     }
 
     const pagesPerView = getPagesPerView();
-    const endIdx = Math.min(currentPageIndex + pagesPerView, total);
+    const spreadCount = getSpreadPageCount(
+      currentPageIndex,
+      total,
+      pagesPerView,
+    );
+    const endIdx = Math.min(currentPageIndex + spreadCount, total);
     let statusStr = "";
     if (currentPageIndex + 1 === endIdx) {
-      statusStr = `${currentPageIndex + 1} / ${total} ページ`;
+      statusStr = `/ ${total} ページ`;
     } else {
-      statusStr = `${currentPageIndex + 1}-${endIdx} / ${total} ページ`;
+      statusStr = `(${currentPageIndex + 1}-${endIdx}) / ${total} ページ`;
     }
     pageNavStatus.textContent = statusStr;
 
-    nextPageBtn.disabled = currentPageIndex + pagesPerView >= total;
-    prevPageBtn.disabled = currentPageIndex <= 0;
+    const hasNext =
+      getNextSpreadStartIndex(currentPageIndex, total, pagesPerView) !== null;
+    const hasPrev =
+      getPrevSpreadStartIndex(currentPageIndex, total, pagesPerView) !== null;
+
+    nextPageBtn.disabled = !hasNext;
+    prevPageBtn.disabled = !hasPrev;
+    firstPageBtn.disabled = !hasPrev;
+    lastPageBtn.disabled = !hasNext;
+
+    pageJumpInput.disabled = false;
+    pageJumpInput.max = String(total);
+    pageJumpInput.title = `1〜${total} の範囲でページ番号を入力してください`;
+    // 入力欄にフォーカス中は、ユーザーが打ち込んでいる値を上書きしない
+    if (document.activeElement !== pageJumpInput) {
+      pageJumpInput.value = String(currentPageIndex + 1);
+    }
   }
 
   nextPageBtn.addEventListener("click", function () {
+    const total = computedPagesData.length;
     const pagesPerView = getPagesPerView();
-    if (currentPageIndex + pagesPerView < computedPagesData.length) {
-      currentPageIndex += pagesPerView;
+    const next = getNextSpreadStartIndex(currentPageIndex, total, pagesPerView);
+    if (next !== null) {
+      currentPageIndex = next;
       renderCurrentPages();
     }
   });
 
   prevPageBtn.addEventListener("click", function () {
+    const total = computedPagesData.length;
     const pagesPerView = getPagesPerView();
-    if (currentPageIndex - pagesPerView >= 0) {
-      currentPageIndex -= pagesPerView;
+    const prev = getPrevSpreadStartIndex(currentPageIndex, total, pagesPerView);
+    if (prev !== null) {
+      currentPageIndex = prev;
       renderCurrentPages();
+    }
+  });
+
+  // 指定ページ番号（1始まり）へジャンプする。
+  // 範囲外の値が渡された場合は何もせず、呼び出し側で元の値に戻す。
+  // 見開き表示時は、指定されたページが属する見開きの開始ページへ揃える。
+  function goToPage(pageNumber) {
+    const total = computedPagesData.length;
+    if (total === 0) return false;
+    if (pageNumber < 1 || pageNumber > total) return false;
+    const pagesPerView = getPagesPerView();
+    currentPageIndex = getSpreadStartIndex(pageNumber - 1, pagesPerView);
+    renderCurrentPages();
+    return true;
+  }
+
+  function goToFirstPage() {
+    if (computedPagesData.length === 0) return;
+    currentPageIndex = 0;
+    renderCurrentPages();
+  }
+
+  function goToLastPage() {
+    const total = computedPagesData.length;
+    if (total === 0) return;
+    const pagesPerView = getPagesPerView();
+    currentPageIndex = normalizeSpreadStartIndex(
+      total - 1,
+      total,
+      pagesPerView,
+    );
+    renderCurrentPages();
+  }
+
+  firstPageBtn.addEventListener("click", goToFirstPage);
+  lastPageBtn.addEventListener("click", goToLastPage);
+
+  pageJumpInput.addEventListener("keydown", function (event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      pageJumpInput.blur();
+    }
+  });
+
+  pageJumpInput.addEventListener("change", function () {
+    const value = parseInt(pageJumpInput.value, 10);
+    if (Number.isNaN(value) || !goToPage(value)) {
+      pageJumpInput.value = String(currentPageIndex + 1);
     }
   });
 
@@ -1409,6 +1628,32 @@ window.addEventListener("DOMContentLoaded", function () {
         els.fontSelect.value === "custom" ? "flex" : "none";
       updatePreview();
     });
+  }
+
+  if (els.marginSelect) {
+    els.marginSelect.addEventListener("change", function () {
+      customMarginRow.style.display =
+        els.marginSelect.value === "custom" ? "flex" : "none";
+      updatePreview();
+    });
+  }
+
+  if (els.gutterSelect) {
+    els.gutterSelect.addEventListener("change", function () {
+      gutterWidthRow.style.display =
+        els.gutterSelect.value === "on" ? "flex" : "none";
+      updatePreview();
+    });
+  }
+
+  if (els.marginVInput) {
+    els.marginVInput.addEventListener("input", debounceUpdatePreview);
+  }
+  if (els.marginHInput) {
+    els.marginHInput.addEventListener("input", debounceUpdatePreview);
+  }
+  if (els.gutterWidthInput) {
+    els.gutterWidthInput.addEventListener("input", debounceUpdatePreview);
   }
 
   if (els.themeSelect) {
