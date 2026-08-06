@@ -166,6 +166,21 @@ window.addEventListener("DOMContentLoaded", function () {
     noto: '"Noto Serif JP", "Yu Mincho", "MS Mincho", serif',
     sawarabi: '"Sawarabi Mincho", "Yu Mincho", "MS Mincho", serif',
     system: '"Hiragino Mincho ProN", "Yu Mincho", "MS Mincho", serif',
+    mplus1p: '"M PLUS 1p", "Hiragino Sans", sans-serif',
+    rocknroll: '"RocknRoll One", "Hiragino Sans", sans-serif',
+    plexjpregular: '"IBM Plex Sans JP", "Hiragino Sans", sans-serif',
+    lineseedregular: '"LINE Seed JP", "Hiragino Sans", sans-serif',
+    klee: '"Klee One", "Hiragino Mincho ProN", serif',
+    yomogi: '"Yomogi", "Hiragino Mincho ProN", serif',
+  };
+
+  // font-familyだけでは太さの区別がつかない書体（同一familyで
+  // 複数ウェイトを登録している場合）のために、フォントキーごとの
+  // 明示的な font-weight を保持しておく。指定がないキーは
+  // ブラウザ標準の "normal"（≒400）を使う。
+  const FONT_WEIGHTS = {
+    plexjpregular: "400",
+    lineseedregular: "400",
   };
 
   const KINSOKU_HEAD =
@@ -273,8 +288,15 @@ window.addEventListener("DOMContentLoaded", function () {
     const gutterWidthMm = getCurrentGutterWidthMm();
 
     let selectedFont = FONTS[els.fontSelect.value];
+    // 同一 font-family 名で複数ウェイトを登録しているフォント
+    // （LINE Seed JP, IBM Plex Sans JP 等）は、font-weight を
+    // 明示しないとブラウザがどのウェイトを表示するか曖昧になる。
+    // FONT_WEIGHTS に定義があればそれを使い、なければ通常の
+    // ウェイト（400相当）にフォールバックする。
+    let selectedFontWeight = FONT_WEIGHTS[els.fontSelect.value] || "normal";
     if (els.fontSelect.value === "custom") {
       selectedFont = els.customFontFamily.value.trim() || "serif";
+      selectedFontWeight = "normal";
       const url = els.customFontUrl.value.trim();
       // 入力値を検証せずに <link href> へ直接セットすると、
       // javascript: 等の不正なスキームや意図しない外部リソースの
@@ -293,6 +315,10 @@ window.addEventListener("DOMContentLoaded", function () {
     document.documentElement.style.setProperty(
       "--doc-font-family",
       selectedFont,
+    );
+    document.documentElement.style.setProperty(
+      "--doc-font-weight",
+      selectedFontWeight,
     );
     document.documentElement.style.setProperty(
       "--page-padding-v",
@@ -545,14 +571,28 @@ window.addEventListener("DOMContentLoaded", function () {
       getComputedStyle(document.documentElement).getPropertyValue(
         "--doc-font-family",
       ) || "serif";
+    // 同一 font-family で複数ウェイトを登録しているフォント（LINE Seed JP、
+    // IBM Plex Sans JP 等）は、Canvas測定時にも font-weight を明示しないと
+    // 常に normal(400相当) 扱いで測定されてしまい、実際に描画される細い/太い
+    // ウェイトとの間で文字幅の見積もりがズレる。CSS変数からウェイトを取得し、
+    // Canvasのfontショートハンドに含める。
+    const docFontWeight = (
+      getComputedStyle(document.documentElement).getPropertyValue(
+        "--doc-font-weight",
+      ) || "normal"
+    ).trim();
 
     function measureCharWidth(ch, scale) {
-      // フォントファミリーに加えてfontSizePx（絶対px値）もキーに含める。
-      // scaleは相対倍率でしかないため、フォントサイズ設定自体が変わった
-      // 場合、scaleとdocFontFamilyだけをキーにしていると、古いフォント
-      // サイズでの測定結果（px単位の絶対値）を誤って使い回してしまう。
+      // フォントファミリー・ウェイトに加えてfontSizePx（絶対px値）もキーに
+      // 含める。scaleは相対倍率でしかないため、フォントサイズ設定自体が
+      // 変わった場合、scaleとdocFontFamilyだけをキーにしていると、古い
+      // フォントサイズでの測定結果（px単位の絶対値）を誤って使い回して
+      // しまう。docFontWeightもキーに含めないと、同一familyで複数ウェイト
+      // を切り替えた際に古いウェイトの測定結果を使い回してしまう。
       const cacheKey =
         docFontFamily +
+        "|" +
+        docFontWeight +
         "|" +
         fontSizePx.toFixed(2) +
         "|" +
@@ -560,7 +600,12 @@ window.addEventListener("DOMContentLoaded", function () {
         "|" +
         scale.toFixed(4);
       if (charWidthCache.has(cacheKey)) return charWidthCache.get(cacheKey);
-      measureCtx.font = (fontSizePx * scale).toFixed(2) + "px " + docFontFamily;
+      measureCtx.font =
+        docFontWeight +
+        " " +
+        (fontSizePx * scale).toFixed(2) +
+        "px " +
+        docFontFamily;
       const w = measureCtx.measureText(ch).width;
       charWidthCache.set(cacheKey, w);
       return w;
