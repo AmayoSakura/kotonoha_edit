@@ -46,7 +46,7 @@
         margin: 0;
       }
     </style>
-    <title>言ノ葉Editer v0.20</title>
+    <title>言ノ葉Editer v0.21</title>
 
     <link rel="stylesheet" href="css/style.css" />
   </head>
@@ -56,7 +56,7 @@
       <header class="hero no-print">
         <div class="hero-title-group">
           <h1>言ノ葉Editer</h1>
-          <span class="version-badge">v0.20</span>
+          <span class="version-badge">v0.21</span>
         </div>
         <div class="hero-actions">
           <select
@@ -323,6 +323,7 @@
                         <option value="narrow">狭い</option>
                         <option value="normal" selected>標準</option>
                         <option value="wide">広い</option>
+                        <option value="custom">カスタム</option>
                       </select>
                     </div>
                     <div class="form-col">
@@ -333,6 +334,62 @@
                         <option value="off" selected>なし</option>
                         <option value="on">あり（交互）</option>
                       </select>
+                    </div>
+                  </div>
+
+                  <div
+                    class="form-row"
+                    id="customMarginRow"
+                    style="margin-top: 10px; display: none"
+                  >
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="marginVInput">上下余白（mm）</label>
+                      </div>
+                      <input
+                        id="marginVInput"
+                        class="select-input"
+                        type="number"
+                        min="0"
+                        max="50"
+                        step="0.5"
+                        value="18"
+                      />
+                    </div>
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="marginHInput">左右余白（mm）</label>
+                      </div>
+                      <input
+                        id="marginHInput"
+                        class="select-input"
+                        type="number"
+                        min="0"
+                        max="50"
+                        step="0.5"
+                        value="14"
+                      />
+                    </div>
+                  </div>
+
+                  <div
+                    class="form-row"
+                    id="gutterWidthRow"
+                    style="margin-top: 10px; display: none"
+                  >
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="gutterWidthInput">綴じ代幅（mm）</label>
+                      </div>
+                      <input
+                        id="gutterWidthInput"
+                        class="select-input"
+                        type="number"
+                        min="0"
+                        max="30"
+                        step="0.5"
+                        value="6"
+                      />
                     </div>
                   </div>
 
@@ -397,7 +454,34 @@
             >
               ◀ 次のページ
             </button>
-            <span id="pageNavStatus" class="page-nav-status">1 / 1 ページ</span>
+            <button
+              id="lastPageBtn"
+              class="secondary-button icon-button"
+              type="button"
+              title="末尾ページへ"
+            >
+              ⏮
+            </button>
+            <span class="page-jump-group">
+              <input
+                id="pageJumpInput"
+                class="page-jump-input"
+                type="number"
+                min="1"
+                step="1"
+                inputmode="numeric"
+                title="ページ番号を指定してジャンプ"
+              />
+              <span id="pageNavStatus" class="page-nav-status">/ 1 ページ</span>
+            </span>
+            <button
+              id="firstPageBtn"
+              class="secondary-button icon-button"
+              type="button"
+              title="先頭ページへ"
+            >
+              ⏭
+            </button>
             <button
               id="prevPageBtn"
               class="secondary-button"

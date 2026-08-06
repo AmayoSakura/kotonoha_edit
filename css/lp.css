@@ -491,7 +491,7 @@ section {
 }
 .mini-paper p {
   margin: 0;
-  text-indent: 0.5em;
+  text-indent: 0.72em;
 }
 .mini-paper p + p {
   margin-top: 1.6em;
@@ -622,6 +622,16 @@ section {
 .demo-paper ruby rt {
   font-size: 0.5em;
   color: var(--ink-soft);
+}
+.demo-paper p {
+  margin: 0;
+  text-indent: 0em;
+}
+.demo-paper p + p {
+  margin-top: 0em;
+}
+.demo-paper p.no-indent {
+  text-indent: 0;
 }
 
 @media (max-width: 860px) {
