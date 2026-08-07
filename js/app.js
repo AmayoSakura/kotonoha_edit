@@ -50,6 +50,7 @@ window.addEventListener("DOMContentLoaded", function () {
   const columnRuleCol = document.getElementById("columnRuleCol");
   const charCount = document.getElementById("charCount");
   const pagesContainer = document.getElementById("pagesContainer");
+  const layoutSpinner = document.getElementById("layoutSpinner");
   const previewViewport = document.getElementById("previewViewport");
   const pageSizeStyle = document.getElementById("page-size-style");
   const fileInput = document.getElementById("fileInput");
@@ -66,36 +67,15 @@ window.addEventListener("DOMContentLoaded", function () {
   let computedPagesData = [];
   let currentPageIndex = 0;
 
-  // スマホ幅（.pages-containerが縦積みレイアウトに切り替わる
-  // @media (max-width: 1100px) と同じブレークポイント）では、
-  // 見開き2ページ表示だと1ページあたりが小さくなりすぎて
-  // 視認性が悪いため、1ページ表示に切り替える。
   const mobileLayoutQuery = window.matchMedia("(max-width: 1100px)");
   function getPagesPerView() {
     return mobileLayoutQuery.matches ? 1 : 2;
   }
-  // 画面幅が変わった（ウィンドウリサイズ、スマホの画面回転等）際に、
-  // 表示ページ数の基準も切り替わるよう再描画する。
+
   mobileLayoutQuery.addEventListener("change", function () {
-    // 奇数ページを起点にしていた場合、2ページ表示に戻ったときの
-    // 見開き基準（偶数開始）とズレないよう、renderCurrentPages側の
-    // 補正ロジックに委ねる。
     renderCurrentPages();
   });
 
-  // ==== 本の見開き表示ルール ====
-  // ページ番号（1始まり）で「1ページ目は単独、2ページ目以降は
-  // 偶数始まりのペア（2-3, 4-5, 6-7…）」という、実際の書籍の
-  // 見開き（表紙をめくった直後は右ページ単独、以降は左右セット）
-  // に合わせた表示ルール。0始まりのpageIndexで計算する：
-  //   pageIndex=0        → 単独（1ページ目のみ）
-  //   pageIndex=1,2       → ペア（2-3ページ目）
-  //   pageIndex=3,4       → ペア（4-5ページ目）
-  // 一般化すると、pageIndex>=1のとき、そのpageIndexが属する見開きの
-  // 開始indexは「奇数なら自分自身、偶数ならその1つ前」。
-
-  // pageIndex（0始まり）が属する見開きの開始indexを返す。
-  // pagesPerViewが1（モバイル）のときは常に自分自身（1ページ単独）。
   function getSpreadStartIndex(pageIndex, pagesPerView) {
     if (pagesPerView !== 2) return pageIndex;
     if (pageIndex <= 0) return 0;
@@ -103,18 +83,13 @@ window.addEventListener("DOMContentLoaded", function () {
     return pageIndex % 2 === 1 ? pageIndex : pageIndex - 1;
   }
 
-  // startIndex（見開きの開始index）から、その見開きに含まれる
-  // ページ数（1 or 2）を返す。総ページ数totalの都合で2枚目が
-  // 存在しない場合は1を返す。
   function getSpreadPageCount(startIndex, total, pagesPerView) {
     if (pagesPerView !== 2) return 1;
-    if (startIndex === 0) return 1; // 1ページ目は常に単独
+    if (startIndex === 0) return 1;
     const remaining = total - startIndex;
     return Math.min(2, Math.max(1, remaining));
   }
 
-  // startIndexの見開きから「次の見開き」の開始indexを返す。
-  // 総ページ数を超える場合はnullを返す（呼び出し側で「これ以上進めない」と判断）。
   function getNextSpreadStartIndex(startIndex, total, pagesPerView) {
     if (pagesPerView !== 2) {
       return startIndex + 1 < total ? startIndex + 1 : null;
@@ -124,22 +99,15 @@ window.addEventListener("DOMContentLoaded", function () {
     return next < total ? next : null;
   }
 
-  // startIndexの見開きから「前の見開き」の開始indexを返す。
-  // 1ページ目より前は存在しないためnullを返す。
   function getPrevSpreadStartIndex(startIndex, total, pagesPerView) {
     if (pagesPerView !== 2) {
       return startIndex - 1 >= 0 ? startIndex - 1 : null;
     }
     if (startIndex <= 0) return null;
-    // 現在の見開き開始indexより前にある見開きの開始indexを計算する。
-    // startIndex=1（2-3ページ目）の前は0（1ページ目単独）。
-    // startIndex=3（4-5ページ目）の前は1（2-3ページ目）。
     if (startIndex === 1) return 0;
     return startIndex - 2;
   }
 
-  // 任意のpageIndexを、その見開きの開始indexに正規化する
-  // （現在の総ページ数totalとpagesPerViewを踏まえて範囲内に収める）。
   function normalizeSpreadStartIndex(pageIndex, total, pagesPerView) {
     if (total <= 0) return 0;
     const clamped = Math.min(Math.max(pageIndex, 0), total - 1);
@@ -174,10 +142,6 @@ window.addEventListener("DOMContentLoaded", function () {
     yomogi: '"Yomogi", "Hiragino Mincho ProN", serif',
   };
 
-  // font-familyだけでは太さの区別がつかない書体（同一familyで
-  // 複数ウェイトを登録している場合）のために、フォントキーごとの
-  // 明示的な font-weight を保持しておく。指定がないキーは
-  // ブラウザ標準の "normal"（≒400）を使う。
   const FONT_WEIGHTS = {
     plexjpregular: "400",
     lineseedregular: "400",
@@ -202,10 +166,6 @@ window.addEventListener("DOMContentLoaded", function () {
     return parseFloat(pt) * 1.3333333333;
   }
 
-  // 余白（上下・左右）を mm 単位で取得する。
-  // 「カスタム」選択時は marginVInput / marginHInput の数値を使い、
-  // それ以外（narrow/normal/wide）は MARGIN_SIZES_MM のプリセット値を使う。
-  // カスタム値が未入力・不正（NaN、負数）な場合は "normal" にフォールバックする。
   function getCurrentMarginMm() {
     if (els.marginSelect && els.marginSelect.value === "custom") {
       const v = parseFloat(els.marginVInput && els.marginVInput.value);
@@ -222,9 +182,6 @@ window.addEventListener("DOMContentLoaded", function () {
     );
   }
 
-  // 綴じ代（のど）幅を mm 単位で取得する。
-  // 「綴じ代：あり」でなければ 0（=綴じ代なし）。
-  // 数値が未入力・不正な場合はデフォルトの 6mm にフォールバックする。
   const GUTTER_WIDTH_DEFAULT_MM = 6;
   function getCurrentGutterWidthMm() {
     const isGutterOn = els.gutterSelect && els.gutterSelect.value === "on";
@@ -288,19 +245,11 @@ window.addEventListener("DOMContentLoaded", function () {
     const gutterWidthMm = getCurrentGutterWidthMm();
 
     let selectedFont = FONTS[els.fontSelect.value];
-    // 同一 font-family 名で複数ウェイトを登録しているフォント
-    // （LINE Seed JP, IBM Plex Sans JP 等）は、font-weight を
-    // 明示しないとブラウザがどのウェイトを表示するか曖昧になる。
-    // FONT_WEIGHTS に定義があればそれを使い、なければ通常の
-    // ウェイト（400相当）にフォールバックする。
     let selectedFontWeight = FONT_WEIGHTS[els.fontSelect.value] || "normal";
     if (els.fontSelect.value === "custom") {
       selectedFont = els.customFontFamily.value.trim() || "serif";
       selectedFontWeight = "normal";
       const url = els.customFontUrl.value.trim();
-      // 入力値を検証せずに <link href> へ直接セットすると、
-      // javascript: 等の不正なスキームや意図しない外部リソースの
-      // 読み込みを許してしまう。https:// で始まる文字列のみ許可する。
       if (url && /^https:\/\/[^\s"'<>]+$/i.test(url)) {
         document.getElementById("dynamic-font-link").href = url;
       }
@@ -351,10 +300,6 @@ window.addEventListener("DOMContentLoaded", function () {
     let value = escapeHtml(text);
     const codeBlocks = [];
 
-    // 固定文字列のプレースホルダーだと、本文中に偶然同じ文字列が
-    // 含まれていた場合（小説内でシステム的な説明文を書く等）に、
-    // 意図しない置換・undefined展開が起きうる。呼び出しごとに
-    // ユニークなプレフィックスを生成し、衝突の可能性を実質的に無くす。
     const placeholderPrefix =
       "___CODE_PH_" +
       Date.now().toString(36) +
@@ -388,11 +333,7 @@ window.addEventListener("DOMContentLoaded", function () {
       /(!\?|\?!|!!|\?\?|！？|？！|！！|？？)/g,
       '<span class="tcy">$1</span>',
     );
-    // \b（単語境界）を付けることで、レイアウト計算側(parseTextTokens)の
-    // \b\d{1,2}\b と同じ基準に揃える。\bなしだと「1234567890」のような
-    // 3桁以上の連続数字が「12」「34」「56」...と2桁ずつ縦中横化されてしまい、
-    // JS側の計算（3桁以上は1文字ずつの通常文字として幅計算）と実描画が
-    // 食い違って、実際の専有幅がズレる不具合があった。
+
     value = value.replace(/(\b\d{1,2}\b)/g, '<span class="tcy">$1</span>');
     value = value.replace(/(――+|……+|──+)/g, '<span class="nobreak">$1</span>');
 
@@ -407,24 +348,45 @@ window.addEventListener("DOMContentLoaded", function () {
     const normalized = String(markdown).replace(/\r?\n/g, "\n");
     if (!normalized.trim()) return [];
 
-    const rawSections = normalized.split(
-      /(?:\n|^)\s*(?:\[改ページ\]|<!--\s*pagebreak\s*-->)\s*(?=\n|$)/i,
-    );
+    const pageBreakPattern =
+      /(?:\n|^)\s*(?:\[改ページ\]|<!--\s*pagebreak\s*-->)\s*(?=\n|$)/gi;
+    const sectionRanges = [];
+    let lastEnd = 0;
+    let m;
+    while ((m = pageBreakPattern.exec(normalized)) !== null) {
+      sectionRanges.push({ start: lastEnd, end: m.index });
+      lastEnd = m.index + m[0].length;
+      if (m[0].length === 0) pageBreakPattern.lastIndex++;
+    }
+    sectionRanges.push({ start: lastEnd, end: normalized.length });
+
     const sections = [];
 
-    rawSections.forEach((sectionStr) => {
-      const lines = sectionStr.split("\n");
+    for (let si = 0; si < sectionRanges.length; si++) {
+      const { start: sectionStart, end: sectionEnd } = sectionRanges[si];
+      const sectionStr = normalized.slice(sectionStart, sectionEnd);
       const items = [];
 
-      lines.forEach((line) => {
+      let lineOffset = 0;
+      const rawLines = sectionStr.split("\n");
+
+      rawLines.forEach((line, lineIdx) => {
+        const lineStartInSection = lineOffset;
+        lineOffset += line.length + 1;
+
+        const lineAbsStart = sectionStart + lineStartInSection;
+
         const trimmed = line.trim();
         if (trimmed === "") {
-          items.push({ type: "empty" });
+          items.push({ type: "empty", startIndex: lineAbsStart });
           return;
         }
 
-        let align = null;
+        const leadingWs = line.length - line.trimStart().length;
         let textToParse = trimmed;
+        let localOffset = 0;
+
+        let align = null;
 
         const centerMatch = textToParse.match(
           /^(?:\[(?:中央|center)\]|［(?:中央|center)］)\s*(.*)$/i,
@@ -435,62 +397,70 @@ window.addEventListener("DOMContentLoaded", function () {
 
         if (centerMatch) {
           align = "center";
+          localOffset += textToParse.length - centerMatch[1].length;
           textToParse = centerMatch[1];
         } else if (rightMatch) {
           align = "right";
+          localOffset += textToParse.length - rightMatch[1].length;
           textToParse = rightMatch[1];
         }
 
         const heading = textToParse.match(/^(#{1,6})\s+(.+)$/);
         if (heading) {
+          const headingPrefixLen = textToParse.length - heading[2].length;
           items.push({
             type: "heading",
             level: heading[1].length,
             text: heading[2].trim(),
             align: align,
+            startIndex:
+              lineAbsStart + leadingWs + localOffset + headingPrefixLen,
           });
           return;
         }
 
         if (/^(?:-{3,}|\*{3,}|_{3,})$/.test(textToParse)) {
-          items.push({ type: "hr" });
+          items.push({
+            type: "hr",
+            startIndex: lineAbsStart + leadingWs + localOffset,
+          });
           return;
         }
 
         const quote = textToParse.match(/^>\s?(.*)$/);
         if (quote) {
-          items.push({ type: "quote", text: quote[1], align: align });
+          const quotePrefixLen = textToParse.length - quote[1].length;
+          items.push({
+            type: "quote",
+            text: quote[1],
+            align: align,
+            startIndex: lineAbsStart + leadingWs + localOffset + quotePrefixLen,
+          });
           return;
         }
 
         const isBracket = /^[「『（【〔〈《“‘]/.test(textToParse);
-        items.push({ type: "p", isBracket, text: textToParse, align: align });
+        items.push({
+          type: "p",
+          isBracket,
+          text: textToParse,
+          align: align,
+          startIndex: lineAbsStart + leadingWs + localOffset,
+        });
       });
 
       if (items.length > 0) sections.push(items);
-    });
+    }
 
     return sections;
   }
 
-  // 「」等の約物が連続する行で、Canvas実測（1文字ずつの字送り幅の単純合計）が
-  // 実際のブラウザの縦書きカーニング（詰め）を反映できていない問題への対策。
-  // 該当する行の候補文字列だけを、本番の .md-body p と同じCSS継承を持つ
-  // 画面外の隠し要素に実際に流し込み、getBoundingClientRect().height で
-  // 実測する。writing-mode: vertical-rl では height が「文字が積み上がる
-  // 方向の専有量」を表すため、effectiveColHPx と直接比較できる値になる。
-  // 全行に対して行うと再フローのコストが高いため、約物隣接がない大多数の
-  // 行は従来の理論値のみで確定し、約物隣接を含む行だけこの実測で補正する
-  // ハイブリッド方式にしている。
   let measureContainerEl = null;
   function getMeasureContainer() {
     if (measureContainerEl && document.body.contains(measureContainerEl)) {
       return measureContainerEl;
     }
     const wrapper = document.createElement("div");
-    // position: fixed + 画面外座標で、画面には一切表示されないが
-    // レイアウト計算（getBoundingClientRect）は正常に機能する。
-    // display: none にすると計算自体が走らなくなるため使わない。
     wrapper.style.position = "fixed";
     wrapper.style.top = "-99999px";
     wrapper.style.left = "-99999px";
@@ -498,9 +468,6 @@ window.addEventListener("DOMContentLoaded", function () {
     wrapper.style.pointerEvents = "none";
     const article = document.createElement("article");
     article.className = "md-body";
-    // .md-body は本来 width/height: 100% で親基準だが、測定用途では
-    // 十分大きな固定値にして、意図しない折返しや高さ制限が
-    // 測定結果に影響しないようにする。
     article.style.width = "2000px";
     article.style.height = "2000px";
     wrapper.appendChild(article);
@@ -509,19 +476,11 @@ window.addEventListener("DOMContentLoaded", function () {
     return measureContainerEl;
   }
 
-  // 同じ候補文字列を何度も実測することがあるため（例えば同じ段落を
-  // 再計算するたびに同じ切れ目候補が出てくる場合）、呼び出しをまたいで
-  // 結果をキャッシュする。ただしフォント設定が変わるとキャッシュは
-  // 無効になるため、computeLayoutWithCanvas 側で設定が変わるたびに
-  // resetMeasureCache() を呼んでクリアする。
   let measureCache = new Map();
   function resetMeasureCache() {
     measureCache = new Map();
   }
 
-  // candidateRaw（<p>に入れるべき生のHTML片、raw文字列をそのまま結合したもの）を
-  // 実際にDOMへ描画し、専有する高さ(px)を実測する。
-  // hasIndent は本番の <p> と同じ text-indent: 1em の有無を揃えるためのフラグ。
   function measureLineHeightPx(candidateRaw, hasIndent) {
     const cacheKey = (hasIndent ? "1|" : "0|") + candidateRaw;
     if (measureCache.has(cacheKey)) return measureCache.get(cacheKey);
@@ -529,8 +488,6 @@ window.addEventListener("DOMContentLoaded", function () {
     const container = getMeasureContainer();
     const p = document.createElement("p");
     if (!hasIndent) p.className = "no-indent";
-    // parseInlineVerticalMarkdown は nobreak span化などを行うため、
-    // 実際の描画パス（buildLinesHtml側）と同じ変換を通す。
     p.innerHTML = parseInlineVerticalMarkdown(candidateRaw);
     container.innerHTML = "";
     container.appendChild(p);
@@ -539,20 +496,14 @@ window.addEventListener("DOMContentLoaded", function () {
     return height;
   }
 
-  // 文字幅測定用のCanvasは、computeLayoutWithCanvas が呼ばれるたびに
-  // 都度生成すると無駄なDOM生成コストがかかる。モジュールレベルで
-  // 1つだけ保持し、呼び出しをまたいで再利用する。
   const measureCanvas = document.createElement("canvas");
   const measureCtx = measureCanvas.getContext("2d");
-  // 文字幅キャッシュも呼び出しをまたいで使い回す。ただしフォントや
-  // フォントサイズが変わった場合は古いキャッシュ値が無効になるため、
-  // キャッシュキーに現在のフォント設定を含めることで、設定が変われば
-  // 自然に別キーとして扱われ、古い値を誤って使うことがないようにする。
   const charWidthCache = new Map();
 
+  let lineDataCache = new Map();
+  let lastLayoutConfigKey = null;
+
   function computeLayoutWithCanvas(text) {
-    // フォント・サイズ等の設定が変わった可能性があるため、
-    // DOM実測のキャッシュ（measureLineHeightPx用）を都度クリアする。
     resetMeasureCache();
 
     const pageSize =
@@ -562,20 +513,10 @@ window.addEventListener("DOMContentLoaded", function () {
     const isTwoColumn = els.columnSelect.value === "2";
     const isGutterOn = els.gutterSelect && els.gutterSelect.value === "on";
 
-    // 実際に描画される --doc-font-family を取得し、Canvas で文字幅を実測する。
-    // これまでの「全角文字は常に fontSizePx(1文字=1em)固定」という概算計算では、
-    // 「」などの約物がフォント側で持つ実際の字送り幅（Shippori Minchoのような
-    // 縦書き専用フォントでは約物に固有のアキが設定されていることが多い）を
-    // 反映できず、約物が連続する文章で実描画とのズレが蓄積する不具合があった。
     const docFontFamily =
       getComputedStyle(document.documentElement).getPropertyValue(
         "--doc-font-family",
       ) || "serif";
-    // 同一 font-family で複数ウェイトを登録しているフォント（LINE Seed JP、
-    // IBM Plex Sans JP 等）は、Canvas測定時にも font-weight を明示しないと
-    // 常に normal(400相当) 扱いで測定されてしまい、実際に描画される細い/太い
-    // ウェイトとの間で文字幅の見積もりがズレる。CSS変数からウェイトを取得し、
-    // Canvasのfontショートハンドに含める。
     const docFontWeight = (
       getComputedStyle(document.documentElement).getPropertyValue(
         "--doc-font-weight",
@@ -583,12 +524,6 @@ window.addEventListener("DOMContentLoaded", function () {
     ).trim();
 
     function measureCharWidth(ch, scale) {
-      // フォントファミリー・ウェイトに加えてfontSizePx（絶対px値）もキーに
-      // 含める。scaleは相対倍率でしかないため、フォントサイズ設定自体が
-      // 変わった場合、scaleとdocFontFamilyだけをキーにしていると、古い
-      // フォントサイズでの測定結果（px単位の絶対値）を誤って使い回して
-      // しまう。docFontWeightもキーに含めないと、同一familyで複数ウェイト
-      // を切り替えた際に古いウェイトの測定結果を使い回してしまう。
       const cacheKey =
         docFontFamily +
         "|" +
@@ -616,17 +551,10 @@ window.addEventListener("DOMContentLoaded", function () {
     const marginVPx = mmToPx(margin.v);
     const marginHPx = mmToPx(margin.h);
 
-    // .paper-page は box-sizing: border-box で padding: var(--page-padding-v) var(--page-padding-h)。
-    // border は無いので、内側の実高さは「用紙の高さ - 上下padding」で理論値と一致する。
     const innerHPx = paperHPx - marginVPx * 2;
 
     let colHPx = innerHPx;
     if (isTwoColumn) {
-      // CSS: .paper-page.has-columns .md-body { height: calc(50% - 3mm); }
-      // 50% の基準は .columns-wrapper の height:100%（= innerHPx と同じ）。
-      // column-divider の margin(2mm×2=4mm)+border(1px)は、
-      // 2つの .md-body（合計 100% - 6mm）の残り 6mm 分に収まる設計のため、
-      // ここで別途 divider 分を引く必要はない（二重引きになるため削除）。
       colHPx = innerHPx / 2 - mmToPx(3);
     }
 
@@ -635,57 +563,67 @@ window.addEventListener("DOMContentLoaded", function () {
     const lineSpacingPx = fontSizePx * 1.8;
     const maxLinesPerCol = Math.max(1, Math.floor(colWPx / lineSpacingPx));
 
+    const fontsStatus =
+      document.fonts && document.fonts.status
+        ? document.fonts.status
+        : "unknown";
+    const layoutConfigKey = [
+      docFontFamily,
+      docFontWeight,
+      fontSizePx.toFixed(2),
+      colHPx.toFixed(2),
+      colWPx.toFixed(2),
+      isTwoColumn ? "2col" : "1col",
+      fontsStatus,
+    ].join("|");
+
+    if (layoutConfigKey !== lastLayoutConfigKey) {
+      lineDataCache = new Map();
+      lastLayoutConfigKey = layoutConfigKey;
+    }
+
     function getCharHeight(ch, fontScale = 1.0) {
-      // 半角文字・英数字は text-orientation: mixed の影響で複数文字がまとめて
-      // 横倒しなしで配置されるなど、Canvas実測（横書き前提のAPI）では
-      // 正確に再現しきれない挙動があるため、従来の経験則(0.65倍)を維持する。
       if (/[a-zA-Z0-9\s]/.test(ch)) return fontSizePx * 0.65 * fontScale;
-      // 全角文字（漢字・かな・約物含む）は Canvas で実際のフォントの字送り幅を測る。
-      // 「」などの約物は、Shippori Minchoのような縦書き用フォントで固有のアキを
-      // 持つことがあり、fontSizePx固定の概算では実描画とズレが蓄積していた。
       const measured = measureCharWidth(ch, fontScale);
-      // 実測が0や異常値になるケース（フォント未読込等）へのフォールバック。
       if (!measured || !isFinite(measured) || measured <= 0) {
         return fontSizePx * fontScale;
       }
       return measured;
     }
 
-    // .inline-code は font-size: 0.88em で本文より縮小して描画される。
-    // 従来の計算はこの縮小率を無視して本文と同じ幅で見積もっていたため、
-    // コードブロックを含む行で「実際より短く」見積もられ、はみ出し（文字切れ）の原因になっていた。
     const INLINE_CODE_FONT_SCALE = 0.88;
-    // .inline-code の padding: 1px 4px のうち、縦書きで行送り方向に効くのは上下の 1px×2。
-    // トークン単位で1回だけ加算する（文字ごとではなく、コード片全体で1回）。
     const INLINE_CODE_PADDING_PX = 2;
+
+    function enforceKinsokuInvariant(lines) {
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i];
+        if (!line.chars || line.chars.length === 0) continue;
+
+        let pushCount = 0;
+        while (pushCount < line.chars.length) {
+          const candidate = line.chars[pushCount];
+          const candidateFirstCh = candidate.display[0];
+          if (!isKinsokuHead(candidateFirstCh)) break;
+          pushCount++;
+        }
+
+        if (pushCount === 0 || pushCount >= line.chars.length) continue;
+
+        const moved = line.chars.slice(0, pushCount);
+        const prevLine = lines[i - 1];
+
+        prevLine.chars = prevLine.chars.concat(moved);
+        prevLine.raw = prevLine.chars.map((c) => c.raw).join("");
+
+        line.chars = line.chars.slice(pushCount);
+        line.raw = line.chars.map((c) => c.raw).join("");
+        line.startOffset = line.chars[0].srcIndex;
+      }
+      return lines;
+    }
 
     function parseTextTokens(str) {
       const tokens = [];
-      // fallback（最後の代替パターン）は1文字ずつマッチさせる。
-      // 以前は [^...]+ で連続文字を貪欲に食っていたため、
-      // 「色の空に、鳳凰《ほうおう》」のように平文の直後に自動判定ルビ
-      // （｜なしの「漢字+《...》」パターン）が続く場合、
-      // 手前の平文が「鳳凰」まで巻き込んでトークン化してしまい、
-      // ルビが《の前後で分断される不具合があった。1文字ずつにすることで、
-      // 毎文字ごとに改めてルビパターンとのマッチを試みられるようにする。
-      //
-      // また、fallback の文字クラスから \d（数字）を除外していたため、
-      // 「1234567890」のような3桁以上の連続した数字は、\b\d{1,2}\b
-      // （前後が数字でない1〜2桁の数字にのみマッチ）にも fallback にも
-      // 拾われず、丸ごとトークンとして消滅する不具合があった。
-      // \d を fallback から除外しないことで、1〜2桁の独立した数字は
-      // 引き続き縦中横化パターンが優先的に拾い、3桁以上の連続数字は
-      // fallback で1文字ずつ通常文字として表示されるようにする。
-      //
-      // 「――」「……」「──」（2文字以上連続）は、実描画側
-      // （parseInlineVerticalMarkdown）が nobreak（white-space: nowrap）
-      // で囲んで泣き別れ（行末・行頭での分断）を防いでいるが、
-      // レイアウト計算側（このパターン）が1文字ずつしか拾えていなかったため、
-      // 実際には行の途中で平気で改行位置が決まってしまい、nobreak が
-      // 機能する保証がなかった。まとめて1トークンとして拾うグループを追加し、
-      // splitTextToLines 側で isNobreak な1単位として扱うことで対応する。
-      // 既存の isRuby（読み仮名考慮の幅計算）とは独立したフラグとして扱い、
-      // ルビ側の仕様変更やこのnobreak側の調整が互いに波及しないようにする。
       const pattern =
         /(!\?|\?!|!!|\?\?|！？|？！|！！|！！|？？)|(\b\d{1,2}\b)|([\|｜][^《\n]+《[^》\n]+》)|([一-龯]+《[^》\n]+》)|(《《[^》\n]+》》)|(\*\*[^*]+\*\*)|(\*[^*\n]+\*)|(`[^`]+`)|(―{2,}|…{2,}|─{2,})|([―…─])|([^\|｜《\*`!\?―…─])/g;
       let match;
@@ -706,16 +644,11 @@ window.addEventListener("DOMContentLoaded", function () {
         } else if (raw.startsWith("`") && raw.endsWith("`")) {
           display = raw.slice(1, -1);
         }
-        tokens.push({ raw, display });
+        tokens.push({ raw, display, startOffset: match.index });
       }
       return tokens;
     }
 
-    // 禁則分類（isKinsokuHead=行末に来る側の句読点・閉じ約物、
-    // isKinsokuTail=行頭に来ない側の開き約物）を使って、
-    // 確定候補の行 chars の中に「詰まりが起きうる約物隣接」が
-    // 1箇所でも含まれているかを調べる。含まれない大多数の行は
-    // 実測コストをかけず理論値のまま確定させるためのフィルタ。
     function hasKinsokuAdjacency(chars) {
       for (let k = 1; k < chars.length; k++) {
         const prev = chars[k - 1].display;
@@ -729,15 +662,36 @@ window.addEventListener("DOMContentLoaded", function () {
       return false;
     }
 
-    // 理論値ベースで一旦確定した行候補 chars について、約物隣接を
-    // 含む場合のみDOM実測で「実際にはあと何文字入るか／逆にはみ出して
-    // いないか」を検証し、収まる最大文字数まで chars を伸縮させる。
-    // 戻り値は伸縮後の chars 配列。呼び出し側は、伸ばした/縮めた
-    // 差分だけ charItems の走査位置 i を調整する。
-    // fontScale は現時点では未使用（実測はDOM描画結果をそのまま使うため、
-    // フォントスケールの違いはCSS側の描画に自動的に反映される）。
-    // 将来、ルビや会話文などスケールの異なるトークンが絡む行の
-    // 補正で使う可能性があるため、呼び出し元との引数構成を揃えて残している。
+    function enforceKinsokuOnFinalize(chars, charItems, nextIdx) {
+      if (chars.length === 0) return { chars, pushedBack: 0 };
+
+      let working = chars.slice();
+      let pushedBack = 0;
+      let idx = nextIdx;
+
+      function violatesTail() {
+        if (working.length === 0) return false;
+        const lastItem = working[working.length - 1];
+        const lastDisplay = lastItem.display;
+        const lastCh = lastDisplay[lastDisplay.length - 1];
+        return isKinsokuTail(lastCh);
+      }
+
+      function violatesHead() {
+        if (idx >= charItems.length) return false;
+        const nextDisplay = charItems[idx].display;
+        return isKinsokuHead(nextDisplay[0]);
+      }
+
+      while (working.length > 1 && (violatesTail() || violatesHead())) {
+        working = working.slice(0, -1);
+        idx--;
+        pushedBack++;
+      }
+
+      return { chars: working, pushedBack };
+    }
+
     function extendLineByMeasurement(
       chars,
       charItems,
@@ -753,28 +707,11 @@ window.addEventListener("DOMContentLoaded", function () {
       let working = chars.slice();
       let idx = startIdx;
       let consumedExtra = 0;
-      // 禁則違反回避のためだけに強制追加した回数。通常の文章では
-      // 同じ約物が3連続以上禁則違反を引き起こすことはまず無いため、
-      // 異常な入力（禁則対象文字の異常な連続）での無限追加を防ぐ
-      // 安全弁として上限を設ける。
       let forcedAddCount = 0;
       const FORCED_ADD_LIMIT = 5;
 
       const rawOf = (arr) => arr.map((c) => c.raw).join("");
 
-      // 「打ち止めても禁則違反にならないか」を判定する。
-      // ①working末尾の文字が行末禁止（isKinsokuHead）でないこと、
-      // ②次に来る予定の未消費トークン（＝もし打ち止めた場合、次行の
-      //   先頭に来る文字）が「行頭に来てはいけない文字」でないこと、
-      // の両方を満たして初めて、そこで行を終えてよい。
-      // 「行頭に来てはいけない文字」には二種類ある：
-      //   - isKinsokuHead側（句読点・閉じ約物・小書き文字等）：
-      //     これらは行末には来られるが行頭には来られない文字。
-      //   - isKinsokuTail側（開き約物）：
-      //     これらは行頭には来られず、必ず次の文字と共に送られる文字。
-      // 元の実装は isKinsokuTail のみを見ており、句読点・閉じ約物が
-      // 実測補正で行頭に送られてしまう抜け穴があったため、
-      // isKinsokuHead 側の判定を追加する。
       function isSafeStopPoint(arr, nextIdx) {
         if (arr.length === 0) return true;
         const lastItem = arr[arr.length - 1];
@@ -788,20 +725,6 @@ window.addEventListener("DOMContentLoaded", function () {
         return true;
       }
 
-      // 実測で収まる限りは、後続トークンを1つずつ足していく。
-      // 収まらなくなった時点でも、そこで打ち止めると禁則違反になる
-      // 場合は、違反が解消するまで追加を続ける（理論値ベースの
-      // pushback処理と同じ考え方を、実測ループの中でも適用する）。
-      //
-      // 優先順位に注意：「実測で枠に収まるかどうか」より
-      // 「ここで打ち止めても禁則違反にならないか」を優先する。
-      // 元の実装は withinLimit を優先していたため、pushback処理で
-      // 一度押し戻した句読点・閉じ約物が、実測では枠に収まってしまう
-      // ケースで再び取り込まれてしまい、結果的に句読点が行頭に
-      // 来てしまう不具合があった（呼び出し元でpushback済みの
-      // currentChars を渡してくる文脈で顕著）。
-      // 安全な打ち止め点にいったん到達したら、たとえ実測でまだ
-      // 余裕があっても追加を止める。
       while (idx < charItems.length) {
         const currentStopIsSafe = isSafeStopPoint(working, idx);
         if (currentStopIsSafe) {
@@ -814,8 +737,6 @@ window.addEventListener("DOMContentLoaded", function () {
         const withinLimit = measured <= effectiveColHPx;
 
         if (withinLimit || forcedAddCount < FORCED_ADD_LIMIT) {
-          // 枠に収まっている、または禁則違反回避のためやむを得ず
-          // 追加する場合は、次のトークンを足して続行する。
           working = candidate;
           idx++;
           consumedExtra++;
@@ -836,8 +757,6 @@ window.addEventListener("DOMContentLoaded", function () {
         }
       }
 
-      // 理論値では収まる想定だったのに実測でオーバーしていた場合の保険。
-      // Canvas実測とDOM実測の丸め誤差等でごく稀に起こりうるケースに備える。
       while (working.length > 1) {
         const measured = measureLineHeightPx(rawOf(working), hasIndent);
         if (measured <= effectiveColHPx) break;
@@ -871,12 +790,6 @@ window.addEventListener("DOMContentLoaded", function () {
           (tok.raw.startsWith("《《") && tok.raw.endsWith("》》")) ||
           (tok.raw.startsWith("`") && tok.raw.endsWith("`"));
 
-        // 「――」「……」「──」（2文字以上連続）は display === raw
-        // （変換不要）だが、行の途中で分断されないよう isAtomic 扱いに
-        // したいトークン。raw !== display という既存の判定だけでは
-        // 拾えないため、文字種のみで別途判定する。
-        // isRuby とは独立したフラグとして扱い、互いの計算ロジックが
-        // 影響し合わないようにする。
         const isNobreak = tok.raw.length >= 2 && /^(―+|…+|─+)$/.test(tok.raw);
 
         if ((tok.raw !== tok.display || isNobreak) && !isSplittable) {
@@ -890,6 +803,8 @@ window.addEventListener("DOMContentLoaded", function () {
             isAtomic: true,
             isRuby: isRuby,
             isNobreak: isNobreak,
+            srcIndex: tok.startOffset,
+            srcLength: tok.raw.length,
           });
         } else {
           let prefix = "";
@@ -918,14 +833,21 @@ window.addEventListener("DOMContentLoaded", function () {
 
           for (let i = 0; i < text.length; i++) {
             const ch = text[i];
+            const isFirst = i === 0;
+            const isLast = i === text.length - 1;
+            let srcLength = 1;
+            if (isFirst) srcLength += prefix.length;
+            if (isLast) srcLength += suffix.length;
+            const srcIndex =
+              tok.startOffset + (isFirst ? 0 : prefix.length) + i;
             charItems.push({
               raw: prefix ? prefix + ch + suffix : ch,
               display: ch,
               isAtomic: false,
-              // コードブロックの1文字目にのみ isCodeStart を立て、
-              // padding分の加算をトークンごとに1回だけ行えるようにする。
               isCode: isCode,
               isCodeStart: isCode && i === 0,
+              srcIndex: srcIndex,
+              srcLength: srcLength,
             });
           }
         }
@@ -936,45 +858,28 @@ window.addEventListener("DOMContentLoaded", function () {
       let currentH = 0;
       let currentChars = [];
 
-      // 段落の1行目には CSS の text-indent: 1em が入るため、
-      // 実際に文字を置ける幅は colHPx より 1em（fontSizePx * fontScale）分狭い。
-      // これを考慮せずに colHPx いっぱいまで詰め込むと、1行目だけ実際の描画で
-      // 最後の1文字がインデント分に押し出されてはみ出し、画面から消えて見える不具合があった。
       const indentPx = hasIndent ? fontSizePx * fontScale : 0;
 
       for (let i = 0; i < charItems.length; i++) {
         const item = charItems[i];
-        // 現在組み立て中の行が段落の1行目かどうか（まだ1行も確定していない = lines.length === 0）。
         const effectiveColHPx =
           hasIndent && lines.length === 0 ? colHPx - indentPx : colHPx;
         let itemH = 0;
         if (item.isCode) {
-          // .inline-code は font-size: 0.88em で描画されるため、通常文字と同じ幅計算では
-          // 実際より大きく（=行に多く収まると）見積もられ、はみ出しの原因になる。
           for (let c = 0; c < item.display.length; c++) {
             itemH += getCharHeight(
               item.display[c],
               fontScale * INLINE_CODE_FONT_SCALE,
             );
           }
-          // padding: 1px 4px の上下1px×2分を、コード片の先頭文字のみ1回加算する。
           if (item.isCodeStart) {
             itemH += INLINE_CODE_PADDING_PX;
           }
         } else if (item.isRuby) {
-          // ルビ付き文字の幅計算。
-          // 過去に「読み仮名の分の余裕」として RUBY_EXTRA_SCALE(1.15) を掛けていたが、
-          // CSS側の line-height: 1.8 に既にルビを収める余裕が織り込まれている可能性が高く、
-          // 追加の倍率は二重計上となって早期改行（本来入るはずの文字数より少なく見積もる）
-          // を引き起こしていたため撤去。対象文字数分の基本幅のみで計算する。
           for (let c = 0; c < item.display.length; c++) {
             itemH += getCharHeight(item.display[c], fontScale);
           }
         } else if (item.isNobreak) {
-          // 「――」「……」等の泣き別れ防止トークン。
-          // 特殊な倍率は不要で、構成文字の基本幅の合計のみで計算する
-          // （isRuby分岐と式は同一だが、ルビ側の将来の仕様変更が
-          // こちらに波及しないよう、フラグと分岐を独立させている）。
           for (let c = 0; c < item.display.length; c++) {
             itemH += getCharHeight(item.display[c], fontScale);
           }
@@ -983,12 +888,6 @@ window.addEventListener("DOMContentLoaded", function () {
             itemH += getCharHeight(item.display[c], fontScale);
           }
         }
-
-        // 直前文字が「行末に来る側」（句読点・閉じ約物）、かつ
-        // 現在の文字（トークンの先頭1文字）が「行頭に来ない側」
-        // （開き約物）の組み合わせのときは、行確定時にDOM実測で
-        // 補正する（measureAndExtendLine 参照）。ここでは理論値の
-        // ままitemHを積み上げ、「切れ目候補」を出すだけに留める。
 
         if (window.DEBUG_LAYOUT) {
           console.log(
@@ -1014,31 +913,22 @@ window.addEventListener("DOMContentLoaded", function () {
             currentRaw += item.raw;
             currentH += itemH;
             currentChars.push(item);
-            lines.push(currentRaw);
+            lines.push({
+              raw: currentRaw,
+              startOffset: item.srcIndex,
+              chars: currentChars.slice(),
+            });
             currentRaw = "";
             currentH = 0;
             currentChars = [];
             continue;
           }
 
-          // はみ出した item（次に来るはずだった文字）が行頭禁止
-          // （isKinsokuHead。句読点・閉じ約物・小書き文字など）なら、
-          // currentChars の末尾を押し戻して次の行の先頭に回す。
-          // ただし「ちょっと」の「ょ」「っ」のように行頭禁止文字が
-          // 連続するケースでは、1文字だけ押し戻しても新しい行頭が
-          // まだ行頭禁止のままということがあるため、行頭禁止が
-          // 解消するまでループで押し戻す。
-          // 押し戻しすぎて行が空になる事態を避けるため、
-          // currentChars.length は常に1以上を維持する。
           let pushBackCount = 0;
           const nextChar = item.display[0];
 
           if (isKinsokuHead(nextChar) && currentChars.length > 1) {
             pushBackCount = 1;
-            // 押し戻した範囲の先頭文字（＝次の行の先頭になる文字）が
-            // まだ行頭禁止なら、解消するまでさらに押し戻す。
-            // currentChars[currentChars.length - pushBackCount] が
-            // 「押し戻される文字列の中で最初に来る（＝次の行頭になる）文字」。
             while (pushBackCount < currentChars.length) {
               const candidateItem =
                 currentChars[currentChars.length - pushBackCount];
@@ -1049,29 +939,13 @@ window.addEventListener("DOMContentLoaded", function () {
           }
 
           const lastItem = currentChars[currentChars.length - 1];
-          // display が複数文字（isNobreak トークンの「――」等）の場合でも、
-          // isKinsokuTail は1文字前提の判定のため、必ず末尾の1文字だけを渡す。
-          // これを怠ると、display文字列全体が正規表現に渡され、
-          // 本来は禁則対象でない文字列でも意図せずマッチしてしまう恐れがある。
           const lastChar = lastItem.display[lastItem.display.length - 1];
           if (isKinsokuTail(lastChar) && currentChars.length > 1) {
             pushBackCount = Math.max(pushBackCount, 1);
           }
 
-          // 押し戻しの結果、行に1文字も残らなくなってしまう場合は、
-          // 押し戻しを諦める。ただし、その場合でも「今のまま確定」
-          // すると次の行の先頭が禁則違反のままになってしまうため、
-          // 単純にpushBackCountを0にはせず、代わりに「はみ出した
-          // item自体をこの行に強制的に含めて、まだ確定しない」形にする
-          // （行頭禁止の連続よりは、多少のはみ出しの方が
-          // 版面として綺麗という判断）。次のループで、追加後の新しい
-          // itemに対して同じ超過判定が再度行われる。
           let forceIncludeOverflow = false;
           if (pushBackCount >= currentChars.length) {
-            // 小書き文字等の禁則対象が異常に連続する場合の暴走防止。
-            // 通常の日本語文章では起こり得ないが、理論値の高さが
-            // 枠の3倍を超えてなお解消しない場合は、禁則より行の
-            // 確定を優先する（諦めて現状のまま確定する）。
             if (currentH + itemH > effectiveColHPx * 3) {
               pushBackCount = 0;
             } else {
@@ -1105,6 +979,16 @@ window.addEventListener("DOMContentLoaded", function () {
             currentChars = result.chars;
             i += result.consumedExtra;
 
+            const guarded = enforceKinsokuOnFinalize(
+              currentChars,
+              charItems,
+              i + 1,
+            );
+            if (guarded.pushedBack > 0) {
+              currentChars = guarded.chars;
+              i -= guarded.pushedBack;
+            }
+
             currentRaw = currentChars.map((c) => c.raw).join("");
             if (window.DEBUG_LAYOUT) {
               console.log(
@@ -1116,7 +1000,11 @@ window.addEventListener("DOMContentLoaded", function () {
                 effectiveColHPx.toFixed(1),
               );
             }
-            lines.push(currentRaw);
+            lines.push({
+              raw: currentRaw,
+              startOffset: currentChars[0].srcIndex,
+              chars: currentChars.slice(),
+            });
 
             currentRaw = "";
             currentH = 0;
@@ -1133,6 +1021,17 @@ window.addEventListener("DOMContentLoaded", function () {
             );
             currentChars = result.chars;
             i += result.consumedExtra;
+
+            const guarded = enforceKinsokuOnFinalize(
+              currentChars,
+              charItems,
+              i,
+            );
+            if (guarded.pushedBack > 0) {
+              currentChars = guarded.chars;
+              i -= guarded.pushedBack;
+            }
+
             currentRaw = currentChars.map((c) => c.raw).join("");
 
             if (window.DEBUG_LAYOUT) {
@@ -1145,7 +1044,11 @@ window.addEventListener("DOMContentLoaded", function () {
                 effectiveColHPx.toFixed(1),
               );
             }
-            lines.push(currentRaw);
+            lines.push({
+              raw: currentRaw,
+              startOffset: currentChars[0].srcIndex,
+              chars: currentChars.slice(),
+            });
             currentRaw = "";
             currentH = 0;
             currentChars = [];
@@ -1160,10 +1063,14 @@ window.addEventListener("DOMContentLoaded", function () {
       }
 
       if (currentRaw.length > 0) {
-        lines.push(currentRaw);
+        lines.push({
+          raw: currentRaw,
+          startOffset: currentChars[0].srcIndex,
+          chars: currentChars.slice(),
+        });
       }
 
-      return lines;
+      return enforceKinsokuInvariant(lines);
     }
 
     const sections = parseToAST(text);
@@ -1195,6 +1102,17 @@ window.addEventListener("DOMContentLoaded", function () {
       currentLineWidth += widthCost;
     }
 
+    const usedKeysThisRun = new Set();
+
+    function getLinesWithCache(cacheKey, rawText, fontScale, hasIndent) {
+      usedKeysThisRun.add(cacheKey);
+      const cached = lineDataCache.get(cacheKey);
+      if (cached) return cached;
+      const result = splitTextToLines(rawText, fontScale, hasIndent);
+      lineDataCache.set(cacheKey, result);
+      return result;
+    }
+
     sections.forEach((items, sectionIdx) => {
       if (
         sectionIdx > 0 &&
@@ -1216,14 +1134,22 @@ window.addEventListener("DOMContentLoaded", function () {
           const scale = scales[item.level] || 1.0;
           const cost = costs[item.level] || 1.2;
 
-          const hLines = splitTextToLines(item.text, scale);
+          const hCacheKey =
+            "heading|" +
+            item.level +
+            "|" +
+            (item.align || "") +
+            "|" +
+            item.text;
+          const hLines = getLinesWithCache(hCacheKey, item.text, scale);
           hLines.forEach((hLine) => {
             addLineToPage(
               {
                 type: "heading",
                 level: item.level,
-                text: hLine,
+                text: hLine.raw,
                 align: item.align,
+                srcIndex: item.startIndex + hLine.startOffset,
               },
               cost,
             );
@@ -1231,31 +1157,46 @@ window.addEventListener("DOMContentLoaded", function () {
         } else if (item.type === "hr") {
           addLineToPage({ type: "hr" }, 1);
         } else if (item.type === "quote") {
-          const qLines = splitTextToLines(item.text, 0.95);
+          const qCacheKey = "quote|" + (item.align || "") + "|" + item.text;
+          const qLines = getLinesWithCache(qCacheKey, item.text, 0.95);
           qLines.forEach((qLine, qIdx) => {
             addLineToPage(
               {
                 type: "quote",
-                text: qLine,
+                text: qLine.raw,
                 align: item.align,
                 isContinuation: qIdx > 0,
+                srcIndex: item.startIndex + qLine.startOffset,
               },
               1.25,
             );
           });
         } else if (item.type === "p") {
-          // CSSでは isBracket または align 指定がある段落は no-indent（インデント無し）になるため、
-          // 1行目の幅計算でインデント分を差し引く対象もそれに合わせる。
           const pHasIndent = !item.isBracket && !item.align;
-          const pLines = splitTextToLines(item.text, 1.0, pHasIndent);
+          const pCacheKey =
+            "p|" +
+            (item.isBracket ? "1" : "0") +
+            "|" +
+            (item.align || "") +
+            "|" +
+            (pHasIndent ? "1" : "0") +
+            "|" +
+            item.text;
+          const pLines = getLinesWithCache(
+            pCacheKey,
+            item.text,
+            1.0,
+            pHasIndent,
+          );
           pLines.forEach((pLine, idx) => {
             addLineToPage(
               {
                 type: "p",
-                text: pLine,
+                text: pLine.raw,
                 isBracket: item.isBracket,
                 isIndent: idx === 0 && !item.isBracket && !item.align,
                 align: item.align,
+                srcIndex: item.startIndex + pLine.startOffset,
               },
               1,
             );
@@ -1266,6 +1207,10 @@ window.addEventListener("DOMContentLoaded", function () {
 
     if (currentPage.col1.length > 0 || currentPage.col2.length > 0) {
       pages.push(currentPage);
+    }
+
+    for (const key of lineDataCache.keys()) {
+      if (!usedKeysThisRun.has(key)) lineDataCache.delete(key);
     }
 
     return pages;
@@ -1487,10 +1432,6 @@ window.addEventListener("DOMContentLoaded", function () {
 
     const pagesPerView = getPagesPerView();
 
-    // currentPageIndexを、現在の表示モード（見開き/単独）における
-    // 見開き開始indexに正規化する。書籍の見開きルールでは、
-    // 「1ページ目は単独、2ページ目以降は偶数始まりペア」となるため、
-    // 単純な「偶数なら揃える」補正ではなく getSpreadStartIndex を使う。
     if (currentPageIndex >= total) {
       currentPageIndex = normalizeSpreadStartIndex(
         total - 1,
@@ -1561,7 +1502,6 @@ window.addEventListener("DOMContentLoaded", function () {
     pageJumpInput.disabled = false;
     pageJumpInput.max = String(total);
     pageJumpInput.title = `1〜${total} の範囲でページ番号を入力してください`;
-    // 入力欄にフォーカス中は、ユーザーが打ち込んでいる値を上書きしない
     if (document.activeElement !== pageJumpInput) {
       pageJumpInput.value = String(currentPageIndex + 1);
     }
@@ -1587,9 +1527,6 @@ window.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // 指定ページ番号（1始まり）へジャンプする。
-  // 範囲外の値が渡された場合は何もせず、呼び出し側で元の値に戻す。
-  // 見開き表示時は、指定されたページが属する見開きの開始ページへ揃える。
   function goToPage(pageNumber) {
     const total = computedPagesData.length;
     if (total === 0) return false;
@@ -1654,10 +1591,16 @@ window.addEventListener("DOMContentLoaded", function () {
 
     updatePageCSSVariables();
 
-    computedPagesData = computeLayoutWithCanvas(els.sourceText.value);
+    if (layoutSpinner) layoutSpinner.hidden = false;
 
-    renderCurrentPages();
-    saveToStorage();
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        computedPagesData = computeLayoutWithCanvas(els.sourceText.value);
+        renderCurrentPages();
+        saveToStorage();
+        if (layoutSpinner) layoutSpinner.hidden = true;
+      });
+    });
   }
 
   function debounceUpdatePreview() {
@@ -1904,32 +1847,16 @@ window.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // デバッグ用：レイアウト計算のログをコンソールに出力する。
-  // 通常は false にしておき、レイアウト絡みの不具合調査が必要になった
-  // ときだけ true に切り替える（コンソールで window.DEBUG_LAYOUT = true
-  // と打てば、リロードなしでも即座に有効化できる）。
   window.DEBUG_LAYOUT = false;
 
   loadFromStorage();
   updatePreview();
 
-  // Google Fonts は display=swap で読み込んでいるため、初回描画時点では
-  // まだWebフォント（しっぽり明朝等）の読み込みが完了しておらず、
-  // フォールバックフォントで実測・描画されてしまうことがある
-  // （FOUT: Flash of Unstyled Text）。この状態で行の折り返し位置を
-  // 確定してしまうと、フォント読み込み完了後の実際の字送り幅と
-  // 食い違い、見た目が崩れる原因になる。
-  // document.fonts.ready でフォント読み込み完了を検知し、その時点で
-  // 改めてレイアウトを計算し直すことで、この食い違いを解消する。
-  // モバイル環境などフォント読み込みが遅れやすい環境で特に有効。
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready
       .then(function () {
         updatePreview();
       })
-      .catch(function () {
-        // フォント読み込み監視自体に失敗しても、初回描画は既に
-        // 完了しているため、ここでは静かに無視して構わない。
-      });
+      .catch(function () {});
   }
 });
