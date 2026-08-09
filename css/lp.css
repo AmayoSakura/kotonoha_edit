@@ -5,6 +5,8 @@
   --ink-soft: #63594c;
   --vermilion: #8b2e2e;
   --vermilion-soft: #b65c4a;
+  --press-blue: #2f4858;
+  --press-blue-soft: #5c7688;
   --rule: #c9c0ac;
   --rule-soft: #ded6c4;
   --shadow: rgba(43, 38, 32, 0.12);
@@ -53,6 +55,9 @@ a {
 }
 .gothic {
   font-family: "Zen Kaku Gothic New", sans-serif;
+}
+.mono {
+  font-family: "JetBrains Mono", monospace;
 }
 
 :focus-visible {
@@ -201,7 +206,7 @@ section {
     ),
     radial-gradient(
       circle at 85% 65%,
-      rgba(139, 46, 46, 0.045) 0,
+      rgba(47, 72, 88, 0.05) 0,
       transparent 40%
     );
 }
@@ -322,15 +327,11 @@ section {
   border-radius: 1px;
   position: relative;
   padding: 34px 30px;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  font-family: "Shippori Mincho", serif;
-  font-size: 15.5px;
-  line-height: 2.15;
-  letter-spacing: 0.04em;
   color: var(--ink);
   overflow: hidden;
   transform: rotate(-1.2deg);
+  display: flex;
+  flex-direction: column;
 }
 .paper-sheet::before {
   content: "";
@@ -338,6 +339,15 @@ section {
   inset: 14px;
   border: 1px solid var(--rule-soft);
   pointer-events: none;
+}
+.paper-sheet-body {
+  flex: 1;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-family: "Shippori Mincho", serif;
+  font-size: 15.5px;
+  line-height: 2.15;
+  letter-spacing: 0.04em;
 }
 .paper-sheet .ruby {
   font-size: 0.5em;
@@ -348,7 +358,7 @@ section {
   left: 26px;
   width: 34px;
   height: 34px;
-  background: var(--vermilion);
+  background: var(--press-blue);
   color: var(--paper-white);
   font-family: "Shippori Mincho", serif;
   font-size: 12px;
@@ -359,6 +369,7 @@ section {
   border-radius: 2px;
   opacity: 0.92;
   letter-spacing: 0.1em;
+  z-index: 2;
 }
 .paper-behind {
   position: absolute;
@@ -369,6 +380,142 @@ section {
   transform: rotate(4deg) translate(18px, 10px);
   z-index: -1;
   opacity: 0.7;
+}
+.spec-tag {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--press-blue);
+  border-top: 1px solid var(--rule-soft);
+  padding-top: 10px;
+  margin-top: 10px;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+/* ============ 課題提起の帯 ============ */
+.problem-strip {
+  background: var(--ink);
+  color: var(--paper);
+  border-top: 1px solid var(--rule-soft);
+  border-bottom: 1px solid var(--rule-soft);
+}
+.problem-grid {
+  padding: 68px 32px;
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  gap: 48px;
+  align-items: center;
+}
+.problem-line {
+  font-size: clamp(22px, 2.6vw, 30px);
+  line-height: 1.7;
+  letter-spacing: 0.03em;
+}
+.problem-sub {
+  font-size: 14.5px;
+  line-height: 2;
+  color: #b9af9e;
+}
+
+@media (max-width: 860px) {
+  .problem-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+/* ============ 目玉機能：出力の一貫性 ============ */
+.output-feature {
+  padding: 130px 0 100px;
+}
+
+.output-grid {
+  margin-top: 56px;
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 60px;
+  align-items: center;
+}
+
+.output-visual {
+  display: flex;
+  justify-content: center;
+}
+
+.press-paper {
+  position: relative;
+  width: min(460px, 100%);
+  aspect-ratio: 128 / 182;
+  background: var(--paper-white);
+  box-shadow: 0 30px 60px -20px var(--shadow);
+  padding: 40px 34px 28px;
+  display: flex;
+  flex-direction: column;
+}
+.press-paper-cols {
+  flex: 1;
+  display: flex;
+  flex-direction: row-reverse;
+  gap: 26px;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-family: "Shippori Mincho", serif;
+  font-size: 13.5px;
+  line-height: 2;
+  color: var(--ink);
+  border-left: 1px solid var(--rule-soft);
+  padding-left: 26px;
+}
+.press-col {
+  flex: 1;
+}
+.press-col p {
+  margin: 0;
+  text-indent: 1em;
+}
+.press-col p.no-indent {
+  text-indent: 0;
+}
+.press-col p + p {
+  margin-top: 1.5em;
+}
+.press-footer {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--rule-soft);
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--press-blue);
+}
+
+.output-specs {
+  display: flex;
+  flex-direction: column;
+  gap: 34px;
+}
+.spec-item {
+  border-top: 1px solid var(--rule-soft);
+  padding-top: 18px;
+}
+.spec-num {
+  font-size: 13px;
+  color: var(--press-blue);
+  letter-spacing: 0.04em;
+}
+.spec-item p {
+  margin-top: 10px;
+  color: var(--ink-soft);
+  font-size: 14.5px;
+  line-height: 1.95;
+}
+
+@media (max-width: 900px) {
+  .output-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ============ ロゴ的な帯（対象読者） ============ */
@@ -408,7 +555,7 @@ section {
 
 /* ============ 機能セクション（紙面が変わる） ============ */
 .features {
-  padding: 130px 0 100px;
+  padding: 100px 0 100px;
 }
 
 .feature-row {
@@ -527,117 +674,6 @@ section {
 }
 .mini-paper.dark .bouten-demo {
   text-emphasis-color: var(--vermilion-soft);
-}
-
-/* ============ ライブデモ ============ */
-.demo-section {
-  background: var(--ink);
-  color: var(--paper);
-  padding: 120px 0 130px;
-}
-.demo-section .eyebrow {
-  color: var(--vermilion-soft);
-}
-.demo-section .eyebrow::before {
-  background: var(--vermilion-soft);
-}
-.demo-section .section-title {
-  color: var(--paper);
-}
-.demo-section .section-lede {
-  color: #b9af9e;
-}
-
-.demo-grid {
-  margin-top: 56px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 40px;
-  align-items: stretch;
-}
-
-.demo-editor {
-  background: #232019;
-  border: 1px solid #423c31;
-  border-radius: 4px;
-  padding: 22px;
-  display: flex;
-  flex-direction: column;
-}
-.demo-editor-label {
-  font-family: "Zen Kaku Gothic New", sans-serif;
-  font-size: 11.5px;
-  letter-spacing: 0.12em;
-  color: #9c927e;
-  margin-bottom: 12px;
-}
-#demoInput {
-  flex: 1;
-  min-height: 320px;
-  background: transparent;
-  border: none;
-  resize: none;
-  color: #efe9dc;
-  font-family: "Noto Serif JP", serif;
-  font-size: 15px;
-  line-height: 2;
-  outline: none;
-}
-.demo-hint {
-  margin-top: 14px;
-  font-family: "Zen Kaku Gothic New", sans-serif;
-  font-size: 12px;
-  color: #7c7361;
-  line-height: 1.8;
-}
-.demo-hint code {
-  background: #332e24;
-  padding: 1px 6px;
-  border-radius: 3px;
-  color: #d8cdb6;
-}
-
-.demo-preview-stage {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #1c1a15;
-  border-radius: 4px;
-  padding: 30px;
-}
-.demo-paper {
-  width: min(280px, 100%);
-  aspect-ratio: 128 / 182;
-  background: var(--paper-white);
-  color: var(--ink);
-  box-shadow: 0 24px 50px -18px rgba(0, 0, 0, 0.55);
-  padding: 26px 22px;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  font-family: "Shippori Mincho", serif;
-  font-size: 14.5px;
-  line-height: 2.1;
-  overflow: hidden;
-}
-.demo-paper ruby rt {
-  font-size: 0.5em;
-  color: var(--ink-soft);
-}
-.demo-paper p {
-  margin: 0;
-  text-indent: 0em;
-}
-.demo-paper p + p {
-  margin-top: 0em;
-}
-.demo-paper p.no-indent {
-  text-indent: 0;
-}
-
-@media (max-width: 860px) {
-  .demo-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 /* ============ こだわりセクション（罫線リスト） ============ */
