@@ -1,6 +1,5 @@
 window.addEventListener("DOMContentLoaded", function () {
   "use strict";
-
   const tabButtons = document.querySelectorAll(".editor-tab-btn");
   const tabPanes = document.querySelectorAll(".tab-pane");
   tabButtons.forEach((btn) => {
@@ -12,7 +11,6 @@ window.addEventListener("DOMContentLoaded", function () {
       if (target) target.classList.add("active");
     });
   });
-
   const CONFIG_KEYS = {
     pageTitle: "title",
     pageHeader: "header",
@@ -38,12 +36,10 @@ window.addEventListener("DOMContentLoaded", function () {
     startPageInput: "startPage",
     nombrePosSelect: "nombrePos",
   };
-
   const els = {};
   Object.keys(CONFIG_KEYS).forEach((id) => {
     els[id] = document.getElementById(id);
   });
-
   const customFontRow = document.getElementById("customFontRow");
   const customMarginRow = document.getElementById("customMarginRow");
   const gutterWidthRow = document.getElementById("gutterWidthRow");
@@ -54,42 +50,67 @@ window.addEventListener("DOMContentLoaded", function () {
   const previewViewport = document.getElementById("previewViewport");
   const pageSizeStyle = document.getElementById("page-size-style");
   const fileInput = document.getElementById("fileInput");
-
   const nextPageBtn = document.getElementById("nextPageBtn");
   const prevPageBtn = document.getElementById("prevPageBtn");
   const pageNavStatus = document.getElementById("pageNavStatus");
   const firstPageBtn = document.getElementById("firstPageBtn");
   const lastPageBtn = document.getElementById("lastPageBtn");
   const pageJumpInput = document.getElementById("pageJumpInput");
-
+  const syncToggle = document.getElementById("syncToggle");
   const STORAGE_KEY = "md_vertical_editor_draft_v09_" + location.pathname;
   let debounceTimer = null;
   let computedPagesData = [];
   let currentPageIndex = 0;
-
+  let isTyping = false;
+  let typingIdleTimer = null;
+  function markTypingActive() {
+    isTyping = true;
+    clearTimeout(typingIdleTimer);
+    typingIdleTimer = setTimeout(() => {
+      isTyping = false;
+    }, 250);
+  }
+  let syncEnabled = true;
+  function findPageIndexForSrcIndex(srcIndex) {
+    const pagesWithIndex = computedPagesData
+      .map((page, idx) => ({ idx, startSrcIndex: page.startSrcIndex }))
+      .filter((p) => p.startSrcIndex !== undefined);
+    if (pagesWithIndex.length === 0) return 0;
+    if (srcIndex <= pagesWithIndex[0].startSrcIndex) {
+      return pagesWithIndex[0].idx;
+    }
+    let lo = 0;
+    let hi = pagesWithIndex.length - 1;
+    let result = pagesWithIndex[0].idx;
+    while (lo <= hi) {
+      const mid = Math.floor((lo + hi) / 2);
+      if (pagesWithIndex[mid].startSrcIndex <= srcIndex) {
+        result = pagesWithIndex[mid].idx;
+        lo = mid + 1;
+      } else {
+        hi = mid - 1;
+      }
+    }
+    return result;
+  }
   const mobileLayoutQuery = window.matchMedia("(max-width: 1100px)");
   function getPagesPerView() {
     return mobileLayoutQuery.matches ? 1 : 2;
   }
-
   mobileLayoutQuery.addEventListener("change", function () {
     renderCurrentPages();
   });
-
   function getSpreadStartIndex(pageIndex, pagesPerView) {
     if (pagesPerView !== 2) return pageIndex;
     if (pageIndex <= 0) return 0;
-    // pageIndex=1,2 → 1 / pageIndex=3,4 → 3 / pageIndex=5,6 → 5 ...
     return pageIndex % 2 === 1 ? pageIndex : pageIndex - 1;
   }
-
   function getSpreadPageCount(startIndex, total, pagesPerView) {
     if (pagesPerView !== 2) return 1;
     if (startIndex === 0) return 1;
     const remaining = total - startIndex;
     return Math.min(2, Math.max(1, remaining));
   }
-
   function getNextSpreadStartIndex(startIndex, total, pagesPerView) {
     if (pagesPerView !== 2) {
       return startIndex + 1 < total ? startIndex + 1 : null;
@@ -98,7 +119,6 @@ window.addEventListener("DOMContentLoaded", function () {
     const next = startIndex + count;
     return next < total ? next : null;
   }
-
   function getPrevSpreadStartIndex(startIndex, total, pagesPerView) {
     if (pagesPerView !== 2) {
       return startIndex - 1 >= 0 ? startIndex - 1 : null;
@@ -107,13 +127,11 @@ window.addEventListener("DOMContentLoaded", function () {
     if (startIndex === 1) return 0;
     return startIndex - 2;
   }
-
   function normalizeSpreadStartIndex(pageIndex, total, pagesPerView) {
     if (total <= 0) return 0;
     const clamped = Math.min(Math.max(pageIndex, 0), total - 1);
     return getSpreadStartIndex(clamped, pagesPerView);
   }
-
   const PAGE_SIZES_MM = {
     A4: { w: 210, h: 297 },
     B5: { w: 182, h: 257 },
@@ -122,13 +140,11 @@ window.addEventListener("DOMContentLoaded", function () {
     A6: { w: 105, h: 148 },
     Hagaki: { w: 100, h: 148 },
   };
-
   const MARGIN_SIZES_MM = {
     narrow: { v: 12, h: 10 },
     normal: { v: 18, h: 14 },
     wide: { v: 24, h: 18 },
   };
-
   const FONTS = {
     shippori: '"Shippori Mincho", "Yu Mincho", "MS Mincho", serif',
     noto: '"Noto Serif JP", "Yu Mincho", "MS Mincho", serif',
@@ -141,31 +157,25 @@ window.addEventListener("DOMContentLoaded", function () {
     klee: '"Klee One", "Hiragino Mincho ProN", serif',
     yomogi: '"Yomogi", "Hiragino Mincho ProN", serif',
   };
-
   const FONT_WEIGHTS = {
     plexjpregular: "400",
     lineseedregular: "400",
   };
-
   const KINSOKU_HEAD =
     /[、。，．・：；？！?!ーぁぃぅぇぉっゃゅょゎァィUェォッャュョヮヶゝゞ」』】）〕〉》”’]/;
   const KINSOKU_TAIL = /[「『（【〔〈“‘]/;
-
   function isKinsokuHead(ch) {
     return ch ? KINSOKU_HEAD.test(ch) : false;
   }
-
   function isKinsokuTail(ch) {
     return ch ? KINSOKU_TAIL.test(ch) : false;
   }
-
   function mmToPx(mm) {
     return mm * 3.7795275591;
   }
   function ptToPx(pt) {
     return parseFloat(pt) * 1.3333333333;
   }
-
   function getCurrentMarginMm() {
     if (els.marginSelect && els.marginSelect.value === "custom") {
       const v = parseFloat(els.marginVInput && els.marginVInput.value);
@@ -181,7 +191,6 @@ window.addEventListener("DOMContentLoaded", function () {
       MARGIN_SIZES_MM["normal"]
     );
   }
-
   const GUTTER_WIDTH_DEFAULT_MM = 6;
   function getCurrentGutterWidthMm() {
     const isGutterOn = els.gutterSelect && els.gutterSelect.value === "on";
@@ -189,17 +198,16 @@ window.addEventListener("DOMContentLoaded", function () {
     const w = parseFloat(els.gutterWidthInput && els.gutterWidthInput.value);
     return Number.isFinite(w) && w >= 0 ? w : GUTTER_WIDTH_DEFAULT_MM;
   }
-
   function saveToStorage() {
     const data = {};
     for (const [id, key] of Object.entries(CONFIG_KEYS)) {
       if (els[id]) data[key] = els[id].value;
     }
+    if (syncToggle) data.syncEnabled = syncToggle.checked;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch (e) {}
   }
-
   function loadFromStorage() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -207,6 +215,10 @@ window.addEventListener("DOMContentLoaded", function () {
       const data = JSON.parse(raw);
       for (const [id, key] of Object.entries(CONFIG_KEYS)) {
         if (data[key] !== undefined && els[id]) els[id].value = data[key];
+      }
+      if (data.syncEnabled !== undefined && syncToggle) {
+        syncToggle.checked = data.syncEnabled;
+        syncEnabled = data.syncEnabled;
       }
       if (data.theme !== undefined && els.themeSelect) {
         els.themeSelect.value = data.theme;
@@ -238,12 +250,10 @@ window.addEventListener("DOMContentLoaded", function () {
       return false;
     }
   }
-
   function updatePageCSSVariables() {
     const conf = PAGE_SIZES_MM[els.pageSizeSelect.value] || PAGE_SIZES_MM["A4"];
     const margin = getCurrentMarginMm();
     const gutterWidthMm = getCurrentGutterWidthMm();
-
     let selectedFont = FONTS[els.fontSelect.value];
     let selectedFontWeight = FONT_WEIGHTS[els.fontSelect.value] || "normal";
     if (els.fontSelect.value === "custom") {
@@ -254,7 +264,6 @@ window.addEventListener("DOMContentLoaded", function () {
         document.getElementById("dynamic-font-link").href = url;
       }
     }
-
     document.documentElement.style.setProperty("--paper-w", conf.w + "mm");
     document.documentElement.style.setProperty("--paper-h", conf.h + "mm");
     document.documentElement.style.setProperty(
@@ -281,12 +290,10 @@ window.addEventListener("DOMContentLoaded", function () {
       "--gutter-width",
       gutterWidthMm + "mm",
     );
-
     if (pageSizeStyle) {
       pageSizeStyle.innerHTML = `@page { size: ${conf.w}mm ${conf.h}mm; margin: 0; }`;
     }
   }
-
   function escapeHtml(value) {
     return String(value)
       .replace(/&/g, "&amp;")
@@ -295,11 +302,9 @@ window.addEventListener("DOMContentLoaded", function () {
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
   }
-
   function parseInlineVerticalMarkdown(text) {
     let value = escapeHtml(text);
     const codeBlocks = [];
-
     const placeholderPrefix =
       "___CODE_PH_" +
       Date.now().toString(36) +
@@ -307,13 +312,11 @@ window.addEventListener("DOMContentLoaded", function () {
       Math.random().toString(36).slice(2) +
       "_";
     const placeholderFor = (idx) => placeholderPrefix + idx + "___";
-
     value = value.replace(/`([^`]+)`/g, function (match, code) {
       const idx = codeBlocks.length;
       codeBlocks.push('<code class="inline-code">' + code + "</code>");
       return placeholderFor(idx);
     });
-
     value = value.replace(
       /《《([^》\n]+)》》/g,
       '<span class="bouten">$1</span>',
@@ -326,28 +329,22 @@ window.addEventListener("DOMContentLoaded", function () {
       /([一-龯]+)《([^》\n]+)》/g,
       "<ruby>$1<rt>$2</rt></ruby>",
     );
-
     value = value.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
     value = value.replace(/\*([^*]+)\*/g, "<em>$1</em>");
     value = value.replace(
       /(!\?|\?!|!!|\?\?|！？|？！|！！|？？)/g,
       '<span class="tcy">$1</span>',
     );
-
     value = value.replace(/(\b\d{1,2}\b)/g, '<span class="tcy">$1</span>');
     value = value.replace(/(――+|……+|──+)/g, '<span class="nobreak">$1</span>');
-
     for (let idx = 0; idx < codeBlocks.length; idx++) {
       value = value.replace(placeholderFor(idx), codeBlocks[idx]);
     }
-
     return value;
   }
-
   function parseToAST(markdown) {
     const normalized = String(markdown).replace(/\r?\n/g, "\n");
     if (!normalized.trim()) return [];
-
     const pageBreakPattern =
       /(?:\n|^)\s*(?:\[改ページ\]|<!--\s*pagebreak\s*-->)\s*(?=\n|$)/gi;
     const sectionRanges = [];
@@ -359,42 +356,32 @@ window.addEventListener("DOMContentLoaded", function () {
       if (m[0].length === 0) pageBreakPattern.lastIndex++;
     }
     sectionRanges.push({ start: lastEnd, end: normalized.length });
-
     const sections = [];
-
     for (let si = 0; si < sectionRanges.length; si++) {
       const { start: sectionStart, end: sectionEnd } = sectionRanges[si];
       const sectionStr = normalized.slice(sectionStart, sectionEnd);
       const items = [];
-
       let lineOffset = 0;
       const rawLines = sectionStr.split("\n");
-
       rawLines.forEach((line, lineIdx) => {
         const lineStartInSection = lineOffset;
         lineOffset += line.length + 1;
-
         const lineAbsStart = sectionStart + lineStartInSection;
-
         const trimmed = line.trim();
         if (trimmed === "") {
           items.push({ type: "empty", startIndex: lineAbsStart });
           return;
         }
-
         const leadingWs = line.length - line.trimStart().length;
         let textToParse = trimmed;
         let localOffset = 0;
-
         let align = null;
-
         const centerMatch = textToParse.match(
           /^(?:\[(?:中央|center)\]|［(?:中央|center)］)\s*(.*)$/i,
         );
         const rightMatch = textToParse.match(
           /^(?:\[(?:右|right)\]|［(?:右|right)］)\s*(.*)$/i,
         );
-
         if (centerMatch) {
           align = "center";
           localOffset += textToParse.length - centerMatch[1].length;
@@ -404,7 +391,6 @@ window.addEventListener("DOMContentLoaded", function () {
           localOffset += textToParse.length - rightMatch[1].length;
           textToParse = rightMatch[1];
         }
-
         const heading = textToParse.match(/^(#{1,6})\s+(.+)$/);
         if (heading) {
           const headingPrefixLen = textToParse.length - heading[2].length;
@@ -418,7 +404,6 @@ window.addEventListener("DOMContentLoaded", function () {
           });
           return;
         }
-
         if (/^(?:-{3,}|\*{3,}|_{3,})$/.test(textToParse)) {
           items.push({
             type: "hr",
@@ -426,7 +411,6 @@ window.addEventListener("DOMContentLoaded", function () {
           });
           return;
         }
-
         const quote = textToParse.match(/^>\s?(.*)$/);
         if (quote) {
           const quotePrefixLen = textToParse.length - quote[1].length;
@@ -438,7 +422,6 @@ window.addEventListener("DOMContentLoaded", function () {
           });
           return;
         }
-
         const isBracket = /^[「『（【〔〈《“‘]/.test(textToParse);
         items.push({
           type: "p",
@@ -448,13 +431,10 @@ window.addEventListener("DOMContentLoaded", function () {
           startIndex: lineAbsStart + leadingWs + localOffset,
         });
       });
-
       if (items.length > 0) sections.push(items);
     }
-
     return sections;
   }
-
   let measureContainerEl = null;
   function getMeasureContainer() {
     if (measureContainerEl && document.body.contains(measureContainerEl)) {
@@ -475,16 +455,55 @@ window.addEventListener("DOMContentLoaded", function () {
     measureContainerEl = article;
     return measureContainerEl;
   }
-
+  let editorMirrorDivEl = null;
+  function getEditorMirrorDiv() {
+    if (editorMirrorDivEl && document.body.contains(editorMirrorDivEl)) {
+      return editorMirrorDivEl;
+    }
+    const div = document.createElement("div");
+    div.style.position = "fixed";
+    div.style.top = "-99999px";
+    div.style.left = "-99999px";
+    div.style.visibility = "hidden";
+    div.style.pointerEvents = "none";
+    div.style.whiteSpace = "pre-wrap";
+    div.style.wordWrap = "break-word";
+    document.body.appendChild(div);
+    editorMirrorDivEl = div;
+    return editorMirrorDivEl;
+  }
+  function syncEditorMirrorStyle(mirror) {
+    const cs = window.getComputedStyle(els.sourceText);
+    const propsToCopy = [
+      "font-family",
+      "font-size",
+      "font-weight",
+      "line-height",
+      "letter-spacing",
+      "padding-top",
+      "padding-right",
+      "padding-bottom",
+      "padding-left",
+      "tab-size",
+    ];
+    propsToCopy.forEach((prop) => {
+      mirror.style.setProperty(prop, cs.getPropertyValue(prop));
+    });
+    const paddingLeft = parseFloat(cs.paddingLeft) || 0;
+    const paddingRight = parseFloat(cs.paddingRight) || 0;
+    const contentWidth =
+      els.sourceText.clientWidth - paddingLeft - paddingRight;
+    mirror.style.boxSizing = "content-box";
+    mirror.style.border = "none";
+    mirror.style.width = Math.max(0, contentWidth) + "px";
+  }
   let measureCache = new Map();
   function resetMeasureCache() {
     measureCache = new Map();
   }
-
   function measureLineHeightPx(candidateRaw, hasIndent) {
     const cacheKey = (hasIndent ? "1|" : "0|") + candidateRaw;
     if (measureCache.has(cacheKey)) return measureCache.get(cacheKey);
-
     const container = getMeasureContainer();
     const p = document.createElement("p");
     if (!hasIndent) p.className = "no-indent";
@@ -495,24 +514,19 @@ window.addEventListener("DOMContentLoaded", function () {
     measureCache.set(cacheKey, height);
     return height;
   }
-
   const measureCanvas = document.createElement("canvas");
   const measureCtx = measureCanvas.getContext("2d");
   const charWidthCache = new Map();
-
   let lineDataCache = new Map();
   let lastLayoutConfigKey = null;
-
   function computeLayoutWithCanvas(text) {
     resetMeasureCache();
-
     const pageSize =
       PAGE_SIZES_MM[els.pageSizeSelect.value] || PAGE_SIZES_MM["A4"];
     const margin = getCurrentMarginMm();
     const fontSizePx = ptToPx(els.fontSizeSelect.value);
     const isTwoColumn = els.columnSelect.value === "2";
     const isGutterOn = els.gutterSelect && els.gutterSelect.value === "on";
-
     const docFontFamily =
       getComputedStyle(document.documentElement).getPropertyValue(
         "--doc-font-family",
@@ -522,7 +536,6 @@ window.addEventListener("DOMContentLoaded", function () {
         "--doc-font-weight",
       ) || "normal"
     ).trim();
-
     function measureCharWidth(ch, scale) {
       const cacheKey =
         docFontFamily +
@@ -545,24 +558,19 @@ window.addEventListener("DOMContentLoaded", function () {
       charWidthCache.set(cacheKey, w);
       return w;
     }
-
     const paperHPx = mmToPx(pageSize.h);
     const paperWPx = mmToPx(pageSize.w);
     const marginVPx = mmToPx(margin.v);
     const marginHPx = mmToPx(margin.h);
-
     const innerHPx = paperHPx - marginVPx * 2;
-
     let colHPx = innerHPx;
     if (isTwoColumn) {
       colHPx = innerHPx / 2 - mmToPx(3);
     }
-
     const gutterWidth = isGutterOn ? mmToPx(getCurrentGutterWidthMm()) : 0;
     const colWPx = paperWPx - marginHPx * 2 - gutterWidth;
     const lineSpacingPx = fontSizePx * 1.8;
     const maxLinesPerCol = Math.max(1, Math.floor(colWPx / lineSpacingPx));
-
     const fontsStatus =
       document.fonts && document.fonts.status
         ? document.fonts.status
@@ -576,12 +584,10 @@ window.addEventListener("DOMContentLoaded", function () {
       isTwoColumn ? "2col" : "1col",
       fontsStatus,
     ].join("|");
-
     if (layoutConfigKey !== lastLayoutConfigKey) {
       lineDataCache = new Map();
       lastLayoutConfigKey = layoutConfigKey;
     }
-
     function getCharHeight(ch, fontScale = 1.0) {
       if (/[a-zA-Z0-9\s]/.test(ch)) return fontSizePx * 0.65 * fontScale;
       const measured = measureCharWidth(ch, fontScale);
@@ -590,15 +596,12 @@ window.addEventListener("DOMContentLoaded", function () {
       }
       return measured;
     }
-
     const INLINE_CODE_FONT_SCALE = 0.88;
     const INLINE_CODE_PADDING_PX = 2;
-
     function enforceKinsokuInvariant(lines) {
       for (let i = 1; i < lines.length; i++) {
         const line = lines[i];
         if (!line.chars || line.chars.length === 0) continue;
-
         let pushCount = 0;
         while (pushCount < line.chars.length) {
           const candidate = line.chars[pushCount];
@@ -606,22 +609,17 @@ window.addEventListener("DOMContentLoaded", function () {
           if (!isKinsokuHead(candidateFirstCh)) break;
           pushCount++;
         }
-
         if (pushCount === 0 || pushCount >= line.chars.length) continue;
-
         const moved = line.chars.slice(0, pushCount);
         const prevLine = lines[i - 1];
-
         prevLine.chars = prevLine.chars.concat(moved);
         prevLine.raw = prevLine.chars.map((c) => c.raw).join("");
-
         line.chars = line.chars.slice(pushCount);
         line.raw = line.chars.map((c) => c.raw).join("");
         line.startOffset = line.chars[0].srcIndex;
       }
       return lines;
     }
-
     function parseTextTokens(str) {
       const tokens = [];
       const pattern =
@@ -630,7 +628,6 @@ window.addEventListener("DOMContentLoaded", function () {
       while ((match = pattern.exec(str)) !== null) {
         const raw = match[0];
         let display = raw;
-
         if (match[1] || match[2]) {
           display = "あ";
         } else if (raw.startsWith("《《") && raw.endsWith("》》")) {
@@ -648,7 +645,6 @@ window.addEventListener("DOMContentLoaded", function () {
       }
       return tokens;
     }
-
     function hasKinsokuAdjacency(chars) {
       for (let k = 1; k < chars.length; k++) {
         const prev = chars[k - 1].display;
@@ -661,14 +657,11 @@ window.addEventListener("DOMContentLoaded", function () {
       }
       return false;
     }
-
     function enforceKinsokuOnFinalize(chars, charItems, nextIdx) {
       if (chars.length === 0) return { chars, pushedBack: 0 };
-
       let working = chars.slice();
       let pushedBack = 0;
       let idx = nextIdx;
-
       function violatesTail() {
         if (working.length === 0) return false;
         const lastItem = working[working.length - 1];
@@ -676,22 +669,18 @@ window.addEventListener("DOMContentLoaded", function () {
         const lastCh = lastDisplay[lastDisplay.length - 1];
         return isKinsokuTail(lastCh);
       }
-
       function violatesHead() {
         if (idx >= charItems.length) return false;
         const nextDisplay = charItems[idx].display;
         return isKinsokuHead(nextDisplay[0]);
       }
-
       while (working.length > 1 && (violatesTail() || violatesHead())) {
         working = working.slice(0, -1);
         idx--;
         pushedBack++;
       }
-
       return { chars: working, pushedBack };
     }
-
     function extendLineByMeasurement(
       chars,
       charItems,
@@ -703,15 +692,12 @@ window.addEventListener("DOMContentLoaded", function () {
       if (chars.length === 0 || !hasKinsokuAdjacency(chars)) {
         return { chars, consumedExtra: 0 };
       }
-
       let working = chars.slice();
       let idx = startIdx;
       let consumedExtra = 0;
       let forcedAddCount = 0;
       const FORCED_ADD_LIMIT = 5;
-
       const rawOf = (arr) => arr.map((c) => c.raw).join("");
-
       function isSafeStopPoint(arr, nextIdx) {
         if (arr.length === 0) return true;
         const lastItem = arr[arr.length - 1];
@@ -724,18 +710,15 @@ window.addEventListener("DOMContentLoaded", function () {
         }
         return true;
       }
-
       while (idx < charItems.length) {
         const currentStopIsSafe = isSafeStopPoint(working, idx);
         if (currentStopIsSafe) {
           break;
         }
-
         const nextItem = charItems[idx];
         const candidate = working.concat([nextItem]);
         const measured = measureLineHeightPx(rawOf(candidate), hasIndent);
         const withinLimit = measured <= effectiveColHPx;
-
         if (withinLimit || forcedAddCount < FORCED_ADD_LIMIT) {
           working = candidate;
           idx++;
@@ -756,7 +739,6 @@ window.addEventListener("DOMContentLoaded", function () {
           break;
         }
       }
-
       while (working.length > 1) {
         const measured = measureLineHeightPx(rawOf(working), hasIndent);
         if (measured <= effectiveColHPx) break;
@@ -773,14 +755,11 @@ window.addEventListener("DOMContentLoaded", function () {
           );
         }
       }
-
       return { chars: working, consumedExtra };
     }
-
     function splitTextToLines(rawText, fontScale = 1.0, hasIndent = false) {
       const tokens = parseTextTokens(rawText);
       const charItems = [];
-
       tokens.forEach((tok) => {
         const isSplittable =
           (tok.raw.startsWith("**") && tok.raw.endsWith("**")) ||
@@ -789,9 +768,7 @@ window.addEventListener("DOMContentLoaded", function () {
             !tok.raw.startsWith("**")) ||
           (tok.raw.startsWith("《《") && tok.raw.endsWith("》》")) ||
           (tok.raw.startsWith("`") && tok.raw.endsWith("`"));
-
         const isNobreak = tok.raw.length >= 2 && /^(―+|…+|─+)$/.test(tok.raw);
-
         if ((tok.raw !== tok.display || isNobreak) && !isSplittable) {
           const isRuby =
             tok.raw.includes("《") &&
@@ -811,7 +788,6 @@ window.addEventListener("DOMContentLoaded", function () {
           let suffix = "";
           let text = tok.raw;
           let isCode = false;
-
           if (text.startsWith("**") && text.endsWith("**")) {
             prefix = "**";
             suffix = "**";
@@ -830,7 +806,6 @@ window.addEventListener("DOMContentLoaded", function () {
             suffix = "》》";
             text = text.slice(2, -2);
           }
-
           for (let i = 0; i < text.length; i++) {
             const ch = text[i];
             const isFirst = i === 0;
@@ -852,14 +827,11 @@ window.addEventListener("DOMContentLoaded", function () {
           }
         }
       });
-
       const lines = [];
       let currentRaw = "";
       let currentH = 0;
       let currentChars = [];
-
       const indentPx = hasIndent ? fontSizePx * fontScale : 0;
-
       for (let i = 0; i < charItems.length; i++) {
         const item = charItems[i];
         const effectiveColHPx =
@@ -888,7 +860,6 @@ window.addEventListener("DOMContentLoaded", function () {
             itemH += getCharHeight(item.display[c], fontScale);
           }
         }
-
         if (window.DEBUG_LAYOUT) {
           console.log(
             "[ITEM]",
@@ -907,7 +878,6 @@ window.addEventListener("DOMContentLoaded", function () {
             effectiveColHPx.toFixed(1),
           );
         }
-
         if (currentH + itemH > effectiveColHPx) {
           if (currentChars.length === 0) {
             currentRaw += item.raw;
@@ -923,10 +893,8 @@ window.addEventListener("DOMContentLoaded", function () {
             currentChars = [];
             continue;
           }
-
           let pushBackCount = 0;
           const nextChar = item.display[0];
-
           if (isKinsokuHead(nextChar) && currentChars.length > 1) {
             pushBackCount = 1;
             while (pushBackCount < currentChars.length) {
@@ -937,13 +905,11 @@ window.addEventListener("DOMContentLoaded", function () {
               pushBackCount++;
             }
           }
-
           const lastItem = currentChars[currentChars.length - 1];
           const lastChar = lastItem.display[lastItem.display.length - 1];
           if (isKinsokuTail(lastChar) && currentChars.length > 1) {
             pushBackCount = Math.max(pushBackCount, 1);
           }
-
           let forceIncludeOverflow = false;
           if (pushBackCount >= currentChars.length) {
             if (currentH + itemH > effectiveColHPx * 3) {
@@ -953,21 +919,18 @@ window.addEventListener("DOMContentLoaded", function () {
               forceIncludeOverflow = true;
             }
           }
-
           if (forceIncludeOverflow) {
             currentRaw += item.raw;
             currentH += itemH;
             currentChars.push(item);
             continue;
           }
-
           if (pushBackCount > 0) {
             const popped = currentChars.splice(
               currentChars.length - pushBackCount,
               pushBackCount,
             );
             i -= popped.length + 1;
-
             const result = extendLineByMeasurement(
               currentChars,
               charItems,
@@ -978,7 +941,6 @@ window.addEventListener("DOMContentLoaded", function () {
             );
             currentChars = result.chars;
             i += result.consumedExtra;
-
             const guarded = enforceKinsokuOnFinalize(
               currentChars,
               charItems,
@@ -988,7 +950,6 @@ window.addEventListener("DOMContentLoaded", function () {
               currentChars = guarded.chars;
               i -= guarded.pushedBack;
             }
-
             currentRaw = currentChars.map((c) => c.raw).join("");
             if (window.DEBUG_LAYOUT) {
               console.log(
@@ -1005,7 +966,6 @@ window.addEventListener("DOMContentLoaded", function () {
               startOffset: currentChars[0].srcIndex,
               chars: currentChars.slice(),
             });
-
             currentRaw = "";
             currentH = 0;
             currentChars = [];
@@ -1021,7 +981,6 @@ window.addEventListener("DOMContentLoaded", function () {
             );
             currentChars = result.chars;
             i += result.consumedExtra;
-
             const guarded = enforceKinsokuOnFinalize(
               currentChars,
               charItems,
@@ -1031,9 +990,7 @@ window.addEventListener("DOMContentLoaded", function () {
               currentChars = guarded.chars;
               i -= guarded.pushedBack;
             }
-
             currentRaw = currentChars.map((c) => c.raw).join("");
-
             if (window.DEBUG_LAYOUT) {
               console.log(
                 "[LINE]",
@@ -1056,12 +1013,10 @@ window.addEventListener("DOMContentLoaded", function () {
             continue;
           }
         }
-
         currentRaw += item.raw;
         currentH += itemH;
         currentChars.push(item);
       }
-
       if (currentRaw.length > 0) {
         lines.push({
           raw: currentRaw,
@@ -1069,18 +1024,14 @@ window.addEventListener("DOMContentLoaded", function () {
           chars: currentChars.slice(),
         });
       }
-
       return enforceKinsokuInvariant(lines);
     }
-
     const sections = parseToAST(text);
     const pages = [];
-
     let currentPage = { pageIdx: 0, col1: [], col2: [] };
     let currentColIdx = 0;
     let currentLines = currentPage.col1;
     let currentLineWidth = 0;
-
     function addLineToPage(lineObj, widthCost = 1) {
       if (
         currentLineWidth + widthCost > maxLinesPerCol &&
@@ -1098,12 +1049,16 @@ window.addEventListener("DOMContentLoaded", function () {
           currentLineWidth = 0;
         }
       }
+      if (
+        currentPage.startSrcIndex === undefined &&
+        lineObj.srcIndex !== undefined
+      ) {
+        currentPage.startSrcIndex = lineObj.srcIndex;
+      }
       currentLines.push(lineObj);
       currentLineWidth += widthCost;
     }
-
     const usedKeysThisRun = new Set();
-
     function getLinesWithCache(cacheKey, rawText, fontScale, hasIndent) {
       usedKeysThisRun.add(cacheKey);
       const cached = lineDataCache.get(cacheKey);
@@ -1112,7 +1067,6 @@ window.addEventListener("DOMContentLoaded", function () {
       lineDataCache.set(cacheKey, result);
       return result;
     }
-
     sections.forEach((items, sectionIdx) => {
       if (
         sectionIdx > 0 &&
@@ -1124,16 +1078,14 @@ window.addEventListener("DOMContentLoaded", function () {
         currentLines = currentPage.col1;
         currentLineWidth = 0;
       }
-
       items.forEach((item) => {
         if (item.type === "empty") {
-          addLineToPage({ type: "empty" }, 1);
+          addLineToPage({ type: "empty", srcIndex: item.startIndex }, 1);
         } else if (item.type === "heading") {
           const scales = { 1: 1.8, 2: 1.3, 3: 1.1 };
           const costs = { 1: 2.5, 2: 1.8, 3: 1.4 };
           const scale = scales[item.level] || 1.0;
           const cost = costs[item.level] || 1.2;
-
           const hCacheKey =
             "heading|" +
             item.level +
@@ -1155,7 +1107,7 @@ window.addEventListener("DOMContentLoaded", function () {
             );
           });
         } else if (item.type === "hr") {
-          addLineToPage({ type: "hr" }, 1);
+          addLineToPage({ type: "hr", srcIndex: item.startIndex }, 1);
         } else if (item.type === "quote") {
           const qCacheKey = "quote|" + (item.align || "") + "|" + item.text;
           const qLines = getLinesWithCache(qCacheKey, item.text, 0.95);
@@ -1204,27 +1156,21 @@ window.addEventListener("DOMContentLoaded", function () {
         }
       });
     });
-
     if (currentPage.col1.length > 0 || currentPage.col2.length > 0) {
       pages.push(currentPage);
     }
-
     for (const key of lineDataCache.keys()) {
       if (!usedKeysThisRun.has(key)) lineDataCache.delete(key);
     }
-
     return pages;
   }
-
   function buildLinesHtml(lines) {
     if (!lines || lines.length === 0) return "";
     let html = "";
     let i = 0;
-
     while (i < lines.length) {
       const item = lines[i];
       const alignClass = item.align ? ` align-${item.align}` : "";
-
       if (item.type === "quote") {
         const quoteItems = [];
         const align = item.align;
@@ -1236,7 +1182,6 @@ window.addEventListener("DOMContentLoaded", function () {
           quoteItems.push(lines[i]);
           i++;
         }
-
         let combinedText = "";
         quoteItems.forEach((qi, idx) => {
           const parsed = parseInlineVerticalMarkdown(qi.text);
@@ -1246,7 +1191,6 @@ window.addEventListener("DOMContentLoaded", function () {
             combinedText += "<br />" + parsed;
           }
         });
-
         const clsAttr = align ? ` class="align-${align}"` : "";
         html += `<blockquote${clsAttr}>${combinedText}</blockquote>`;
       } else {
@@ -1261,7 +1205,6 @@ window.addEventListener("DOMContentLoaded", function () {
           const classes = [];
           if (!item.isIndent || item.align) classes.push("no-indent");
           if (item.align) classes.push(`align-${item.align}`);
-
           const classAttr =
             classes.length > 0 ? ` class="${classes.join(" ")}"` : "";
           html += `<p${classAttr}>${parseInlineVerticalMarkdown(item.text)}</p>`;
@@ -1271,41 +1214,33 @@ window.addEventListener("DOMContentLoaded", function () {
     }
     return html;
   }
-
   function renderPageDom(pageEl, pageIdx) {
     const pageData = computedPagesData[pageIdx];
     if (!pageData) return;
-
     const isTwoColumn = els.columnSelect.value === "2";
     const isGutterOn = els.gutterSelect && els.gutterSelect.value === "on";
     const startPageNum =
       parseInt(els.startPageInput ? els.startPageInput.value : 1, 10) || 1;
     const pageNum = pageIdx + startPageNum;
     const isOdd = (pageIdx + 1) % 2 !== 0;
-
     let gutterClass = "";
     if (isGutterOn) gutterClass = isOdd ? " gutter-odd" : " gutter-even";
-
     pageEl.className =
       "paper-page" + (isTwoColumn ? " has-columns" : "") + gutterClass;
-
     const headerText = els.pageHeader.value.trim();
     const displayVal = els.headerDisplaySelect.value;
     const posVal = els.headerPosSelect.value;
     const sizeVal = els.headerSizeSelect.value;
-
     let showHeader = false;
     if (headerText) {
       if (displayVal === "all" || displayVal === "alternate") showHeader = true;
       else if (displayVal === "odd" && isOdd) showHeader = true;
       else if (displayVal === "even" && !isOdd) showHeader = true;
     }
-
     let headerTagHtml = "";
     if (showHeader) {
       let currentPos = posVal;
       if (displayVal === "alternate") currentPos = isOdd ? "left" : "right";
-
       let posStyle = "";
       if (currentPos === "center")
         posStyle = "left: 50%; right: auto; transform: translateX(-50%);";
@@ -1313,17 +1248,14 @@ window.addEventListener("DOMContentLoaded", function () {
         posStyle = "left: var(--page-padding-h); right: auto; transform: none;";
       else
         posStyle = "right: var(--page-padding-h); left: auto; transform: none;";
-
       headerTagHtml = `<div class="page-header-tag" style="font-size:${sizeVal}; ${posStyle}">${escapeHtml(headerText)}</div>`;
     }
-
     const showRule = els.columnRuleSelect
       ? els.columnRuleSelect.value === "on"
       : true;
     const dividerClass = showRule
       ? "column-divider"
       : "column-divider no-border";
-
     let bodyHtml = "";
     if (isTwoColumn) {
       bodyHtml =
@@ -1335,7 +1267,6 @@ window.addEventListener("DOMContentLoaded", function () {
     } else {
       bodyHtml = `<article class="md-body">${buildLinesHtml(pageData.col1)}</article>`;
     }
-
     const nombreVal = els.nombreDisplaySelect
       ? els.nombreDisplaySelect.value
       : "all";
@@ -1345,13 +1276,11 @@ window.addEventListener("DOMContentLoaded", function () {
     const nombrePosVal = els.nombrePosSelect
       ? els.nombrePosSelect.value
       : "center";
-
     let nombreHtml = "";
     if (nombreVal === "all" || (nombreVal === "skip-first" && pageIdx > 0)) {
       let currentNombrePos = nombrePosVal;
       if (nombrePosVal === "alternate")
         currentNombrePos = isOdd ? "left" : "right";
-
       let nombrePosStyle = "";
       if (currentNombrePos === "right")
         nombrePosStyle =
@@ -1361,7 +1290,6 @@ window.addEventListener("DOMContentLoaded", function () {
           "left: var(--page-padding-h); right: auto; transform: none;";
       else
         nombrePosStyle = "left: 50%; right: auto; transform: translateX(-50%);";
-
       let nombreText = `- ${pageNum} -`;
       if (nombreFormat === "p") {
         nombreText = `P.${pageNum}`;
@@ -1370,29 +1298,21 @@ window.addEventListener("DOMContentLoaded", function () {
       } else if (nombreFormat === "number") {
         nombreText = `${pageNum}`;
       }
-
       nombreHtml = `<div class="page-number-tag" style="${nombrePosStyle}">${nombreText}</div>`;
     }
-
     pageEl.innerHTML = headerTagHtml + bodyHtml + nombreHtml;
   }
-
   function fitPagesToViewport() {
     if (window.isPrinting) return;
     if (!previewViewport || !pagesContainer) return;
-
     pagesContainer.style.transform = "none";
-
     const pages = pagesContainer.querySelectorAll(".paper-page");
     if (pages.length === 0) return;
-
     const padding = 32;
     const availableW = previewViewport.clientWidth - padding;
     const availableH = previewViewport.clientHeight - padding;
-
     const containerW = pagesContainer.offsetWidth;
     const containerH = pagesContainer.offsetHeight;
-
     if (
       availableW <= 0 ||
       availableH <= 0 ||
@@ -1400,11 +1320,9 @@ window.addEventListener("DOMContentLoaded", function () {
       containerH <= 0
     )
       return;
-
     const scaleW = availableW / containerW;
     const scaleH = availableH / containerH;
     const scale = Math.min(1, scaleW, scaleH);
-
     if (scale < 0.999) {
       pagesContainer.style.transform = `scale(${scale})`;
       pagesContainer.style.transformOrigin = "center center";
@@ -1412,15 +1330,11 @@ window.addEventListener("DOMContentLoaded", function () {
       pagesContainer.style.transform = "none";
     }
   }
-
   window.addEventListener("resize", fitPagesToViewport);
-
   function renderCurrentPages() {
     if (window.isPrinting) return;
-
     pagesContainer.innerHTML = "";
     pagesContainer.style.transform = "none";
-
     const total = computedPagesData.length;
     if (total === 0) {
       pagesContainer.innerHTML =
@@ -1429,9 +1343,7 @@ window.addEventListener("DOMContentLoaded", function () {
       requestAnimationFrame(fitPagesToViewport);
       return;
     }
-
     const pagesPerView = getPagesPerView();
-
     if (currentPageIndex >= total) {
       currentPageIndex = normalizeSpreadStartIndex(
         total - 1,
@@ -1441,7 +1353,6 @@ window.addEventListener("DOMContentLoaded", function () {
     } else {
       currentPageIndex = getSpreadStartIndex(currentPageIndex, pagesPerView);
     }
-
     const spreadCount = getSpreadPageCount(
       currentPageIndex,
       total,
@@ -1455,11 +1366,9 @@ window.addEventListener("DOMContentLoaded", function () {
       pagesContainer.appendChild(pageEl);
       renderPageDom(pageEl, idx);
     }
-
     updatePageCounter();
     requestAnimationFrame(fitPagesToViewport);
   }
-
   function updatePageCounter() {
     const total = computedPagesData.length;
     if (total === 0) {
@@ -1473,7 +1382,6 @@ window.addEventListener("DOMContentLoaded", function () {
       pageJumpInput.title = "ページ番号を指定してジャンプ";
       return;
     }
-
     const pagesPerView = getPagesPerView();
     const spreadCount = getSpreadPageCount(
       currentPageIndex,
@@ -1488,17 +1396,14 @@ window.addEventListener("DOMContentLoaded", function () {
       statusStr = `(${currentPageIndex + 1}-${endIdx}) / ${total} ページ`;
     }
     pageNavStatus.textContent = statusStr;
-
     const hasNext =
       getNextSpreadStartIndex(currentPageIndex, total, pagesPerView) !== null;
     const hasPrev =
       getPrevSpreadStartIndex(currentPageIndex, total, pagesPerView) !== null;
-
     nextPageBtn.disabled = !hasNext;
     prevPageBtn.disabled = !hasPrev;
     firstPageBtn.disabled = !hasPrev;
     lastPageBtn.disabled = !hasNext;
-
     pageJumpInput.disabled = false;
     pageJumpInput.max = String(total);
     pageJumpInput.title = `1〜${total} の範囲でページ番号を入力してください`;
@@ -1506,7 +1411,6 @@ window.addEventListener("DOMContentLoaded", function () {
       pageJumpInput.value = String(currentPageIndex + 1);
     }
   }
-
   nextPageBtn.addEventListener("click", function () {
     const total = computedPagesData.length;
     const pagesPerView = getPagesPerView();
@@ -1514,9 +1418,9 @@ window.addEventListener("DOMContentLoaded", function () {
     if (next !== null) {
       currentPageIndex = next;
       renderCurrentPages();
+      syncEditorToPreview();
     }
   });
-
   prevPageBtn.addEventListener("click", function () {
     const total = computedPagesData.length;
     const pagesPerView = getPagesPerView();
@@ -1524,9 +1428,9 @@ window.addEventListener("DOMContentLoaded", function () {
     if (prev !== null) {
       currentPageIndex = prev;
       renderCurrentPages();
+      syncEditorToPreview();
     }
   });
-
   function goToPage(pageNumber) {
     const total = computedPagesData.length;
     if (total === 0) return false;
@@ -1534,15 +1438,56 @@ window.addEventListener("DOMContentLoaded", function () {
     const pagesPerView = getPagesPerView();
     currentPageIndex = getSpreadStartIndex(pageNumber - 1, pagesPerView);
     renderCurrentPages();
+    syncEditorToPreview();
     return true;
   }
-
+  function syncPreviewToCursor() {
+    if (isTyping) return;
+    if (!syncEnabled) return;
+    if (computedPagesData.length === 0) return;
+    const srcIndex = els.sourceText.selectionStart;
+    if (srcIndex === null || srcIndex === undefined) return;
+    const targetPageIdx = findPageIndexForSrcIndex(srcIndex);
+    const pagesPerView = getPagesPerView();
+    const targetSpreadStart = normalizeSpreadStartIndex(
+      targetPageIdx,
+      computedPagesData.length,
+      pagesPerView,
+    );
+    const currentSpreadCount = getSpreadPageCount(
+      currentPageIndex,
+      computedPagesData.length,
+      pagesPerView,
+    );
+    if (
+      targetSpreadStart >= currentPageIndex &&
+      targetSpreadStart < currentPageIndex + currentSpreadCount
+    ) {
+      return;
+    }
+    currentPageIndex = targetSpreadStart;
+    renderCurrentPages();
+  }
   function goToFirstPage() {
     if (computedPagesData.length === 0) return;
     currentPageIndex = 0;
     renderCurrentPages();
+    syncEditorToPreview();
   }
-
+  function syncEditorToPreview() {
+    if (!syncEnabled) return;
+    if (computedPagesData.length === 0) return;
+    const page = computedPagesData[currentPageIndex];
+    if (!page || page.startSrcIndex === undefined) return;
+    const pos = page.startSrcIndex;
+    els.sourceText.selectionStart = pos;
+    els.sourceText.selectionEnd = pos;
+    const mirror = getEditorMirrorDiv();
+    syncEditorMirrorStyle(mirror);
+    mirror.textContent = els.sourceText.value.slice(0, pos);
+    const targetScrollTop = mirror.getBoundingClientRect().height;
+    els.sourceText.scrollTop = targetScrollTop;
+  }
   function goToLastPage() {
     const total = computedPagesData.length;
     if (total === 0) return;
@@ -1553,31 +1498,27 @@ window.addEventListener("DOMContentLoaded", function () {
       pagesPerView,
     );
     renderCurrentPages();
+    syncEditorToPreview();
   }
-
   firstPageBtn.addEventListener("click", goToFirstPage);
   lastPageBtn.addEventListener("click", goToLastPage);
-
   pageJumpInput.addEventListener("keydown", function (event) {
     if (event.key === "Enter") {
       event.preventDefault();
       pageJumpInput.blur();
     }
   });
-
   pageJumpInput.addEventListener("change", function () {
     const value = parseInt(pageJumpInput.value, 10);
     if (Number.isNaN(value) || !goToPage(value)) {
       pageJumpInput.value = String(currentPageIndex + 1);
     }
   });
-
   function updatePreview() {
     if (columnRuleCol) {
       columnRuleCol.style.display =
         els.columnSelect.value === "2" ? "" : "none";
     }
-
     const totalChars = els.sourceText.value.length;
     const genkoPages = (totalChars / 400).toFixed(1);
     charCount.textContent =
@@ -1585,14 +1526,10 @@ window.addEventListener("DOMContentLoaded", function () {
       "文字（400字詰：約" +
       genkoPages +
       "枚）";
-
     const title = els.pageTitle.value.trim();
     document.title = title || "言ノ葉Editer";
-
     updatePageCSSVariables();
-
     if (layoutSpinner) layoutSpinner.hidden = false;
-
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         computedPagesData = computeLayoutWithCanvas(els.sourceText.value);
@@ -1602,14 +1539,12 @@ window.addEventListener("DOMContentLoaded", function () {
       });
     });
   }
-
   function debounceUpdatePreview() {
     charCount.textContent =
       els.sourceText.value.length.toLocaleString("ja-JP") + "文字";
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(updatePreview, 250);
   }
-
   if (els.fontSelect) {
     els.fontSelect.addEventListener("change", function () {
       customFontRow.style.display =
@@ -1617,7 +1552,6 @@ window.addEventListener("DOMContentLoaded", function () {
       updatePreview();
     });
   }
-
   if (els.marginSelect) {
     els.marginSelect.addEventListener("change", function () {
       customMarginRow.style.display =
@@ -1625,7 +1559,6 @@ window.addEventListener("DOMContentLoaded", function () {
       updatePreview();
     });
   }
-
   if (els.gutterSelect) {
     els.gutterSelect.addEventListener("change", function () {
       gutterWidthRow.style.display =
@@ -1633,7 +1566,6 @@ window.addEventListener("DOMContentLoaded", function () {
       updatePreview();
     });
   }
-
   if (els.marginVInput) {
     els.marginVInput.addEventListener("input", debounceUpdatePreview);
   }
@@ -1643,7 +1575,6 @@ window.addEventListener("DOMContentLoaded", function () {
   if (els.gutterWidthInput) {
     els.gutterWidthInput.addEventListener("input", debounceUpdatePreview);
   }
-
   if (els.themeSelect) {
     els.themeSelect.addEventListener("change", function () {
       document.documentElement.setAttribute(
@@ -1653,7 +1584,6 @@ window.addEventListener("DOMContentLoaded", function () {
       saveToStorage();
     });
   }
-
   const CHANGE_EVENT_IDS = [
     "pageSizeSelect",
     "columnSelect",
@@ -1671,7 +1601,6 @@ window.addEventListener("DOMContentLoaded", function () {
   CHANGE_EVENT_IDS.forEach((id) => {
     if (els[id]) els[id].addEventListener("change", updatePreview);
   });
-
   const INPUT_EVENT_IDS = [
     "customFontUrl",
     "customFontFamily",
@@ -1683,7 +1612,31 @@ window.addEventListener("DOMContentLoaded", function () {
   INPUT_EVENT_IDS.forEach((id) => {
     if (els[id]) els[id].addEventListener("input", debounceUpdatePreview);
   });
-
+  if (els.sourceText) {
+    els.sourceText.addEventListener("input", markTypingActive);
+    els.sourceText.addEventListener("click", syncPreviewToCursor);
+    els.sourceText.addEventListener("keyup", (e) => {
+      const navigationKeys = [
+        "ArrowUp",
+        "ArrowDown",
+        "ArrowLeft",
+        "ArrowRight",
+        "Home",
+        "End",
+        "PageUp",
+        "PageDown",
+      ];
+      if (navigationKeys.includes(e.key)) {
+        syncPreviewToCursor();
+      }
+    });
+  }
+  if (syncToggle) {
+    syncToggle.addEventListener("change", function () {
+      syncEnabled = syncToggle.checked;
+      saveToStorage();
+    });
+  }
   document
     .getElementById("insertBreakButton")
     .addEventListener("click", function () {
@@ -1699,7 +1652,6 @@ window.addEventListener("DOMContentLoaded", function () {
       els.sourceText.focus();
       updatePreview();
     });
-
   document
     .getElementById("exportButton")
     .addEventListener("click", function () {
@@ -1717,33 +1669,27 @@ window.addEventListener("DOMContentLoaded", function () {
       a.click();
       URL.revokeObjectURL(url);
     });
-
   document
     .getElementById("importButton")
     .addEventListener("click", function () {
       fileInput.click();
     });
-
   fileInput.addEventListener("change", function (e) {
     const file = e.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = function (evt) {
       els.sourceText.value = evt.target.result;
-
       const nameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
       if (!els.pageTitle.value.trim()) {
         els.pageTitle.value = nameWithoutExt;
       }
-
       currentPageIndex = 0;
       updatePreview();
       fileInput.value = "";
     };
     reader.readAsText(file, "UTF-8");
   });
-
   function prepareAllPagesForPrint() {
     window.isPrinting = true;
     pagesContainer.style.transform = "none";
@@ -1756,17 +1702,14 @@ window.addEventListener("DOMContentLoaded", function () {
       renderPageDom(pageEl, idx);
     });
   }
-
   window.isPrinting = false;
   window.addEventListener("beforeprint", () => {
     prepareAllPagesForPrint();
   });
-
   window.addEventListener("afterprint", () => {
     window.isPrinting = false;
     renderCurrentPages();
   });
-
   document.getElementById("printButton").addEventListener("click", function () {
     prepareAllPagesForPrint();
     requestAnimationFrame(() => {
@@ -1775,7 +1718,6 @@ window.addEventListener("DOMContentLoaded", function () {
       }, 150);
     });
   });
-
   document
     .getElementById("sampleButton")
     .addEventListener("click", function () {
@@ -1784,7 +1726,6 @@ window.addEventListener("DOMContentLoaded", function () {
       els.fontSelect.value = "noto";
       els.pageSizeSelect.value = "B6";
       els.fontSizeSelect.value = "9.5pt";
-
       els.sourceText.value =
         "『言ノ葉Editer』へようこそ。\n" +
         "このツールは、Markdown記法や独自の執筆用記法を使って、美しい縦書き文章をリアルタイムに作成・組版するためのエディタです。\n\n" +
@@ -1830,11 +1771,9 @@ window.addEventListener("DOMContentLoaded", function () {
         "## 7. 保存について\n\n" +
         "入力中の内容はブラウザ内に自動保存され、ページを閉じても再度開いたときに復元されます。ただし、これはブラウザの履歴やサイトデータを削除すると失われる一時的な保存です。\n\n" +
         "大切な原稿は、画面上部の「保存 (.txt)」ボタンでテキストファイルとして端末に書き出しておくことをおすすめします。書き出したファイルは「読込」ボタンでいつでも呼び戻せます。区切りのよいところで、こまめに保存しておくと安心です。";
-
       currentPageIndex = 0;
       updatePreview();
     });
-
   document.getElementById("clearButton").addEventListener("click", function () {
     if (confirm("入力した内容をすべて消去しますか？")) {
       els.pageTitle.value = "";
@@ -1846,12 +1785,9 @@ window.addEventListener("DOMContentLoaded", function () {
       els.sourceText.focus();
     }
   });
-
   window.DEBUG_LAYOUT = false;
-
   loadFromStorage();
   updatePreview();
-
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready
       .then(function () {

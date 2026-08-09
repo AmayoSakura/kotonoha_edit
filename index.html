@@ -6,7 +6,7 @@
     <meta property="og:title" content="言ノ葉Editer - 日本語組版エディタ" />
     <meta
       property="og:description"
-      content="言葉を整え、物語を美しく。縦書き対応の日本語組版エディタ。"
+      content="原稿を、縦書きの本のかたちに。テキストを流し込んで組む、日本語組版エディタ。"
     />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="image/ogp.png" />
@@ -19,25 +19,23 @@
     <meta name="twitter:title" content="言ノ葉Editer - 日本語組版エディタ" />
     <meta
       name="twitter:description"
-      content="言葉を整え、物語を美しく。縦書き対応の日本語組版エディタ。"
+      content="原稿を、縦書きの本のかたちに。テキストを流し込んで組む、日本語組版エディタ。"
     />
     <meta name="twitter:image" content="image/ogp.png" />
 
     <!-- 一般メタタグ -->
     <meta
       name="description"
-      content="言葉を整え、物語を美しく。縦書き対応の日本語組版エディタ。"
+      content="原稿を、縦書きの本のかたちに。テキストを流し込んで組む、日本語組版エディタ。"
     />
 
     <!-- ファビコン -->
     <link rel="icon" type="image/svg+xml" href="image/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <title>言ノ葉Editer ― 文字を書くひとのための縦書きエディタ</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <title>言ノ葉Editer ― 原稿を、縦書きの本のかたちに組む</title>
     <link
-      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700;800&family=Noto+Serif+JP:wght@300;400;500&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700;800&family=Noto+Serif+JP:wght@300;400;500&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/lp.css" />
@@ -47,8 +45,8 @@
       <div class="wrap">
         <div class="brand"><span class="seal">言</span>言ノ葉Editer</div>
         <nav class="nav-links">
-          <a href="#features">できること</a>
-          <a href="#demo">試してみる</a>
+          <a href="#output">できること</a>
+          <a href="#precision">組版精度</a>
           <a href="#craft">こだわり</a>
           <a
             href="https://github.com/AmayoSakura/kotonoha_edit"
@@ -57,7 +55,7 @@
             >GitHub</a
           >
         </nav>
-        <a class="header-cta" href="kotonoha.html">今すぐ書きはじめる</a>
+        <a class="header-cta" href="kotonoha.html">原稿を組んでみる</a>
       </div>
     </header>
 
@@ -66,20 +64,20 @@
       <div class="hero-grain"></div>
       <div class="wrap hero-grid">
         <div class="hero-copy">
-          <span class="eyebrow gothic">縦書き執筆エディタ</span>
+          <span class="eyebrow gothic">日本語組版エディタ</span>
           <h1 class="hero-title">
-            言葉を、<br />
-            紙のかたちで<br />
-            <span class="accent">綴る。</span>
+            原稿は、<br />
+            組まれるのを<br />
+            <span class="accent">待っている。</span>
           </h1>
           <p class="hero-sub">
-            小説も、エッセイも、日記のようなひとことも。<br />
-            書いたそばから縦書きの紙面に組まれていく。<br />
-            文字を書くひとのための、静かなエディタです。
+            テキストで書かれたその文章を、縦書きの、本のかたちに。<br />
+            すでにある原稿を流し込むだけで、禁則も字下げも、<br />
+            自動で組み上がっていきます。
           </p>
           <div class="hero-actions">
-            <a class="btn-primary" href="#demo">紙面を見てみる ―</a>
-            <a class="btn-ghost" href="#features">できることを見る</a>
+            <a class="btn-primary" href="kotonoha.html">原稿を組んでみる ―</a>
+            <a class="btn-ghost" href="#output">できることを見る</a>
           </div>
           <div class="hero-meta gothic">
             <span>インストール不要</span>
@@ -87,54 +85,148 @@
             <span>会員登録なし</span>
           </div>
         </div>
+
         <div class="hero-paper-stage">
           <div class="paper-behind"></div>
           <div class="paper-sheet">
-            <div class="stamp">言</div>
-            雨あがりの<ruby>硝子<rt class="ruby">がらす</rt></ruby
-            >ごしに、街の輪郭が滲んでいる。誰かの忘れ物のような、そんな静けさだけがそこにあった。
+            <div class="stamp">校</div>
+            <div class="paper-sheet-body">
+              雨あがりの<ruby>硝子<rt class="ruby">がらす</rt></ruby
+              >ごしに、街の輪郭が滲んでいる。誰かの忘れ物のような、そんな静けさだけがそこにあった。
+            </div>
+            <div class="spec-tag gothic">B6 ／ 二段組 ／ 天地21mm</div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ============ 対象読者の帯 ============ -->
-    <div class="audience-strip reveal">
-      <div class="wrap">
-        <span class="label gothic">こんな方に</span>
-        <div class="audience-item">
-          <span>小説を書くひと</span>
-          <span>エッセイを綴るひと</span>
-          <span>日記をつけるひと</span>
-          <span>同人誌の原稿を作るひと</span>
-          <span>ただ、縦書きで何かを残したいひと</span>
-        </div>
+    <!-- ============ 課題提起の帯 ============ -->
+    <div class="problem-strip reveal">
+      <div class="wrap problem-grid">
+        <p class="problem-line mincho">
+          原稿は、ある。<br />
+          紙にする手段が、<br />
+          なかった。
+        </p>
+        <p class="problem-sub gothic">
+          Wordやテキストエディタで書かれた原稿は、そのままでは縦書きの本にならない。
+          禁則処理も、字下げも、ノンブルも、ひとつずつ手作業で直すことになる。
+          言ノ葉Editerは、その工程をまるごと引き受けます。
+        </p>
       </div>
     </div>
 
-    <!-- ============ 機能セクション ============ -->
-    <section class="features" id="features">
+    <!-- ============ 目玉機能：出力の一貫性 ============ -->
+    <section class="output-feature" id="output">
       <div class="wrap">
-        <span class="eyebrow gothic reveal">できること</span>
+        <span class="eyebrow gothic reveal">01 ― 入稿できる精度</span>
         <h2 class="section-title reveal">
-          書くほどに、紙面がそれらしくなっていく
+          画面の中で終わらせない。<br />紙になるところまで。
         </h2>
         <p class="section-lede reveal">
-          ルビも傍点も、記号ひとつで組み上がる。段組も余白も、指先ひとつで整えられる。
-          特別な操作を覚えなくても、書いた文章がそのまま美しい紙面になっていきます。
+          A6からB6、A4まで、実寸の用紙規格に対応。段組、余白、のど（綴じ代）を
+          数値で追い込み、PDF書き出しと印刷までを一直線に。
+          同人誌の入稿にも、文庫サイズの確認にもそのまま使えます。
+        </p>
+
+        <div class="output-grid reveal">
+          <div class="output-visual">
+            <div class="press-paper">
+              <div class="press-header gothic">B6 ／ 二段組</div>
+              <div class="press-paper-cols">
+                <div class="press-col">
+                  <p class="no-indent">「――どこへ、行くつもりなの」</p>
+                  <p>
+                    そう聞かれても、答えられなかった。ただ、遠くへ……とだけ思っていた。窓の外では雨が静かに屋根を叩いていて、その音だけが部屋を満たしていた。
+                  </p>
+                </div>
+                <div class="press-col">
+                  <p>
+                    彼女は何も言わず、ただ鞄を持ち直した。硝子越しの街灯りが、
+                    濡れた石畳の上でゆっくりと滲んでいく。
+                  </p>
+                  <p class="no-indent">「それでいいの、あなたは」</p>
+                </div>
+              </div>
+              <div class="press-footer gothic">
+                <span>042</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="output-specs">
+            <div class="spec-item">
+              <span class="spec-num mono">A6 ― A4</span>
+              <p>
+                文庫本サイズから同人誌で主流のB6、A4まで。実寸のミリ単位で紙面を設計できます。
+              </p>
+            </div>
+            <div class="spec-item">
+              <span class="spec-num mono">1 ― 2 段組</span>
+              <p>
+                段数・段間・余白・のどを個別に指定。見開きでの版面バランスをその場で確認できます。
+              </p>
+            </div>
+            <div class="spec-item">
+              <span class="spec-num mono">PDF ／ 印刷</span>
+              <p>
+                ページ番号を自動で振り、そのままPDF書き出し・印刷へ。入稿データとしてすぐ使えます。
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 機能2：禁則・自動組版 ============ -->
+    <section class="features" id="precision">
+      <div class="wrap">
+        <span class="eyebrow gothic reveal">02 ― 崩れない組版</span>
+        <h2 class="section-title reveal">
+          禁則も、記号の泣き別れも、<br />流し込むだけで直る
+        </h2>
+        <p class="section-lede reveal">
+          「」で始まる会話文は自動で字下げが省略され、句読点が行頭に来ることもない。
+          「――」や「……」のような記号も、行の途中で分断されないよう自動でまとめて扱われます。
+          原稿を貼り付けた瞬間から、組版としての体裁が整っています。
         </p>
 
         <div class="feature-row reveal">
           <div class="feature-text">
-            <span class="feature-index gothic">01 ― ルビ・傍点</span>
+            <span class="feature-index gothic">禁則処理</span>
             <h3 class="feature-title">
-              ふりがなも、圏点も、<br />書きながら添えられる
+              句読点も、記号も、<br />行頭に置き去りにしない
+            </h3>
+            <p class="feature-desc">
+              行頭に来てはいけない文字は、自動で前の行へ送られます。
+              段組や余白を変えても、この規則だけは常に守られたまま組み直されます。
+            </p>
+            <div class="feature-tags gothic">
+              <span>行頭禁則</span>
+              <span>行末禁則</span>
+              <span>ダッシュ・リーダーの分断防止</span>
+            </div>
+          </div>
+          <div class="feature-visual">
+            <div class="mini-paper dark">
+              <p class="no-indent">「――どこへ、行くつもりなの」</p>
+              <p>
+                そう聞かれても、答えられなかった。ただ、遠くへ……とだけ思っていた。
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="feature-row reverse reveal">
+          <div class="feature-text">
+            <span class="feature-index gothic">ルビ・傍点</span>
+            <h3 class="feature-title">
+              ふりがなも、圏点も、<br />記法ひとつで組み込める
             </h3>
             <p class="feature-desc">
               <code>｜漢字《かんじ》</code>
-              と打つだけでルビが振られ、<code>《《強調したい言葉》》</code>で傍点が打てます。
-              人名や造語にふりがなを添えたいとき、大事な一文を静かに強調したいとき、
-              執筆の手を止めずにそのまま書き進められます。
+              と書くだけでルビが振られ、<code>《《強調したい言葉》》</code>で傍点が打てます。
+              人名や造語、強調したい一文にも、原稿を直接編集するだけで対応できます。
             </p>
             <div class="feature-tags gothic">
               <span>自動ルビ振り</span>
@@ -154,98 +246,6 @@
             </div>
           </div>
         </div>
-
-        <div class="feature-row reverse reveal">
-          <div class="feature-text">
-            <span class="feature-index gothic">02 ― 自動で整う組版</span>
-            <h3 class="feature-title">
-              会話文の字下げも、<br />記号の泣き別れも、気にしなくていい
-            </h3>
-            <p class="feature-desc">
-              「」で始まる会話文は自動で字下げが省略され、「――」や「……」のような記号は
-              行の途中で分かれてしまわないよう、自動でまとめて扱われます。
-              組版の作法を覚えていなくても、読みやすい紙面が自然とできあがります。
-            </p>
-            <div class="feature-tags gothic">
-              <span>会話文の自動処理</span>
-              <span>禁則処理</span>
-              <span>ダッシュ・リーダーの分断防止</span>
-            </div>
-          </div>
-          <div class="feature-visual">
-            <div class="mini-paper dark">
-              <p class="no-indent">「――どこへ、行くつもりなの」</p>
-              <p>
-                そう聞かれても、答えられなかった。ただ、遠くへ……とだけ思っていた。
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div class="feature-row reveal">
-          <div class="feature-text">
-            <span class="feature-index gothic">03 ― 紙面を自在に</span>
-            <h3 class="feature-title">
-              用紙も段組も、<br />作品の姿にあわせて
-            </h3>
-            <p class="feature-desc">
-              文庫本サイズのA6から、同人誌でよく使われるB6、A4まで。
-              段組・余白・のど（綴じ代）まで細かく調整できるので、
-              画面の中だけでなく、印刷やPDF化を見据えた原稿づくりができます。
-            </p>
-            <div class="feature-tags gothic">
-              <span>A4 / B5 / A5 / B6 / A6 / ハガキ</span>
-              <span>1段組・2段組</span>
-              <span>PDF書き出し・印刷</span>
-            </div>
-          </div>
-          <div class="feature-visual">
-            <div class="mini-paper">
-              <div class="align-samples">
-                <span class="center-demo">― 目次 ―</span>
-                <div>
-                  第一章　雨の匂い<br />
-                  第二章　誰もいない部屋<br />
-                  第三章　それから
-                </div>
-                <span class="center-demo" style="text-align: right"
-                  >著　言ノ葉太郎</span
-                >
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ ライブデモ ============ -->
-    <section class="demo-section" id="demo">
-      <div class="wrap">
-        <span class="eyebrow gothic reveal">試してみる</span>
-        <h2 class="section-title reveal">打った文字が、そのまま紙になる</h2>
-        <p class="section-lede reveal">
-          左に何か書いてみてください。右の紙面がそのまま縦書きで組まれます。
-          ルビは
-          <code
-            style="background: #332e24; padding: 1px 6px; border-radius: 3px"
-            >｜言葉《ことば》</code
-          >
-          のように書くと反映されます。
-        </p>
-
-        <div class="demo-grid reveal">
-          <div class="demo-editor">
-            <div class="demo-editor-label gothic">INPUT ― ここに書く</div>
-            <textarea id="demoInput" spellcheck="false"></textarea>
-            <div class="demo-hint">
-              ルビ：<code>｜漢字《かんじ》</code>　傍点：<code>《《強調》》</code>　改行はそのまま反映されます。<br />
-              ※簡易デモのため、字下げ等は実際のエディタとは異なります。
-            </div>
-          </div>
-          <div class="demo-preview-stage">
-            <div class="demo-paper" id="demoPaper"></div>
-          </div>
-        </div>
       </div>
     </section>
 
@@ -261,7 +261,7 @@
             <div>
               <h3>データはブラウザの中だけに</h3>
               <p>
-                書いた文章はお使いの端末のブラウザ内に保存され、外部のサーバーには送信されません。会員登録も不要です。あわせて、大切な原稿はテキストファイルとして書き出しておくこともできます。
+                流し込んだ原稿はお使いの端末のブラウザ内に保存され、外部のサーバーには送信されません。会員登録も不要です。あわせて、大切な原稿はテキストファイルとして書き出しておくこともできます。
               </p>
             </div>
           </div>
@@ -294,13 +294,13 @@
         <span class="eyebrow gothic reveal" style="justify-content: center"
           >はじめよう</span
         >
-        <h2 class="section-title reveal">その一文を、紙のかたちに。</h2>
+        <h2 class="section-title reveal">その原稿を、本のかたちに。</h2>
         <p class="section-lede reveal">
-          書きかけの原稿でも、思いついたばかりの一行でも。<br />
+          書きかけの原稿でも、書き終えたばかりの一本でも。<br />
           言ノ葉Editerは、いつでも静かに紙面を差し出します。
         </p>
         <div class="hero-actions reveal">
-          <a class="btn-primary" href="kotonoha.html">今すぐ書きはじめる ―</a>
+          <a class="btn-primary" href="kotonoha.html">原稿を組んでみる ―</a>
         </div>
       </div>
     </section>
@@ -310,7 +310,7 @@
         <div>
           <div class="footer-brand">言ノ葉Editer</div>
           <p class="footer-note">
-            文字を書くひとのための、縦書き執筆エディタ。小説、エッセイ、日記、同人誌の原稿づくりに。
+            原稿を、縦書きの本のかたちに組む日本語組版エディタ。小説、エッセイ、同人誌の原稿づくりに。
           </p>
           <p class="footer-note" style="margin-top: 8px">
             <a
@@ -323,8 +323,8 @@
           </p>
         </div>
         <div class="footer-links">
-          <a href="#features">できること</a>
-          <a href="#demo">試してみる</a>
+          <a href="#output">できること</a>
+          <a href="#precision">組版精度</a>
           <a href="#craft">こだわり</a>
           <a
             href="https://github.com/AmayoSakura/kotonoha_edit"

@@ -50,7 +50,7 @@
         margin: 0;
       }
     </style>
-    <title>言ノ葉Editer v0.22.1</title>
+    <title>言ノ葉Editer v0.23</title>
 
     <link rel="stylesheet" href="css/style.css" />
   </head>
@@ -60,7 +60,7 @@
       <header class="hero no-print">
         <div class="hero-title-group">
           <h1>言ノ葉Editer</h1>
-          <span class="version-badge">v0.22.1</span>
+          <span class="version-badge">v0.23</span>
         </div>
         <div class="hero-actions">
           <select
@@ -498,6 +498,13 @@
             >
               前のページ ▶
             </button>
+            <label
+              class="sync-toggle"
+              title="エディタとプレビューのカーソル位置を連動させます"
+            >
+              <input type="checkbox" id="syncToggle" checked />
+              同期
+            </label>
           </div>
 
           <section class="preview-viewport" id="previewViewport">

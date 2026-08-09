@@ -406,6 +406,24 @@
     gap: 6px;
   }
 
+  .sync-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.88rem;
+    color: var(--text);
+    user-select: none;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .sync-toggle input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+
   .page-jump-input {
     width: 56px;
     min-height: 36px;
@@ -548,13 +566,7 @@
     width: 100%;
     height: 100%;
     box-sizing: border-box;
-    /* 理論値ベースのレイアウト計算と実際の描画幅の間にわずかな
-       誤差が生じることがあり、hidden のままだと行の折り返し部分が
-       中途半端に見切れて見えることがあった。印刷（PDF）出力側は
-       元々 overflow: visible にしてこの誤差を許容しているため、
-       プレビュー側も同じ挙動に揃える。
-       枠外へのはみ出し自体は .paper-page 側の overflow: hidden で
-       依然として抑えられる。 */
+
     overflow: visible;
   }
 
@@ -572,17 +584,14 @@
   .md-body .align-center {
     text-align: center;
     text-indent: 0 !important;
-    /* text-align は要素の専有幅（縦書きでは height）いっぱいの中で
-           テキストを揃える仕組み。p 要素の height: fit-content により
-           高さがテキストぴったりになってしまうと、揃える余地自体がなくなり
-           中央揃えが効かなくなっていたため、ここで高さを親基準に戻す。 */
+
     height: auto !important;
   }
 
   .md-body .align-right {
     text-align: right;
     text-indent: 0 !important;
-    /* align-center と同じ理由。 */
+
     height: auto !important;
   }
 
@@ -626,9 +635,6 @@
     padding-left: 8px;
     line-height: 1.4;
     white-space: nowrap;
-    /* border-left（見出しの罫線）は段の高さいっぱいに伸びるのが正しい仕様のため、
-           height は明示指定しない（暗黙的に親の高さを継承する挙動のままにする）。
-           <p>で問題になった暗黙継承は、罫線を持つ見出しにとっては逆に必要な挙動。 */
   }
 
   .md-body h2 {
@@ -638,8 +644,6 @@
     font-size: 1.3em;
     line-height: 1.5;
     white-space: nowrap;
-    /* border-left（見出しの罫線）は段の高さいっぱいに伸びるのが正しい仕様のため、
-           height は明示指定しない（h1と同じ理由）。 */
   }
 
   .md-body h3 {
@@ -647,7 +651,7 @@
     font-size: 1.1em;
     line-height: 1.6;
     white-space: nowrap;
-    /* p要素と同じ理由（縦書きでのheight暗黙継承）で追加。詳細はmd-body pのコメント参照。 */
+
     height: fit-content;
   }
 
@@ -656,12 +660,7 @@
     padding: 0;
     text-indent: 1em;
     white-space: nowrap;
-    /* 縦書き(writing-mode: vertical-rl)では、height未指定のブロック要素が
-           親(.md-body, height:100%)の高さを暗黙的に継承してしまうケースがあり、
-           実際には文字数に応じて縮むべき各行の<p>が、ページ1段分の高さを
-           丸ごと専有してしまっていた。これが「JSの行分割計算は正しいのに
-           実描画では早期に折り返されたように見える」現象の直接原因だったため、
-           height を内容に応じたサイズに明示的に固定する。 */
+
     height: fit-content;
   }
 
@@ -675,14 +674,14 @@
     background: #efefef;
     font-size: 0.95em;
     white-space: nowrap;
-    /* p要素と同じ理由（縦書きでのheight暗黙継承）で追加。詳細はmd-body pのコメント参照。 */
+
     height: fit-content;
   }
 
   .md-body hr {
     margin: 0 12px;
     border: 0;
-    border-right: 1px solid #d4cfc4;
+    border-right: 1px solid #dddddd;
     height: 100%;
   }
 
