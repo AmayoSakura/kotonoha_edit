@@ -817,3 +817,421 @@ footer {
     padding: 128px 0 70px;
   }
 }
+
+/* ============ 取扱説明書 (manual.html) ============ */
+
+/* 共通の CSS カスタムプロパティ（フォントファミリー定義） */
+html[data-theme="dark"],
+html[data-theme="standard"],
+html[data-theme="sepia"] {
+  --ui-font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+  --doc-font-family:
+    "Shippori Mincho", "Yu Mincho", "游明朝", "YuMincho",
+    "Hiragino Mincho ProN", "Noto Serif JP", serif;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #121316;
+  --panel: #1a1b1e;
+  --panel-sub: #16171a;
+  --input-bg: #101113;
+  --text: #e6e6e6;
+  --muted: #8c8c8c;
+  --line: #2c2d33;
+  --accent: #c29b61;
+  --accent-dark: #2c2d33;
+  --accent-soft: rgba(194, 155, 97, 0.12);
+  --shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+}
+
+html[data-theme="standard"] {
+  color-scheme: light;
+  --bg: #f5f4f0;
+  --panel: #ffffff;
+  --panel-sub: #faf9f6;
+  --input-bg: #ffffff;
+  --text: #1a1917;
+  --muted: #737068;
+  --line: #e2ded4;
+  --accent: #8c6239;
+  --accent-dark: #6e4c2b;
+  --accent-soft: rgba(140, 98, 57, 0.08);
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+
+html[data-theme="sepia"] {
+  color-scheme: light;
+  --bg: #eee8dc;
+  --panel: #f7f3eb;
+  --panel-sub: #f0eae1;
+  --input-bg: #fffcf7;
+  --text: #2b2521;
+  --muted: #7d7268;
+  --line: #dcd2c4;
+  --accent: #9e6a3f;
+  --accent-dark: #7a502f;
+  --accent-soft: rgba(158, 106, 63, 0.1);
+  --shadow: 0 12px 32px rgba(43, 37, 33, 0.08);
+}
+
+html[data-theme],
+html[data-theme] body {
+  margin: 0;
+  min-height: 100%;
+  font-family: var(--ui-font-family);
+  background: var(--bg);
+  color: var(--text);
+  letter-spacing: 0.01em;
+  line-height: normal;
+}
+
+html[data-theme] a {
+  color: var(--accent);
+}
+
+html[data-theme] code {
+  font-family: "SF Mono", "Menlo", "Consolas", monospace;
+  background: var(--input-bg);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0.1em 0.4em;
+  font-size: 0.9em;
+  color: var(--accent);
+}
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ---- サイドバー（目次固定） ---- */
+.toc-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+  padding: 24px 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.toc-brand {
+  padding: 0 24px 20px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 16px;
+}
+
+.toc-brand-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.toc-brand-sub {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.toc-theme-row {
+  padding: 0 24px 20px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.toc-theme-row label {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.toc-theme-row select {
+  font-family: var(--ui-font-family);
+  font-size: 0.8rem;
+  background: var(--input-bg);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 6px;
+}
+
+.toc-nav {
+  display: flex;
+  flex-direction: column;
+}
+
+.toc-nav a {
+  text-decoration: none;
+  color: var(--text);
+  padding: 8px 24px;
+  font-size: 0.85rem;
+  border-left: 2px solid transparent;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.toc-nav a:hover {
+  background: var(--accent-soft);
+}
+
+.toc-nav a.active {
+  color: var(--accent);
+  border-left-color: var(--accent);
+  background: var(--accent-soft);
+  font-weight: 600;
+}
+
+.toc-nav .toc-group-label {
+  padding: 16px 24px 6px;
+  font-size: 0.7rem;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.toc-nav .toc-group-label:first-child {
+  padding-top: 0;
+}
+
+/* ---- メインコンテンツ ---- */
+.content-area {
+  flex: 1;
+  min-width: 0;
+  padding: 48px clamp(24px, 5vw, 72px) 120px;
+  max-width: 880px;
+}
+
+.mobile-toc-toggle {
+  display: none;
+}
+
+@media (max-width: 860px) {
+  .app-shell {
+    flex-direction: column;
+  }
+  .toc-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 40;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    width: 82vw;
+    max-width: 300px;
+    box-shadow: var(--shadow);
+  }
+  .toc-sidebar.open {
+    transform: translateX(0);
+  }
+  .mobile-toc-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: var(--panel);
+    border-bottom: 1px solid var(--line);
+    padding: 12px 20px;
+    font-size: 0.85rem;
+    color: var(--text);
+    cursor: pointer;
+  }
+  .content-area {
+    padding: 24px 20px 100px;
+  }
+  .toc-scrim {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 35;
+  }
+  .toc-scrim.open {
+    display: block;
+  }
+}
+
+.doc-header {
+  margin-bottom: 40px;
+}
+
+.doc-eyebrow {
+  font-size: 0.78rem;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}
+
+.doc-title {
+  font-size: 2rem;
+  font-weight: 800;
+  margin: 8px 0 12px;
+  letter-spacing: 0.01em;
+}
+
+.doc-lead {
+  color: var(--muted);
+  font-size: 0.98rem;
+  line-height: 1.9;
+  max-width: 60ch;
+}
+
+section.doc-section {
+  margin-bottom: 56px;
+  scroll-margin-top: 24px;
+}
+
+section.doc-section h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+section.doc-section h2 .section-no {
+  font-size: 0.8rem;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+section.doc-section h3 {
+  font-size: 1.02rem;
+  font-weight: 700;
+  margin: 28px 0 10px;
+  color: var(--accent);
+}
+
+section.doc-section p {
+  line-height: 1.95;
+  margin: 0 0 14px;
+  font-size: 0.92rem;
+}
+
+section.doc-section ul,
+section.doc-section ol {
+  line-height: 1.9;
+  font-size: 0.92rem;
+  padding-left: 1.4em;
+  margin: 0 0 16px;
+}
+
+section.doc-section li {
+  margin-bottom: 6px;
+}
+
+section.doc-section li ul {
+  margin-top: 6px;
+  margin-bottom: 6px;
+}
+
+.panel-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin: 18px 0;
+}
+
+.panel-card-title {
+  font-size: 0.78rem;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+table.ref-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 18px 0;
+  font-size: 0.85rem;
+}
+
+table.ref-table th,
+table.ref-table td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+table.ref-table td.font-sample {
+  font-size: 1.15rem;
+  letter-spacing: 0.02em;
+}
+
+table.ref-table th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+}
+
+.sample-preview {
+  font-family: var(--doc-font-family);
+  background: var(--panel-sub);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px 18px;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.tip-box {
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
+  padding: 12px 16px;
+  border-radius: 0 8px 8px 0;
+  font-size: 0.87rem;
+  line-height: 1.8;
+  margin: 16px 0;
+}
+
+.tip-box strong {
+  color: var(--accent);
+}
+
+.steps-list {
+  counter-reset: step;
+  list-style: none;
+  padding-left: 0;
+}
+
+.steps-list li {
+  counter-increment: step;
+  position: relative;
+  padding-left: 2.2em;
+  margin-bottom: 14px;
+}
+
+.steps-list li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1.5em;
+  height: 1.5em;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

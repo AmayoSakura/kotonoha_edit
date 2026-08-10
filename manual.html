@@ -1,891 +1,532 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja" data-theme="sepia">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>取扱説明書 | 言ノ葉Editer</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700&family=Noto+Serif+JP:wght@400;500;600&family=Sawarabi+Mincho&display=swap" />
-  <link rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@300&family=RocknRoll+One&family=IBM+Plex+Sans+JP:wght@400&family=LINE+Seed+JP:wght@400&family=Klee+One&family=Yomogi&display=swap" />
-  <style>
-    @layer base, layout, content;
-
-    @layer base {
-      :root {
-        color-scheme: dark;
-        --bg: #121316;
-        --panel: #1a1b1e;
-        --panel-sub: #16171a;
-        --input-bg: #101113;
-        --text: #e6e6e6;
-        --muted: #8c8c8c;
-        --line: #2c2d33;
-        --accent: #c29b61;
-        --accent-dark: #2c2d33;
-        --accent-soft: rgba(194, 155, 97, 0.12);
-        --shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
-        --ui-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          "Helvetica Neue", "Hiragino Sans", "Hiragino Kaku Gothic ProN",
-          "Meiryo", sans-serif;
-        --doc-font-family: "Shippori Mincho", "Yu Mincho", "游明朝", "YuMincho",
-          "Hiragino Mincho ProN", "Noto Serif JP", serif;
-      }
-
-      [data-theme="standard"] {
-        color-scheme: light;
-        --bg: #f5f4f0;
-        --panel: #ffffff;
-        --panel-sub: #faf9f6;
-        --input-bg: #ffffff;
-        --text: #1a1917;
-        --muted: #737068;
-        --line: #e2ded4;
-        --accent: #8c6239;
-        --accent-dark: #6e4c2b;
-        --accent-soft: rgba(140, 98, 57, 0.08);
-        --shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
-      }
-
-      [data-theme="sepia"] {
-        color-scheme: light;
-        --bg: #eee8dc;
-        --panel: #f7f3eb;
-        --panel-sub: #f0eae1;
-        --input-bg: #fffcf7;
-        --text: #2b2521;
-        --muted: #7d7268;
-        --line: #dcd2c4;
-        --accent: #9e6a3f;
-        --accent-dark: #7a502f;
-        --accent-soft: rgba(158, 106, 63, 0.1);
-        --shadow: 0 12px 32px rgba(43, 37, 33, 0.08);
-      }
-
-      * {
-        box-sizing: border-box;
-      }
-
-      html,
-      body {
-        margin: 0;
-        min-height: 100%;
-      }
-
-      html {
-        font-family: var(--ui-font-family);
-        background: var(--bg);
-        color: var(--text);
-        letter-spacing: 0.01em;
-      }
-
-      a {
-        color: var(--accent);
-      }
-
-      code {
-        font-family: "SF Mono", "Menlo", "Consolas", monospace;
-        background: var(--input-bg);
-        border: 1px solid var(--line);
-        border-radius: 4px;
-        padding: 0.1em 0.4em;
-        font-size: 0.9em;
-        color: var(--accent);
-      }
-    }
-
-    @layer layout {
-      .app-shell {
-        display: flex;
-        min-height: 100vh;
-      }
-
-      /* ---- サイドバー（目次固定） ---- */
-      .toc-sidebar {
-        width: 260px;
-        flex-shrink: 0;
-        background: var(--panel);
-        border-right: 1px solid var(--line);
-        padding: 24px 0;
-        position: sticky;
-        top: 0;
-        height: 100vh;
-        overflow-y: auto;
-      }
-
-      .toc-brand {
-        padding: 0 24px 20px;
-        border-bottom: 1px solid var(--line);
-        margin-bottom: 16px;
-      }
-
-      .toc-brand-title {
-        font-size: 1.05rem;
-        font-weight: 700;
-        letter-spacing: 0.02em;
-      }
-
-      .toc-brand-sub {
-        font-size: 0.75rem;
-        color: var(--muted);
-        margin-top: 2px;
-      }
-
-      .toc-theme-row {
-        padding: 0 24px 20px;
-        border-bottom: 1px solid var(--line);
-        margin-bottom: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-      }
-
-      .toc-theme-row label {
-        font-size: 0.75rem;
-        color: var(--muted);
-      }
-
-      .toc-theme-row select {
-        font-family: var(--ui-font-family);
-        font-size: 0.8rem;
-        background: var(--input-bg);
-        color: var(--text);
-        border: 1px solid var(--line);
-        border-radius: 6px;
-        padding: 4px 6px;
-      }
-
-      .toc-nav {
-        display: flex;
-        flex-direction: column;
-      }
-
-      .toc-nav a {
-        text-decoration: none;
-        color: var(--text);
-        padding: 8px 24px;
-        font-size: 0.85rem;
-        border-left: 2px solid transparent;
-        transition: background 0.15s, border-color 0.15s, color 0.15s;
-      }
-
-      .toc-nav a:hover {
-        background: var(--accent-soft);
-      }
-
-      .toc-nav a.active {
-        color: var(--accent);
-        border-left-color: var(--accent);
-        background: var(--accent-soft);
-        font-weight: 600;
-      }
-
-      .toc-nav .toc-group-label {
-        padding: 16px 24px 6px;
-        font-size: 0.7rem;
-        color: var(--muted);
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-      }
-
-      .toc-nav .toc-group-label:first-child {
-        padding-top: 0;
-      }
-
-      /* ---- メインコンテンツ ---- */
-      .content-area {
-        flex: 1;
-        min-width: 0;
-        padding: 48px clamp(24px, 5vw, 72px) 120px;
-        max-width: 880px;
-      }
-
-      .mobile-toc-toggle {
-        display: none;
-      }
-
-      @media (max-width: 860px) {
-        .app-shell {
-          flex-direction: column;
-        }
-
-        .toc-sidebar {
-          position: fixed;
-          left: 0;
-          top: 0;
-          z-index: 40;
-          transform: translateX(-100%);
-          transition: transform 0.2s ease;
-          width: 82vw;
-          max-width: 300px;
-          box-shadow: var(--shadow);
-        }
-
-        .toc-sidebar.open {
-          transform: translateX(0);
-        }
-
-        .mobile-toc-toggle {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          position: sticky;
-          top: 0;
-          z-index: 30;
-          background: var(--panel);
-          border-bottom: 1px solid var(--line);
-          padding: 12px 20px;
-          font-size: 0.85rem;
-          color: var(--text);
-          cursor: pointer;
-        }
-
-        .content-area {
-          padding: 24px 20px 100px;
-        }
-
-        .toc-scrim {
-          display: none;
-          position: fixed;
-          inset: 0;
-          background: rgba(0, 0, 0, 0.4);
-          z-index: 35;
-        }
-
-        .toc-scrim.open {
-          display: block;
-        }
-      }
-    }
-
-    @layer content {
-      .doc-header {
-        margin-bottom: 40px;
-      }
-
-      .doc-eyebrow {
-        font-size: 0.78rem;
-        color: var(--accent);
-        letter-spacing: 0.08em;
-        font-weight: 600;
-      }
-
-      .doc-title {
-        font-size: 2rem;
-        font-weight: 800;
-        margin: 8px 0 12px;
-        letter-spacing: 0.01em;
-      }
-
-      .doc-lead {
-        color: var(--muted);
-        font-size: 0.98rem;
-        line-height: 1.9;
-        max-width: 60ch;
-      }
-
-      section.doc-section {
-        margin-bottom: 56px;
-        scroll-margin-top: 24px;
-      }
-
-      section.doc-section h2 {
-        font-size: 1.3rem;
-        font-weight: 700;
-        border-bottom: 1px solid var(--line);
-        padding-bottom: 10px;
-        margin-bottom: 20px;
-        display: flex;
-        align-items: baseline;
-        gap: 10px;
-      }
-
-      section.doc-section h2 .section-no {
-        font-size: 0.8rem;
-        color: var(--accent);
-        font-weight: 700;
-      }
-
-      section.doc-section h3 {
-        font-size: 1.02rem;
-        font-weight: 700;
-        margin: 28px 0 10px;
-        color: var(--accent);
-      }
-
-      section.doc-section p {
-        line-height: 1.95;
-        margin: 0 0 14px;
-        font-size: 0.92rem;
-      }
-
-      section.doc-section ul,
-      section.doc-section ol {
-        line-height: 1.9;
-        font-size: 0.92rem;
-        padding-left: 1.4em;
-        margin: 0 0 16px;
-      }
-
-      section.doc-section li {
-        margin-bottom: 6px;
-      }
-
-      section.doc-section li ul {
-        margin-top: 6px;
-        margin-bottom: 6px;
-      }
-
-      .panel-card {
-        background: var(--panel);
-        border: 1px solid var(--line);
-        border-radius: 10px;
-        padding: 18px 20px;
-        margin: 18px 0;
-      }
-
-      .panel-card-title {
-        font-size: 0.78rem;
-        color: var(--muted);
-        letter-spacing: 0.04em;
-        margin-bottom: 10px;
-        text-transform: uppercase;
-      }
-
-      table.ref-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin: 18px 0;
-        font-size: 0.85rem;
-      }
-
-      table.ref-table th,
-      table.ref-table td {
-        text-align: left;
-        padding: 10px 12px;
-        border-bottom: 1px solid var(--line);
-        vertical-align: top;
-      }
-
-      table.ref-table td.font-sample {
-        font-size: 1.15rem;
-        letter-spacing: 0.02em;
-      }
-
-      table.ref-table th {
-        color: var(--muted);
-        font-weight: 600;
-        font-size: 0.78rem;
-        letter-spacing: 0.02em;
-      }
-
-      .sample-preview {
-        font-family: var(--doc-font-family);
-        background: var(--panel-sub);
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        padding: 14px 18px;
-        font-size: 0.95rem;
-        color: var(--text);
-      }
-
-      .tip-box {
-        border-left: 3px solid var(--accent);
-        background: var(--accent-soft);
-        padding: 12px 16px;
-        border-radius: 0 8px 8px 0;
-        font-size: 0.87rem;
-        line-height: 1.8;
-        margin: 16px 0;
-      }
-
-      .tip-box strong {
-        color: var(--accent);
-      }
-
-      .steps-list {
-        counter-reset: step;
-        list-style: none;
-        padding-left: 0;
-      }
-
-      .steps-list li {
-        counter-increment: step;
-        position: relative;
-        padding-left: 2.2em;
-        margin-bottom: 14px;
-      }
-
-      .steps-list li::before {
-        content: counter(step);
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 1.5em;
-        height: 1.5em;
-        border-radius: 50%;
-        background: var(--accent-soft);
-        color: var(--accent);
-        font-weight: 700;
-        font-size: 0.8rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-    }
-  </style>
-</head>
-
-<body>
-  <div class="app-shell">
-
-    <div class="mobile-toc-toggle" id="mobileTocToggle">
-      <span>☰</span><span>目次</span>
-    </div>
-    <div class="toc-scrim" id="tocScrim"></div>
-
-    <nav class="toc-sidebar" id="tocSidebar">
-      <div class="toc-brand">
-        <div class="toc-brand-title">言ノ葉Editer</div>
-        <div class="toc-brand-sub">取扱説明書</div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>取扱説明書 | 言ノ葉Editer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700&family=Noto+Serif+JP:wght@400;500;600&family=Sawarabi+Mincho&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@300&family=RocknRoll+One&family=IBM+Plex+Sans+JP:wght@400&family=LINE+Seed+JP:wght@400&family=Klee+One&family=Yomogi&display=swap"
+    />
+    <link rel="stylesheet" href="css/lp.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <div class="mobile-toc-toggle" id="mobileTocToggle">
+        <span>☰</span><span>目次</span>
       </div>
-      <div class="toc-theme-row">
-        <label for="themeSelect">表示テーマ</label>
-        <select id="themeSelect">
-          <option value="standard">ライト</option>
-          <option value="dark">ダーク</option>
-          <option value="sepia" selected>セピア</option>
-        </select>
-      </div>
-      <div class="toc-nav" id="tocNav">
-        <div class="toc-group-label">はじめに</div>
-        <a href="#intro">言ノ葉Editerとは</a>
-        <a href="#quickstart">基本の使い方</a>
+      <div class="toc-scrim" id="tocScrim"></div>
 
-        <div class="toc-group-label">組版エンジン</div>
-        <a href="#engine">自動組版のしくみ</a>
-        <a href="#markup">組版マークアップ</a>
+      <nav class="toc-sidebar" id="tocSidebar">
+        <div class="toc-brand">
+          <div class="toc-brand-title">言ノ葉Editer</div>
+          <div class="toc-brand-sub">取扱説明書</div>
+        </div>
+        <div class="toc-theme-row">
+          <label for="themeSelect">表示テーマ</label>
+          <select id="themeSelect">
+            <option value="standard">ライト</option>
+            <option value="dark">ダーク</option>
+            <option value="sepia" selected>セピア</option>
+          </select>
+        </div>
+        <div class="toc-nav" id="tocNav">
+          <div class="toc-group-label">はじめに</div>
+          <a href="#intro">言ノ葉Editerとは</a>
+          <a href="#quickstart">基本の使い方</a>
 
-        <div class="toc-group-label">レイアウト設定</div>
-        <a href="#paper">用紙・段組・余白</a>
-        <a href="#font">フォント</a>
+          <div class="toc-group-label">組版エンジン</div>
+          <a href="#engine">自動組版のしくみ</a>
+          <a href="#markup">組版マークアップ</a>
 
-        <div class="toc-group-label">柱・ノンブル</div>
-        <a href="#header">柱（ヘッダー）</a>
-        <a href="#nombre">ノンブル（ページ番号）</a>
+          <div class="toc-group-label">レイアウト設定</div>
+          <a href="#paper">用紙・段組・余白</a>
+          <a href="#font">フォント</a>
 
-        <div class="toc-group-label">出力・環境</div>
-        <a href="#output">印刷・PDF出力</a>
-        <a href="#local">データの保存について</a>
-      </div>
-    </nav>
+          <div class="toc-group-label">柱・ノンブル</div>
+          <a href="#header">柱（ヘッダー）</a>
+          <a href="#nombre">ノンブル（ページ番号）</a>
 
-    <main class="content-area">
+          <div class="toc-group-label">出力・環境</div>
+          <a href="#output">印刷・PDF出力</a>
+          <a href="#local">データの保存について</a>
+        </div>
+      </nav>
 
-      <header class="doc-header">
-        <div class="doc-eyebrow">MANUAL</div>
-        <h1 class="doc-title">言ノ葉Editer 取扱説明書</h1>
-        <p class="doc-lead">
-          原稿をテキストで流し込むだけで、禁則も字下げも自動で整う日本語組版エディタです。このページでは、各設定項目の意味と使い方を実務目線でまとめています。目次から気になる項目にジャンプしてください。
-        </p>
-      </header>
+      <main class="content-area">
+        <header class="doc-header">
+          <div class="doc-eyebrow">MANUAL</div>
+          <h1 class="doc-title">言ノ葉Editer 取扱説明書</h1>
+          <p class="doc-lead">
+            原稿をテキストで流し込むだけで、禁則も字下げも自動で整う日本語組版エディタです。このページでは、各設定項目の意味と使い方を実務目線でまとめています。目次から気になる項目にジャンプしてください。
+          </p>
+        </header>
 
-      <section class="doc-section" id="intro">
-        <h2><span class="section-no">01</span>言ノ葉Editerとは</h2>
-        <p>
-          Wordやテキストエディタで書かれた原稿を流し込み、リアルタイムで縦書きの本の紙面を確認しながら、そのまま高品質な印刷やPDF出力（同人誌入稿・文庫作成など）まで行えるWebベースの日本語自動組版エディタです。
-        </p>
-        <p>
-          原稿執筆から版組み・レイアウト調整・PDF化まで、サーバー不要・完全フロントエンド（ブラウザのみ）で完結します。原稿データが外部に送信されることはありません。
-        </p>
-      </section>
+        <section class="doc-section" id="intro">
+          <h2><span class="section-no">01</span>言ノ葉Editerとは</h2>
+          <p>
+            Wordやテキストエディタで書かれた原稿を流し込み、リアルタイムで縦書きの本の紙面を確認しながら、そのまま高品質な印刷やPDF出力（同人誌入稿・文庫作成など）まで行えるWebベースの日本語自動組版エディタです。
+          </p>
+          <p>
+            原稿執筆から版組み・レイアウト調整・PDF化まで、サーバー不要・完全フロントエンド（ブラウザのみ）で完結します。原稿データが外部に送信されることはありません。
+          </p>
+        </section>
 
-      <section class="doc-section" id="quickstart">
-        <h2><span class="section-no">02</span>基本の使い方</h2>
-        <ol class="steps-list">
-          <li><strong>エディタを開く</strong> — ランディングページから「原稿を組んでみる」を押すか、直接エディタ本体を開きます。</li>
-          <li><strong>原稿を流し込む</strong> — 「本文入力」エリアに原稿を貼り付けるか、「読込」からファイルをインポートします。</li>
-          <li><strong>版面・レイアウトを整える</strong> — 「組版・設定」タブで用紙サイズ、段組、のど、ノンブル、フォント等を調整します。</li>
-          <li><strong>紙面をプレビューで確認</strong> — リアルタイムで縦書き本のかたちに組み上がる紙面を確認・推敲します。</li>
-          <li><strong>PDF・印刷出力</strong> — 右上の「印刷・PDF出力」から縦書きPDFを書き出すか印刷します。</li>
-        </ol>
-      </section>
+        <section class="doc-section" id="quickstart">
+          <h2><span class="section-no">02</span>基本の使い方</h2>
+          <ol class="steps-list">
+            <li>
+              <strong>エディタを開く</strong> —
+              ランディングページから「原稿を組んでみる」を押すか、直接エディタ本体を開きます。
+            </li>
+            <li>
+              <strong>原稿を流し込む</strong> —
+              「本文入力」エリアに原稿を貼り付けるか、ファイルをインポートします。
+            </li>
+            <li>
+              <strong>版面・レイアウトを整える</strong> —
+              「組版・設定」タブで用紙サイズ、段組、のど、ノンブル、フォント等を調整します。
+            </li>
+            <li>
+              <strong>紙面をプレビューで確認</strong> —
+              リアルタイムで縦書き本のかたちに組み上がる紙面を確認・推敲します。
+            </li>
+            <li>
+              <strong>PDF・印刷出力</strong> —
+              右上の「印刷・PDF出力」から縦書きPDFを書き出すか印刷します。
+            </li>
+          </ol>
+        </section>
 
-      <section class="doc-section" id="engine">
-        <h2><span class="section-no">03</span>自動組版のしくみ</h2>
-        <p>
-          原稿を流し込むと、禁則処理・記号の分断防止・会話文の字下げ調整が自動で適用されます。行頭・行尾禁則はもちろん、「――」（ダッシュ）や「……」（リーダー）などの記号が行途中や行末で泣き別れしないよう自動補正されます。
-        </p>
-        <p>
-          フォントの縦書き字送りや約物（「」など）固有のアキはCanvasで実測され、ミリ単位で精緻な自動ページ分割・組版が行われます。
-        </p>
-      </section>
+        <section class="doc-section" id="engine">
+          <h2><span class="section-no">03</span>自動組版のしくみ</h2>
+          <p>
+            原稿を流し込むと、禁則処理・記号の分断防止・会話文の字下げ調整が自動で適用されます。行頭・行尾禁則はもちろん、「――」（ダッシュ）や「……」（リーダー）などの記号が行途中や行末で泣き別れしないよう自動補正されます。
+          </p>
+          <p>
+            フォントの縦書き字送りや約物（「」など）固有のアキはCanvasで実測され、ミリ単位で精緻な自動ページ分割・組版が行われます。
+          </p>
+        </section>
 
-      <section class="doc-section" id="markup">
-        <h2><span class="section-no">04</span>組版マークアップ</h2>
-        <p>本文中に以下の記法を使うことで、ルビや傍点、配置などを制御できます。</p>
-        <table class="ref-table">
-          <thead>
-            <tr>
-              <th>機能</th>
-              <th>記法</th>
-              <th>入力例</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>ルビ（ふりがな）</td>
-              <td><code>｜漢字《かんじ》</code> または <code>漢字《かんじ》</code></td>
-              <td><code>｜瑠璃《るり》色の空</code></td>
-            </tr>
-            <tr>
-              <td>傍点（圏点）</td>
-              <td><code>《《文字》》</code></td>
-              <td><code>《《ここを強調》》</code></td>
-            </tr>
-            <tr>
-              <td>縦中横（半角数字）</td>
-              <td>1〜2桁の数字</td>
-              <td><code>12</code>月<code>31</code>日</td>
-            </tr>
-            <tr>
-              <td>縦中横（感嘆符・疑問符）</td>
-              <td><code>!?</code> <code>?!</code> <code>!!</code> <code>??</code> 等</td>
-              <td><code>本当!?</code></td>
-            </tr>
-            <tr>
-              <td>中央寄せ</td>
-              <td><code>[中央]</code> または <code>[center]</code></td>
-              <td><code>[中央]第一章</code></td>
-            </tr>
-            <tr>
-              <td>右寄せ（下寄せ）</td>
-              <td><code>[右]</code> または <code>[right]</code></td>
-              <td><code>[右]言ノ葉 太郎</code></td>
-            </tr>
-            <tr>
-              <td>手動改ページ</td>
-              <td><code>[改ページ]</code></td>
-              <td><code>[改ページ]</code></td>
-            </tr>
-            <tr>
-              <td>見出し</td>
-              <td><code>#</code>〜<code>######</code></td>
-              <td><code>## 1. はじめに</code></td>
-            </tr>
-            <tr>
-              <td>太字 / 斜体</td>
-              <td><code>**太字**</code> / <code>*斜体*</code></td>
-              <td><code>**重要**</code></td>
-            </tr>
-            <tr>
-              <td>引用枠</td>
-              <td><code>&gt; 文章</code></td>
-              <td><code>&gt; これは引用文です。</code></td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-
-      <section class="doc-section" id="paper">
-        <h2><span class="section-no">05</span>用紙・段組・余白</h2>
-        <h3>用紙サイズ</h3>
-        <p>A6（文庫本サイズ）、B6（同人誌主流）、A5、B5、A4、ハガキなど、実寸ミリ単位で設計されています。</p>
-        <h3>段組</h3>
-        <p>1段組 / 2段組を切り替えられます。2段組では段の境界線の有無も選択できます。</p>
-        <h3>のど（綴じ代）</h3>
-        <p>のどのあり・なしを切り替え可能で、あり設定時は奇数・偶数ページで左右交互に配置されます。綴じ代幅はmm単位でカスタム指定できます（初期値6mm）。</p>
-        <h3>余白</h3>
-        <div class="panel-card">
-          <div class="panel-card-title">余白プリセット（天地 × 左右）</div>
+        <section class="doc-section" id="markup">
+          <h2><span class="section-no">04</span>組版マークアップ</h2>
+          <p>
+            本文中に以下の記法を使うことで、ルビや傍点、配置などを制御できます。
+          </p>
           <table class="ref-table">
             <thead>
               <tr>
-                <th>プリセット</th>
-                <th>天地</th>
-                <th>左右</th>
+                <th>機能</th>
+                <th>記法</th>
+                <th>入力例</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>狭い</td>
-                <td>12mm</td>
-                <td>10mm</td>
+                <td>ルビ（ふりがな）</td>
+                <td>
+                  <code>｜漢字《かんじ》</code> または
+                  <code>漢字《かんじ》</code>
+                </td>
+                <td><code>｜瑠璃《るり》色の空</code></td>
               </tr>
               <tr>
-                <td>標準</td>
-                <td>18mm</td>
-                <td>14mm</td>
+                <td>傍点（圏点）</td>
+                <td><code>《《文字》》</code></td>
+                <td><code>《《ここを強調》》</code></td>
               </tr>
               <tr>
-                <td>広い</td>
-                <td>24mm</td>
-                <td>18mm</td>
+                <td>縦中横（半角数字）</td>
+                <td>1〜2桁の数字</td>
+                <td><code>12</code>月<code>31</code>日</td>
               </tr>
               <tr>
-                <td>カスタム</td>
-                <td colspan="2">任意のmm数値を指定可能</td>
+                <td>縦中横（感嘆符・疑問符）</td>
+                <td>
+                  <code>!?</code> <code>?!</code> <code>!!</code>
+                  <code>??</code> 等
+                </td>
+                <td><code>本当!?</code></td>
+              </tr>
+              <tr>
+                <td>中央寄せ</td>
+                <td><code>[中央]</code> または <code>[center]</code></td>
+                <td><code>[中央]第一章</code></td>
+              </tr>
+              <tr>
+                <td>右寄せ（下寄せ）</td>
+                <td><code>[右]</code> または <code>[right]</code></td>
+                <td><code>[右]言ノ葉 太郎</code></td>
+              </tr>
+              <tr>
+                <td>手動改ページ</td>
+                <td><code>[改ページ]</code></td>
+                <td><code>[改ページ]</code></td>
+              </tr>
+              <tr>
+                <td>見出し</td>
+                <td><code>#</code>〜<code>######</code></td>
+                <td><code>## 1. はじめに</code></td>
+              </tr>
+              <tr>
+                <td>太字 / 斜体</td>
+                <td><code>**太字**</code> / <code>*斜体*</code></td>
+                <td><code>**重要**</code></td>
+              </tr>
+              <tr>
+                <td>引用枠</td>
+                <td><code>&gt; 文章</code></td>
+                <td><code>&gt; これは引用文です。</code></td>
               </tr>
             </tbody>
           </table>
-        </div>
-        <p>本文文字サイズもあわせて細かく設定できます。</p>
-      </section>
+        </section>
 
-      <section class="doc-section" id="font">
-        <h2><span class="section-no">06</span>フォント</h2>
-        <p>
-          明朝体を中心に10種類のプリセットフォントから選べるほか、任意のGoogle Fonts等のCSS/Font URLとfamily名を指定するカスタムWebフォントにも対応しています。
-        </p>
+        <section class="doc-section" id="paper">
+          <h2><span class="section-no">05</span>用紙・段組・余白</h2>
+          <h3>用紙サイズ</h3>
+          <p>
+            A6（文庫本サイズ）、B6（同人誌主流）、A5、B5、A4、ハガキなど、実寸ミリ単位で設計されています。
+          </p>
+          <h3>段組</h3>
+          <p>
+            1段組 /
+            2段組を切り替えられます。2段組では段の境界線の有無も選択できます。
+          </p>
+          <h3>のど（綴じ代）</h3>
+          <p>
+            のどのあり・なしを切り替え可能で、あり設定時は奇数・偶数ページで左右交互に配置されます。綴じ代幅はmm単位でカスタム指定できます（初期値6mm）。
+          </p>
+          <h3>余白</h3>
+          <div class="panel-card">
+            <div class="panel-card-title">余白プリセット（天地 × 左右）</div>
+            <table class="ref-table">
+              <thead>
+                <tr>
+                  <th>プリセット</th>
+                  <th>天地</th>
+                  <th>左右</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>狭い</td>
+                  <td>12mm</td>
+                  <td>10mm</td>
+                </tr>
+                <tr>
+                  <td>標準</td>
+                  <td>18mm</td>
+                  <td>14mm</td>
+                </tr>
+                <tr>
+                  <td>広い</td>
+                  <td>24mm</td>
+                  <td>18mm</td>
+                </tr>
+                <tr>
+                  <td>カスタム</td>
+                  <td colspan="2">任意のmm数値を指定可能</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>本文文字サイズもあわせて細かく設定できます。</p>
+        </section>
 
-        <h3>明朝体（本文向き）</h3>
-        <table class="ref-table">
-          <thead>
-            <tr>
-              <th>フォント名</th>
-              <th>サンプル</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>システム標準明朝</td>
-              <td class="font-sample" style="font-family: 'Hiragino Mincho ProN', 'Yu Mincho', 'MS Mincho', serif;">
-                ――言ノ葉、静かに紡がれる。</td>
-            </tr>
-            <tr>
-              <td>しっぽり明朝</td>
-              <td class="font-sample" style="font-family: 'Shippori Mincho', 'Yu Mincho', 'MS Mincho', serif;">
-                ――言ノ葉、静かに紡がれる。</td>
-            </tr>
-            <tr>
-              <td>Noto Serif JP</td>
-              <td class="font-sample" style="font-family: 'Noto Serif JP', 'Yu Mincho', 'MS Mincho', serif;">
-                ――言ノ葉、静かに紡がれる。</td>
-            </tr>
-            <tr>
-              <td>さわらび明朝</td>
-              <td class="font-sample" style="font-family: 'Sawarabi Mincho', 'Yu Mincho', 'MS Mincho', serif;">
-                ――言ノ葉、静かに紡がれる。</td>
-            </tr>
-            <tr>
-              <td>Klee One</td>
-              <td class="font-sample" style="font-family: 'Klee One', 'Hiragino Mincho ProN', serif;">――言ノ葉、静かに紡がれる。
-              </td>
-            </tr>
-            <tr>
-              <td>よもぎフォント</td>
-              <td class="font-sample" style="font-family: 'Yomogi', 'Hiragino Mincho ProN', serif;">――言ノ葉、静かに紡がれる。</td>
-            </tr>
-          </tbody>
-        </table>
+        <section class="doc-section" id="font">
+          <h2><span class="section-no">06</span>フォント</h2>
+          <p>
+            明朝体を中心に10種類のプリセットフォントから選べるほか、任意のGoogle
+            Fonts等のCSS/Font
+            URLとfamily名を指定するカスタムWebフォントにも対応しています。
+          </p>
 
-        <h3>ゴシック体（タイトル・見出し向き）</h3>
-        <table class="ref-table">
-          <thead>
-            <tr>
-              <th>フォント名</th>
-              <th>サンプル</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>M PLUS 1p Light</td>
-              <td class="font-sample" style="font-family: 'M PLUS 1p', 'Hiragino Sans', sans-serif; font-weight: 300;">
-                ――言ノ葉、静かに紡がれる。</td>
-            </tr>
-            <tr>
-              <td>RocknRoll One</td>
-              <td class="font-sample" style="font-family: 'RocknRoll One', 'Hiragino Sans', sans-serif;">――言ノ葉、静かに紡がれる。
-              </td>
-            </tr>
-            <tr>
-              <td>IBM Plex Sans JP</td>
-              <td class="font-sample" style="font-family: 'IBM Plex Sans JP', 'Hiragino Sans', sans-serif;">
-                ――言ノ葉、静かに紡がれる。
-              </td>
-            </tr>
-            <tr>
-              <td>LINE Seed JP</td>
-              <td class="font-sample" style="font-family: 'LINE Seed JP', 'Hiragino Sans', sans-serif;">――言ノ葉、静かに紡がれる。
-              </td>
-            </tr>
-          </tbody>
-        </table>
+          <h3>明朝体（本文向き）</h3>
+          <table class="ref-table">
+            <thead>
+              <tr>
+                <th>フォント名</th>
+                <th>サンプル</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>システム標準明朝</td>
+                <td
+                  class="font-sample"
+                  style="
+                    font-family:
+                      &quot;Hiragino Mincho ProN&quot;, &quot;Yu Mincho&quot;,
+                      &quot;MS Mincho&quot;, serif;
+                  "
+                >
+                  言ノ葉、静かに紡がれる。
+                </td>
+              </tr>
+              <tr>
+                <td>しっぽり明朝</td>
+                <td
+                  class="font-sample"
+                  style="
+                    font-family:
+                      &quot;Shippori Mincho&quot;, &quot;Yu Mincho&quot;,
+                      &quot;MS Mincho&quot;, serif;
+                  "
+                >
+                  言ノ葉、静かに紡がれる。
+                </td>
+              </tr>
+              <tr>
+                <td>Noto Serif JP</td>
+                <td
+                  class="font-sample"
+                  style="
+                    font-family:
+                      &quot;Noto Serif JP&quot;, &quot;Yu Mincho&quot;,
+                      &quot;MS Mincho&quot;, serif;
+                  "
+                >
+                  言ノ葉、静かに紡がれる。
+                </td>
+              </tr>
+              <tr>
+                <td>さわらび明朝</td>
+                <td
+                  class="font-sample"
+                  style="
+                    font-family:
+                      &quot;Sawarabi Mincho&quot;, &quot;Yu Mincho&quot;,
+                      &quot;MS Mincho&quot;, serif;
+                  "
+                >
+                  言ノ葉、静かに紡がれる。
+                </td>
+              </tr>
+              <tr>
+                <td>Klee One</td>
+                <td
+                  class="font-sample"
+                  style="
+                    font-family:
+                      &quot;Klee One&quot;, &quot;Hiragino Mincho ProN&quot;,
+                      serif;
+                  "
+                >
+                  言ノ葉、静かに紡がれる。
+                </td>
+              </tr>
+              <tr>
+                <td>よもぎフォント</td>
+                <td
+                  class="font-sample"
+                  style="
+                    font-family:
+                      &quot;Yomogi&quot;, &quot;Hiragino Mincho ProN&quot;,
+                      serif;
+                  "
+                >
+                  言ノ葉、静かに紡がれる。
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
-        <h3>カスタムWebフォント</h3>
-        <p>
-          フォント選択で「カスタムURL指定...」を選ぶと、任意のGoogle Fonts等のCSS URLとfont-family名を指定して独自のフォントを読み込めます。
-        </p>
-      </section>
+          <h3>ゴシック体（タイトル・見出し向き）</h3>
+          <table class="ref-table">
+            <thead>
+              <tr>
+                <th>フォント名</th>
+                <th>サンプル</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>M PLUS 1p Light</td>
+                <td
+                  class="font-sample"
+                  style="
+                    font-family:
+                      &quot;M PLUS 1p&quot;, &quot;Hiragino Sans&quot;,
+                      sans-serif;
+                    font-weight: 300;
+                  "
+                >
+                  言ノ葉、静かに紡がれる。
+                </td>
+              </tr>
+              <tr>
+                <td>RocknRoll One</td>
+                <td
+                  class="font-sample"
+                  style="
+                    font-family:
+                      &quot;RocknRoll One&quot;, &quot;Hiragino Sans&quot;,
+                      sans-serif;
+                  "
+                >
+                  言ノ葉、静かに紡がれる。
+                </td>
+              </tr>
+              <tr>
+                <td>IBM Plex Sans JP</td>
+                <td
+                  class="font-sample"
+                  style="
+                    font-family:
+                      &quot;IBM Plex Sans JP&quot;, &quot;Hiragino Sans&quot;,
+                      sans-serif;
+                  "
+                >
+                  言ノ葉、静かに紡がれる。
+                </td>
+              </tr>
+              <tr>
+                <td>LINE Seed JP</td>
+                <td
+                  class="font-sample"
+                  style="
+                    font-family:
+                      &quot;LINE Seed JP&quot;, &quot;Hiragino Sans&quot;,
+                      sans-serif;
+                  "
+                >
+                  言ノ葉、静かに紡がれる。
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
-      <section class="doc-section" id="header">
-        <h2><span class="section-no">07</span>柱（ヘッダー）</h2>
-        <p>ページ上部に表示する柱（章タイトルなど）の設定です。</p>
-        <table class="ref-table">
-          <thead>
-            <tr>
-              <th>項目</th>
-              <th>選択肢</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>表示条件</td>
-              <td>全ページ / 奇数ページのみ / 偶数ページのみ / 左右交互</td>
-            </tr>
-            <tr>
-              <td>位置</td>
-              <td>右上 / 中央上 / 左上</td>
-            </tr>
-            <tr>
-              <td>文字サイズ</td>
-              <td>小 / 標準 / 大</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
+          <h3>カスタムWebフォント</h3>
+          <p>
+            フォント選択で「カスタムURL指定...」を選ぶと、任意のGoogle
+            Fonts等のCSS
+            URLとfont-family名を指定して独自のフォントを読み込めます。
+          </p>
+        </section>
 
-      <section class="doc-section" id="nombre">
-        <h2><span class="section-no">08</span>ノンブル（ページ番号）</h2>
-        <p>ページ番号の表示条件・位置・文字サイズ・数字タイプ・形式・開始番号を設定できます。</p>
-        <table class="ref-table">
-          <thead>
-            <tr>
-              <th>項目</th>
-              <th>選択肢</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>表示条件</td>
-              <td>全ページ / 1ページ目非表示 / 完全非表示</td>
-            </tr>
-            <tr>
-              <td>位置</td>
-              <td>中央下 / 右下 / 左下 / 左右交互</td>
-            </tr>
-            <tr>
-              <td>文字サイズ</td>
-              <td>小 / 標準 / 大</td>
-            </tr>
-            <tr>
-              <td>数字タイプ</td>
-              <td>算用数字 / 漢数字（横書き）/ 漢数字（縦書き）/ ローマ数字</td>
-            </tr>
-            <tr>
-              <td>形式</td>
-              <td><code>- 1 -</code> / <code>P.1</code> / <code>/ 1 /</code> / 数字のみ</td>
-            </tr>
-            <tr>
-              <td>開始ページ番号</td>
-              <td>任意の数値を指定可能</td>
-            </tr>
-          </tbody>
-        </table>
+        <section class="doc-section" id="header">
+          <h2><span class="section-no">07</span>柱（ヘッダー）</h2>
+          <p>ページ上部に表示する柱（章タイトルなど）の設定です。</p>
+          <table class="ref-table">
+            <thead>
+              <tr>
+                <th>項目</th>
+                <th>選択肢</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>表示条件</td>
+                <td>全ページ / 奇数ページのみ / 偶数ページのみ / 左右交互</td>
+              </tr>
+              <tr>
+                <td>位置</td>
+                <td>右上 / 中央上 / 左上</td>
+              </tr>
+              <tr>
+                <td>文字サイズ</td>
+                <td>小 / 標準 / 大</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
 
-        <h3>数字タイプについて</h3>
-        <p>
-          漢数字は位ごとにそのまま並べる表記です（位取り記数法ではありません）。例：<code>10</code> → <code>一〇</code>、<code>21</code> →
-          <code>二一</code>。ローマ数字は大文字表記（<code>I, II, III...</code>）です。
-        </p>
-        <div class="tip-box">
-          <strong>漢数字（縦書き）の挙動について</strong><br />
-          中央配置を選んでいる場合は、縦書きが不自然になるため自動的に横書きへ切り替わります。また、文字サイズに「大」を選んでいても、縦書き表示の際は余白とのバランスをとるため自動的に「標準」へ調整されます。
-        </div>
-      </section>
+        <section class="doc-section" id="nombre">
+          <h2><span class="section-no">08</span>ノンブル（ページ番号）</h2>
+          <p>
+            ページ番号の表示条件・位置・文字サイズ・数字タイプ・形式・開始番号を設定できます。
+          </p>
+          <table class="ref-table">
+            <thead>
+              <tr>
+                <th>項目</th>
+                <th>選択肢</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>表示条件</td>
+                <td>全ページ / 1ページ目非表示 / 完全非表示</td>
+              </tr>
+              <tr>
+                <td>位置</td>
+                <td>中央下 / 右下 / 左下 / 左右交互</td>
+              </tr>
+              <tr>
+                <td>文字サイズ</td>
+                <td>小 / 標準 / 大</td>
+              </tr>
+              <tr>
+                <td>数字タイプ</td>
+                <td>
+                  算用数字 / 漢数字（横書き）/ 漢数字（縦書き）/ ローマ数字
+                </td>
+              </tr>
+              <tr>
+                <td>形式</td>
+                <td>
+                  <code>- 1 -</code> / <code>P.1</code> / <code>/ 1 /</code> /
+                  数字のみ
+                </td>
+              </tr>
+              <tr>
+                <td>開始ページ番号</td>
+                <td>任意の数値を指定可能</td>
+              </tr>
+            </tbody>
+          </table>
 
-      <section class="doc-section" id="output">
-        <h2><span class="section-no">09</span>印刷・PDF出力</h2>
-        <p>
-          ブラウザの標準印刷機能を利用し、全ページをプレビュー通り一括レンダリングします。そのまま縦書きPDF保存や印刷が可能で、同人誌入稿や紙面確認にそのまま使用できます。
-        </p>
-      </section>
+          <h3>数字タイプについて</h3>
+          <p>
+            漢数字は横書き・縦書きで表記方式が異なります。<strong>横書き</strong>は通常の位取り記数法です（例：<code
+              >10</code
+            >
+            → <code>十</code>、<code>21</code> → <code>二十一</code>、<code
+              >123</code
+            >
+            →
+            <code>百二十三</code
+            >）。<strong>縦書き</strong>は位ごとにそのまま並べる表記です（例：<code
+              >10</code
+            >
+            → <code>一〇</code>、<code>21</code> →
+            <code>二一</code>）。ローマ数字は大文字表記（<code
+              >I, II, III...</code
+            >）です。
+          </p>
+          <div class="tip-box">
+            <strong>漢数字（縦書き）の挙動について</strong><br />
+            中央配置を選んでいる場合は、縦書きが不自然になるため自動的に横書きへ切り替わります（この場合も表記は位ごとのままです）。また、文字サイズに「大」を選んでいても、縦書き表示の際は余白とのバランスをとるため自動的に「標準」へ調整されます。
+          </div>
+        </section>
 
-      <section class="doc-section" id="local">
-        <h2><span class="section-no">10</span>データの保存について</h2>
-        <p>
-          原稿データは一切外部サーバーに送信されず、お使いのブラウザ内（LocalStorage）のみで保持されます。<code>.txt</code>や<code>.md</code>のインポート、タイトル指定での<code>.txt</code>保存（エクスポート）に対応しています。
-        </p>
-        <p>
-          表示テーマは セピア / ライト / ダーク の3種類から選べ、スマホ・タブレットでは編集/プレビュー画面の切り替えに対応しています。
-        </p>
-      </section>
+        <section class="doc-section" id="output">
+          <h2><span class="section-no">09</span>印刷・PDF出力</h2>
+          <p>
+            ブラウザの標準印刷機能を利用し、全ページをプレビュー通り一括レンダリングします。そのまま縦書きPDF保存や印刷が可能で、同人誌入稿や紙面確認にそのまま使用できます。
+          </p>
+        </section>
 
-    </main>
-  </div>
+        <section class="doc-section" id="local">
+          <h2><span class="section-no">10</span>データの保存について</h2>
+          <p>
+            原稿データは一切外部サーバーに送信されず、お使いのブラウザ内（LocalStorage）のみで保持されます。<code>.txt</code>や<code>.md</code>のインポート、タイトル指定での<code>.txt</code>保存（エクスポート）に対応しています。
+          </p>
+          <p>
+            表示テーマはセピア / ライト / ダーク
+            の3種類から選べ、スマホ・タブレットでは編集/プレビュー画面の切り替えに対応しています。
+          </p>
+        </section>
+      </main>
+    </div>
 
-  <script>
-    (function () {
-      var SHARED_THEME_KEY = "kotonoha_shared_theme";
-      var themeSelect = document.getElementById("themeSelect");
-      var root = document.documentElement;
-
-      // 起動時：エディタ側で保存された共有テーマ設定があれば引き継ぐ
-      try {
-        var savedTheme = localStorage.getItem(SHARED_THEME_KEY);
-        if (savedTheme) {
-          root.setAttribute("data-theme", savedTheme);
-          themeSelect.value = savedTheme;
-        }
-      } catch (e) {
-        // localStorageが使えない環境では初期値のまま
-      }
-
-      themeSelect.addEventListener("change", function () {
-        root.setAttribute("data-theme", themeSelect.value);
-        try {
-          localStorage.setItem(SHARED_THEME_KEY, themeSelect.value);
-        } catch (e) {
-          // 保存できない場合は無視（このページ内の表示切替のみ有効）
-        }
-      });
-
-      // モバイル用：目次の開閉
-      var toggle = document.getElementById("mobileTocToggle");
-      var sidebar = document.getElementById("tocSidebar");
-      var scrim = document.getElementById("tocScrim");
-      function closeToc() {
-        sidebar.classList.remove("open");
-        scrim.classList.remove("open");
-      }
-      toggle.addEventListener("click", function () {
-        sidebar.classList.toggle("open");
-        scrim.classList.toggle("open");
-      });
-      scrim.addEventListener("click", closeToc);
-      document.getElementById("tocNav").addEventListener("click", function (e) {
-        if (e.target.tagName === "A") closeToc();
-      });
-
-      // 目次のスクロール追従ハイライト
-      var links = Array.prototype.slice.call(
-        document.querySelectorAll("#tocNav a")
-      );
-      var sections = links
-        .map(function (a) {
-          return document.getElementById(a.getAttribute("href").slice(1));
-        })
-        .filter(Boolean);
-
-      function updateActive() {
-        var scrollPos = window.scrollY + 80;
-        var currentIndex = 0;
-        for (var i = 0; i < sections.length; i++) {
-          if (sections[i].offsetTop <= scrollPos) currentIndex = i;
-        }
-        links.forEach(function (a) {
-          a.classList.remove("active");
-        });
-        if (links[currentIndex]) links[currentIndex].classList.add("active");
-      }
-      window.addEventListener("scroll", updateActive, { passive: true });
-      updateActive();
-    })();
-  </script>
-</body>
-
+    <script src="js/lp.js"></script>
+  </body>
 </html>

@@ -1216,12 +1216,43 @@ window.addEventListener("DOMContentLoaded", function () {
     }
     return html;
   }
-  const KANJI_DIGITS = ["〇", "一", "二", "三", "四", "五", "六", "七", "八", "九"];
+  const KANJI_DIGITS = [
+    "〇",
+    "一",
+    "二",
+    "三",
+    "四",
+    "五",
+    "六",
+    "七",
+    "八",
+    "九",
+  ];
   function toKanjiDigits(num) {
     return String(num)
       .split("")
       .map((ch) => (KANJI_DIGITS[ch] !== undefined ? KANJI_DIGITS[ch] : ch))
       .join("");
+  }
+  // 位取り記数法の漢数字表記（例：10→十、21→二十一、123→百二十三）。千の位まで対応。
+  const KANJI_UNITS = ["", "十", "百", "千"];
+  function toKanjiPositional(num) {
+    if (num === 0) return "〇";
+    let n = num;
+    let result = "";
+    for (let unitIdx = 3; unitIdx >= 0; unitIdx--) {
+      const place = Math.pow(10, unitIdx);
+      const digit = Math.floor(n / place);
+      n %= place;
+      if (digit === 0) continue;
+      // 「一十」「一百」「一千」は「十」「百」「千」と表記する（位が1の場合、頭の「一」を省略）
+      if (digit === 1 && unitIdx > 0) {
+        result += KANJI_UNITS[unitIdx];
+      } else {
+        result += KANJI_DIGITS[digit] + KANJI_UNITS[unitIdx];
+      }
+    }
+    return result || "〇";
   }
   const ROMAN_TABLE = [
     [1000, "M"],
@@ -1333,10 +1364,10 @@ window.addEventListener("DOMContentLoaded", function () {
       else
         nombrePosStyle = "left: 50%; right: auto; transform: translateX(-50%);";
       // 数字タイプに応じたページ番号の表記変換
-      const isKanjiType =
-        nombreTypeVal === "kanji-h" || nombreTypeVal === "kanji-v";
+      // 漢数字・横書きは位取り記数法（十、二十一）、漢数字・縦書きは位ごと表記（一〇、二一）のまま
       let displayNum = String(pageNum);
-      if (isKanjiType) displayNum = toKanjiDigits(pageNum);
+      if (nombreTypeVal === "kanji-h") displayNum = toKanjiPositional(pageNum);
+      else if (nombreTypeVal === "kanji-v") displayNum = toKanjiDigits(pageNum);
       else if (nombreTypeVal === "roman") displayNum = toRomanNumeral(pageNum);
       let nombreText = `- ${displayNum} -`;
       if (nombreFormat === "p") {
