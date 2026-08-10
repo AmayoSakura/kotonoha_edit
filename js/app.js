@@ -35,6 +35,8 @@ window.addEventListener("DOMContentLoaded", function () {
     nombreFormatSelect: "nombreFormat",
     startPageInput: "startPage",
     nombrePosSelect: "nombrePos",
+    nombreSizeSelect: "nombreSize",
+    nombreTypeSelect: "nombreType",
   };
   const els = {};
   Object.keys(CONFIG_KEYS).forEach((id) => {
@@ -1214,6 +1216,70 @@ window.addEventListener("DOMContentLoaded", function () {
     }
     return html;
   }
+  const KANJI_DIGITS = [
+    "〇",
+    "一",
+    "二",
+    "三",
+    "四",
+    "五",
+    "六",
+    "七",
+    "八",
+    "九",
+  ];
+  function toKanjiDigits(num) {
+    return String(num)
+      .split("")
+      .map((ch) => (KANJI_DIGITS[ch] !== undefined ? KANJI_DIGITS[ch] : ch))
+      .join("");
+  }
+  // 位取り記数法の漢数字表記（例：10→十、21→二十一、123→百二十三）。千の位まで対応。
+  const KANJI_UNITS = ["", "十", "百", "千"];
+  function toKanjiPositional(num) {
+    if (num === 0) return "〇";
+    let n = num;
+    let result = "";
+    for (let unitIdx = 3; unitIdx >= 0; unitIdx--) {
+      const place = Math.pow(10, unitIdx);
+      const digit = Math.floor(n / place);
+      n %= place;
+      if (digit === 0) continue;
+      // 「一十」「一百」「一千」は「十」「百」「千」と表記する（位が1の場合、頭の「一」を省略）
+      if (digit === 1 && unitIdx > 0) {
+        result += KANJI_UNITS[unitIdx];
+      } else {
+        result += KANJI_DIGITS[digit] + KANJI_UNITS[unitIdx];
+      }
+    }
+    return result || "〇";
+  }
+  const ROMAN_TABLE = [
+    [1000, "M"],
+    [900, "CM"],
+    [500, "D"],
+    [400, "CD"],
+    [100, "C"],
+    [90, "XC"],
+    [50, "L"],
+    [40, "XL"],
+    [10, "X"],
+    [9, "IX"],
+    [5, "V"],
+    [4, "IV"],
+    [1, "I"],
+  ];
+  function toRomanNumeral(num) {
+    let n = num;
+    let result = "";
+    for (const [value, symbol] of ROMAN_TABLE) {
+      while (n >= value) {
+        result += symbol;
+        n -= value;
+      }
+    }
+    return result || String(num);
+  }
   function renderPageDom(pageEl, pageIdx) {
     const pageData = computedPagesData[pageIdx];
     if (!pageData) return;
@@ -1276,6 +1342,13 @@ window.addEventListener("DOMContentLoaded", function () {
     const nombrePosVal = els.nombrePosSelect
       ? els.nombrePosSelect.value
       : "center";
+    const nombreSizeVal = els.nombreSizeSelect
+      ? els.nombreSizeSelect.value
+      : "0.68rem";
+    const nombreTypeVal = els.nombreTypeSelect
+      ? els.nombreTypeSelect.value
+      : "arabic";
+    // "off"（完全非表示）の場合はどの条件にも合致せず、nombreHtmlは空文字のまま出力される
     let nombreHtml = "";
     if (nombreVal === "all" || (nombreVal === "skip-first" && pageIdx > 0)) {
       let currentNombrePos = nombrePosVal;
@@ -1290,15 +1363,32 @@ window.addEventListener("DOMContentLoaded", function () {
           "left: var(--page-padding-h); right: auto; transform: none;";
       else
         nombrePosStyle = "left: 50%; right: auto; transform: translateX(-50%);";
-      let nombreText = `- ${pageNum} -`;
+      // 数字タイプに応じたページ番号の表記変換
+      // 漢数字・横書きは位取り記数法（十、二十一）、漢数字・縦書きは位ごと表記（一〇、二一）のまま
+      let displayNum = String(pageNum);
+      if (nombreTypeVal === "kanji-h") displayNum = toKanjiPositional(pageNum);
+      else if (nombreTypeVal === "kanji-v") displayNum = toKanjiDigits(pageNum);
+      else if (nombreTypeVal === "roman") displayNum = toRomanNumeral(pageNum);
+      let nombreText = `- ${displayNum} -`;
       if (nombreFormat === "p") {
-        nombreText = `P.${pageNum}`;
+        nombreText = `P.${displayNum}`;
       } else if (nombreFormat === "slash") {
-        nombreText = `/ ${pageNum} /`;
+        nombreText = `/ ${displayNum} /`;
       } else if (nombreFormat === "number") {
-        nombreText = `${pageNum}`;
+        nombreText = `${displayNum}`;
       }
-      nombreHtml = `<div class="page-number-tag" style="${nombrePosStyle}">${nombreText}</div>`;
+      // 漢数字（縦書き）を明示選択、かつ中央以外の配置のときのみ縦書き（文字サイズ丸めにより桁数フォールバックは不要）
+      const isVerticalNombre =
+        nombreTypeVal === "kanji-v" && currentNombrePos !== "center";
+      // 縦書き時は「大」サイズを「標準」に丸めて余白はみ出しを防ぐ（小・標準はそのまま）
+      const appliedNombreSize =
+        isVerticalNombre && nombreSizeVal === "0.78rem"
+          ? "0.68rem"
+          : nombreSizeVal;
+      const nombreOrientationStyle = isVerticalNombre
+        ? "writing-mode: vertical-rl; -webkit-writing-mode: vertical-rl;"
+        : "";
+      nombreHtml = `<div class="page-number-tag" style="${nombrePosStyle} font-size: ${appliedNombreSize}; ${nombreOrientationStyle}">${nombreText}</div>`;
     }
     pageEl.innerHTML = headerTagHtml + bodyHtml + nombreHtml;
   }
@@ -1575,6 +1665,7 @@ window.addEventListener("DOMContentLoaded", function () {
   if (els.gutterWidthInput) {
     els.gutterWidthInput.addEventListener("input", debounceUpdatePreview);
   }
+  const SHARED_THEME_KEY = "kotonoha_shared_theme";
   if (els.themeSelect) {
     els.themeSelect.addEventListener("change", function () {
       document.documentElement.setAttribute(
@@ -1582,6 +1673,11 @@ window.addEventListener("DOMContentLoaded", function () {
         els.themeSelect.value,
       );
       saveToStorage();
+      try {
+        localStorage.setItem(SHARED_THEME_KEY, els.themeSelect.value);
+      } catch (e) {
+        // localStorageが使えない環境では無視
+      }
     });
   }
   const CHANGE_EVENT_IDS = [
@@ -1597,6 +1693,8 @@ window.addEventListener("DOMContentLoaded", function () {
     "columnRuleSelect",
     "nombreDisplaySelect",
     "nombreFormatSelect",
+    "nombreSizeSelect",
+    "nombreTypeSelect",
   ];
   CHANGE_EVENT_IDS.forEach((id) => {
     if (els[id]) els[id].addEventListener("change", updatePreview);
