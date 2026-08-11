@@ -609,6 +609,31 @@
     justify-content: center;
   }
 
+  .colophon-page {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+  }
+
+  .colophon-page.colophon-vert-top {
+    justify-content: flex-start;
+  }
+
+  .colophon-page.colophon-vert-bottom {
+    justify-content: flex-end;
+  }
+
+  /* 天地位置に連動して行内の文字位置（縦書きでの上寄せ/下寄せ）も揃える */
+  .colophon-page.colophon-vert-top .colophon-row,
+  .colophon-page.colophon-vert-top .colophon-note {
+    text-align: left;
+  }
+
+  .colophon-page.colophon-vert-bottom .colophon-row,
+  .colophon-page.colophon-vert-bottom .colophon-note {
+    text-align: right;
+  }
+
   /* 中表紙：縦書き・中央テンプレート */
   .cover-vertical-center {
     writing-mode: vertical-rl;
@@ -639,18 +664,15 @@
     color: #555555;
   }
 
-  /* 奥付：縦書きテンプレート。固定項目→自由記載欄の順に右から左へ読ませる */
+  /* 奥付：縦書きテンプレート。書き出し位置＝右→左方向、天地位置＝上下方向の2軸で配置を決める */
   .colophon-vertical {
     writing-mode: vertical-rl;
     -webkit-writing-mode: vertical-rl;
     text-orientation: mixed;
     font-family: var(--doc-font-family);
     display: flex;
-    flex-direction: row;
-    align-items: flex-end;
-    justify-content: center;
+    flex-direction: column;
     gap: 3em;
-    height: 100%;
     width: 100%;
     font-size: 0.82em;
   }
@@ -667,7 +689,8 @@
   }
 
   .colophon-title {
-    font-size: 1.15em;
+    font-size: 1.2em;
+    font-weight: 700;
     margin-bottom: 0.6em;
   }
 
@@ -677,45 +700,30 @@
     line-height: 2;
   }
 
-  /* 占有する高さ：フルはページ天地いっぱい、配置指定は効かない（常に中央） */
+  /* 占有する高さ：フルは表示上の制約を設けず、天地位置の効果がそのまま見えるようにする */
   .colophon-page.colophon-full .colophon-vertical {
-    position: static;
-    height: 100%;
-    align-self: stretch;
+    max-height: 100%;
   }
 
-  /* 占有する高さ：ハーフは天地の半分程度に収め、配置クラスで四隅・中央に置く */
+  /* 占有する高さ：ハーフは天地の半分程度を上限とする */
   .colophon-page.colophon-half .colophon-vertical {
-    position: absolute;
-    height: 50%;
-    width: auto;
+    max-height: 50%;
   }
 
-  .colophon-page.colophon-pos-center .colophon-vertical {
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+  /* 書き出し位置：column方向（縦書きの右→左）が主軸のため justify-content で制御 */
+  .colophon-page.colophon-write-lead .colophon-vertical {
+    justify-content: flex-start;
   }
 
-  .colophon-page.colophon-pos-top-right .colophon-vertical {
-    top: var(--page-padding-v);
-    right: var(--page-padding-h);
+  .colophon-page.colophon-write-center .colophon-vertical {
+    justify-content: center;
   }
 
-  .colophon-page.colophon-pos-bottom-right .colophon-vertical {
-    bottom: var(--page-padding-v);
-    right: var(--page-padding-h);
+  .colophon-page.colophon-write-trail .colophon-vertical {
+    justify-content: flex-end;
   }
 
-  .colophon-page.colophon-pos-top-left .colophon-vertical {
-    top: var(--page-padding-v);
-    left: var(--page-padding-h);
-  }
-
-  .colophon-page.colophon-pos-bottom-left .colophon-vertical {
-    bottom: var(--page-padding-v);
-    left: var(--page-padding-h);
-  }
+  /* 天地位置は外側 .colophon-page の justify-content で制御する（上の定義を参照） */
 
   .md-body strong,
   .md-body em {

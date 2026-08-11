@@ -381,18 +381,26 @@
                       <option value="half">ハーフ（天地の半分程度）</option>
                     </select>
                   </div>
+                </div>
+                <div class="form-row two-cols" style="margin-top: 8px">
                   <div class="form-col">
                     <div class="field-label">
-                      <label for="colophonPositionSelect"
-                        >配置（ハーフ選択時のみ）</label
-                      >
+                      <label for="colophonWritePosSelect">書き出し位置</label>
                     </div>
-                    <select id="colophonPositionSelect" class="select-input">
+                    <select id="colophonWritePosSelect" class="select-input">
+                      <option value="lead" selected>右寄り（先頭寄せ）</option>
+                      <option value="center">中央</option>
+                      <option value="trail">左寄り（末尾寄せ）</option>
+                    </select>
+                  </div>
+                  <div class="form-col">
+                    <div class="field-label">
+                      <label for="colophonVertPosSelect">天地位置</label>
+                    </div>
+                    <select id="colophonVertPosSelect" class="select-input">
+                      <option value="top">上寄せ</option>
                       <option value="center" selected>中央</option>
-                      <option value="top-right">右上</option>
-                      <option value="bottom-right">右下</option>
-                      <option value="top-left">左上</option>
-                      <option value="bottom-left">左下</option>
+                      <option value="bottom">下寄せ</option>
                     </select>
                   </div>
                 </div>

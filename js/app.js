@@ -63,7 +63,8 @@ window.addEventListener("DOMContentLoaded", function () {
     colophonNoteInput: "colophonNote",
     colophonTemplateSelect: "colophonTemplate",
     colophonHeightSelect: "colophonHeight",
-    colophonPositionSelect: "colophonPosition",
+    colophonWritePosSelect: "colophonWritePos",
+    colophonVertPosSelect: "colophonVertPos",
   };
   const els = {};
   Object.keys(CONFIG_KEYS).forEach((id) => {
@@ -1335,18 +1336,19 @@ window.addEventListener("DOMContentLoaded", function () {
   function renderColophonPageDom(pageEl, pageData) {
     const heightClass =
       pageData.colophonHeight === "half" ? " colophon-half" : " colophon-full";
-    const positionClass =
-      pageData.colophonHeight === "half"
-        ? " colophon-pos-" + (pageData.colophonPosition || "center")
-        : "";
+    const writePosClass =
+      " colophon-write-" + (pageData.colophonWritePos || "lead");
+    const vertPosClass =
+      " colophon-vert-" + (pageData.colophonVertPos || "center");
     pageEl.className =
       "paper-page front-matter-page colophon-page" +
       heightClass +
-      positionClass;
+      writePosClass +
+      vertPosClass;
     const rows = [];
     if (pageData.colophonTitle)
       rows.push(
-        `<div class="colophon-row colophon-title">『${escapeHtml(pageData.colophonTitle)}』</div>`,
+        `<div class="colophon-row colophon-title">${escapeHtml(pageData.colophonTitle)}</div>`,
       );
     if (pageData.colophonDate)
       rows.push(
@@ -1786,8 +1788,11 @@ window.addEventListener("DOMContentLoaded", function () {
         colophonHeight: els.colophonHeightSelect
           ? els.colophonHeightSelect.value
           : "full",
-        colophonPosition: els.colophonPositionSelect
-          ? els.colophonPositionSelect.value
+        colophonWritePos: els.colophonWritePosSelect
+          ? els.colophonWritePosSelect.value
+          : "lead",
+        colophonVertPos: els.colophonVertPosSelect
+          ? els.colophonVertPosSelect.value
           : "center",
       });
     }
@@ -1891,7 +1896,8 @@ window.addEventListener("DOMContentLoaded", function () {
     "colophonEnableToggle",
     "colophonTemplateSelect",
     "colophonHeightSelect",
-    "colophonPositionSelect",
+    "colophonWritePosSelect",
+    "colophonVertPosSelect",
   ];
   CHANGE_EVENT_IDS.forEach((id) => {
     if (els[id]) els[id].addEventListener("change", updatePreview);
