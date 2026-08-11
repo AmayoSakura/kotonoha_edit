@@ -256,6 +256,39 @@
     flex-direction: column;
   }
 
+  .editor-subtabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .editor-subtab-btn {
+    padding: 8px 14px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+  }
+
+  .editor-subtab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    font-weight: 600;
+  }
+
+  .editor-subpane {
+    display: none;
+    flex-direction: column;
+  }
+
+  .editor-subpane.active {
+    display: flex;
+  }
+
   .setting-group {
     border: 1px solid var(--line);
     border-radius: 4px;
@@ -568,6 +601,120 @@
     box-sizing: border-box;
 
     overflow: visible;
+  }
+
+  .front-matter-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* 中表紙：縦書き・中央テンプレート */
+  .cover-vertical-center {
+    writing-mode: vertical-rl;
+    -webkit-writing-mode: vertical-rl;
+    text-orientation: mixed;
+    font-family: var(--doc-font-family);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2em;
+    height: 100%;
+  }
+
+  .cover-title {
+    font-size: 1.6em;
+    letter-spacing: 0.15em;
+    line-height: 1.6;
+  }
+
+  .cover-subtitle {
+    font-size: 0.9em;
+    color: #555555;
+    letter-spacing: 0.1em;
+  }
+
+  .cover-author {
+    font-size: 0.85em;
+    color: #555555;
+  }
+
+  /* 奥付：縦書きテンプレート。固定項目→自由記載欄の順に右から左へ読ませる */
+  .colophon-vertical {
+    writing-mode: vertical-rl;
+    -webkit-writing-mode: vertical-rl;
+    text-orientation: mixed;
+    font-family: var(--doc-font-family);
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 3em;
+    height: 100%;
+    width: 100%;
+    font-size: 0.82em;
+  }
+
+  .colophon-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2em;
+  }
+
+  .colophon-row {
+    line-height: 2.2;
+    white-space: nowrap;
+  }
+
+  .colophon-title {
+    font-size: 1.15em;
+    margin-bottom: 0.6em;
+  }
+
+  .colophon-note {
+    font-size: 0.9em;
+    color: #555555;
+    line-height: 2;
+  }
+
+  /* 占有する高さ：フルはページ天地いっぱい、配置指定は効かない（常に中央） */
+  .colophon-page.colophon-full .colophon-vertical {
+    position: static;
+    height: 100%;
+    align-self: stretch;
+  }
+
+  /* 占有する高さ：ハーフは天地の半分程度に収め、配置クラスで四隅・中央に置く */
+  .colophon-page.colophon-half .colophon-vertical {
+    position: absolute;
+    height: 50%;
+    width: auto;
+  }
+
+  .colophon-page.colophon-pos-center .colophon-vertical {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .colophon-page.colophon-pos-top-right .colophon-vertical {
+    top: var(--page-padding-v);
+    right: var(--page-padding-h);
+  }
+
+  .colophon-page.colophon-pos-bottom-right .colophon-vertical {
+    bottom: var(--page-padding-v);
+    right: var(--page-padding-h);
+  }
+
+  .colophon-page.colophon-pos-top-left .colophon-vertical {
+    top: var(--page-padding-v);
+    left: var(--page-padding-h);
+  }
+
+  .colophon-page.colophon-pos-bottom-left .colophon-vertical {
+    bottom: var(--page-padding-v);
+    left: var(--page-padding-h);
   }
 
   .md-body strong,

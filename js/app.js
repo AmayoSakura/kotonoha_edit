@@ -11,6 +11,17 @@ window.addEventListener("DOMContentLoaded", function () {
       if (target) target.classList.add("active");
     });
   });
+  const subtabButtons = document.querySelectorAll(".editor-subtab-btn");
+  const subtabPanes = document.querySelectorAll(".editor-subpane");
+  subtabButtons.forEach((btn) => {
+    btn.addEventListener("click", function () {
+      subtabButtons.forEach((b) => b.classList.remove("active"));
+      subtabPanes.forEach((p) => p.classList.remove("active"));
+      this.classList.add("active");
+      const target = document.getElementById(this.dataset.target);
+      if (target) target.classList.add("active");
+    });
+  });
   const CONFIG_KEYS = {
     pageTitle: "title",
     pageHeader: "header",
@@ -37,6 +48,22 @@ window.addEventListener("DOMContentLoaded", function () {
     nombrePosSelect: "nombrePos",
     nombreSizeSelect: "nombreSize",
     nombreTypeSelect: "nombreType",
+    coverEnableToggle: "coverEnable",
+    coverTitleInput: "coverTitle",
+    coverSubtitleInput: "coverSubtitle",
+    coverAuthorInput: "coverAuthor",
+    coverTemplateSelect: "coverTemplate",
+    colophonEnableToggle: "colophonEnable",
+    colophonTitleInput: "colophonTitle",
+    colophonDateInput: "colophonDate",
+    colophonAuthorInput: "colophonAuthor",
+    colophonCircleInput: "colophonCircle",
+    colophonContactInput: "colophonContact",
+    colophonPrinterInput: "colophonPrinter",
+    colophonNoteInput: "colophonNote",
+    colophonTemplateSelect: "colophonTemplate",
+    colophonHeightSelect: "colophonHeight",
+    colophonPositionSelect: "colophonPosition",
   };
   const els = {};
   Object.keys(CONFIG_KEYS).forEach((id) => {
@@ -1280,9 +1307,95 @@ window.addEventListener("DOMContentLoaded", function () {
     }
     return result || String(num);
   }
+  function renderBlankPageDom(pageEl, pageData) {
+    pageEl.className = "paper-page";
+    pageEl.innerHTML = "";
+  }
+  function renderCoverPageDom(pageEl, pageData) {
+    pageEl.className = "paper-page front-matter-page cover-page";
+    const title = escapeHtml(pageData.coverTitle || "");
+    const subtitle = pageData.coverSubtitle
+      ? `<div class="cover-subtitle">${escapeHtml(pageData.coverSubtitle)}</div>`
+      : "";
+    const author = pageData.coverAuthor
+      ? `<div class="cover-author">${escapeHtml(pageData.coverAuthor)}</div>`
+      : "";
+    // 現状テンプレートは「縦書き・中央」の1パターンのみ
+    pageEl.innerHTML =
+      '<div class="cover-vertical-center">' +
+      `<div class="cover-title">${title}</div>` +
+      subtitle +
+      author +
+      "</div>";
+  }
+  function wrapColonForVertical(labelText) {
+    // 全角コロン「：」は縦書き時に縦長に伸びて見えるため、縦中横（1文字分の横向き表示）にする
+    return labelText.replace(/：/g, '<span class="tcy">：</span>');
+  }
+  function renderColophonPageDom(pageEl, pageData) {
+    const heightClass =
+      pageData.colophonHeight === "half" ? " colophon-half" : " colophon-full";
+    const positionClass =
+      pageData.colophonHeight === "half"
+        ? " colophon-pos-" + (pageData.colophonPosition || "center")
+        : "";
+    pageEl.className =
+      "paper-page front-matter-page colophon-page" +
+      heightClass +
+      positionClass;
+    const rows = [];
+    if (pageData.colophonTitle)
+      rows.push(
+        `<div class="colophon-row colophon-title">『${escapeHtml(pageData.colophonTitle)}』</div>`,
+      );
+    if (pageData.colophonDate)
+      rows.push(
+        `<div class="colophon-row">${escapeHtml(pageData.colophonDate)} 発行</div>`,
+      );
+    if (pageData.colophonAuthor)
+      rows.push(
+        `<div class="colophon-row">${wrapColonForVertical("著者：")}${escapeHtml(pageData.colophonAuthor)}</div>`,
+      );
+    if (pageData.colophonCircle)
+      rows.push(
+        `<div class="colophon-row">${wrapColonForVertical("サークル名：")}${escapeHtml(pageData.colophonCircle)}</div>`,
+      );
+    if (pageData.colophonContact)
+      rows.push(
+        `<div class="colophon-row">${wrapColonForVertical("連絡先：")}${escapeHtml(pageData.colophonContact)}</div>`,
+      );
+    if (pageData.colophonPrinter)
+      rows.push(
+        `<div class="colophon-row">${wrapColonForVertical("印刷：")}${escapeHtml(pageData.colophonPrinter)}</div>`,
+      );
+    const noteHtml = pageData.colophonNote
+      ? `<div class="colophon-note">${escapeHtml(pageData.colophonNote)}</div>`
+      : "";
+    // 現状テンプレートは「縦書き・フル高さ」の1パターンのみ
+    // DOM順＝右→左の読み順：固定項目（先に読む＝右）→ 自由記載欄（後で読む＝左）
+    pageEl.innerHTML =
+      '<div class="colophon-vertical">' +
+      '<div class="colophon-fields">' +
+      rows.join("") +
+      "</div>" +
+      noteHtml +
+      "</div>";
+  }
   function renderPageDom(pageEl, pageIdx) {
     const pageData = computedPagesData[pageIdx];
     if (!pageData) return;
+    if (pageData.pageType === "cover") {
+      renderCoverPageDom(pageEl, pageData);
+      return;
+    }
+    if (pageData.pageType === "blank") {
+      renderBlankPageDom(pageEl, pageData);
+      return;
+    }
+    if (pageData.pageType === "colophon") {
+      renderColophonPageDom(pageEl, pageData);
+      return;
+    }
     const isTwoColumn = els.columnSelect.value === "2";
     const isGutterOn = els.gutterSelect && els.gutterSelect.value === "on";
     const startPageNum =
@@ -1350,7 +1463,10 @@ window.addEventListener("DOMContentLoaded", function () {
       : "arabic";
     // "off"（完全非表示）の場合はどの条件にも合致せず、nombreHtmlは空文字のまま出力される
     let nombreHtml = "";
-    if (nombreVal === "all" || (nombreVal === "skip-first" && pageIdx > 0)) {
+    if (
+      pageData.showNombre !== false &&
+      (nombreVal === "all" || (nombreVal === "skip-first" && pageIdx > 0))
+    ) {
       let currentNombrePos = nombrePosVal;
       if (nombrePosVal === "alternate")
         currentNombrePos = isOdd ? "left" : "right";
@@ -1604,6 +1720,80 @@ window.addEventListener("DOMContentLoaded", function () {
       pageJumpInput.value = String(currentPageIndex + 1);
     }
   });
+  function buildFrontMatterAndColophonPages(bodyPages) {
+    // 本文ページ配列に pageType: "body" を付与しつつ、
+    // 中表紙（＋強制空白）・奥付（＋奇数調整の空白）を前後に結合する。
+    // 中表紙・奥付とも本文の組版エンジン（禁則・行送り）には一切乗らない、
+    // 別レイヤーの専用ページとして扱う。
+    const taggedBodyPages = bodyPages.map((p) => ({
+      ...p,
+      pageType: "body",
+      showNombre: true,
+    }));
+
+    const frontPages = [];
+    const coverEnabled =
+      els.coverEnableToggle && els.coverEnableToggle.value === "on";
+    if (coverEnabled) {
+      frontPages.push({
+        pageType: "cover",
+        showNombre: false,
+        coverTitle: els.coverTitleInput ? els.coverTitleInput.value.trim() : "",
+        coverSubtitle: els.coverSubtitleInput
+          ? els.coverSubtitleInput.value.trim()
+          : "",
+        coverAuthor: els.coverAuthorInput
+          ? els.coverAuthorInput.value.trim()
+          : "",
+      });
+      // 中表紙の2ページ目は常に強制空白
+      frontPages.push({ pageType: "blank", showNombre: false });
+    }
+
+    const backPages = [];
+    const colophonEnabled =
+      els.colophonEnableToggle && els.colophonEnableToggle.value === "on";
+    if (colophonEnabled) {
+      const totalBeforeColophon = frontPages.length + taggedBodyPages.length;
+      // 奥付を足した結果、総ページ数が奇数になる場合は奥付の直前に空白を1ページ挟んで偶数に揃える
+      if ((totalBeforeColophon + 1) % 2 !== 0) {
+        backPages.push({ pageType: "blank", showNombre: false });
+      }
+      backPages.push({
+        pageType: "colophon",
+        showNombre: false,
+        colophonTitle: els.colophonTitleInput
+          ? els.colophonTitleInput.value.trim()
+          : "",
+        colophonDate: els.colophonDateInput
+          ? els.colophonDateInput.value.trim()
+          : "",
+        colophonAuthor: els.colophonAuthorInput
+          ? els.colophonAuthorInput.value.trim()
+          : "",
+        colophonCircle: els.colophonCircleInput
+          ? els.colophonCircleInput.value.trim()
+          : "",
+        colophonContact: els.colophonContactInput
+          ? els.colophonContactInput.value.trim()
+          : "",
+        colophonPrinter: els.colophonPrinterInput
+          ? els.colophonPrinterInput.value.trim()
+          : "",
+        colophonNote: els.colophonNoteInput
+          ? els.colophonNoteInput.value.trim()
+          : "",
+        colophonHeight: els.colophonHeightSelect
+          ? els.colophonHeightSelect.value
+          : "full",
+        colophonPosition: els.colophonPositionSelect
+          ? els.colophonPositionSelect.value
+          : "center",
+      });
+    }
+
+    return frontPages.concat(taggedBodyPages, backPages);
+  }
   function updatePreview() {
     if (columnRuleCol) {
       columnRuleCol.style.display =
@@ -1622,7 +1812,8 @@ window.addEventListener("DOMContentLoaded", function () {
     if (layoutSpinner) layoutSpinner.hidden = false;
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        computedPagesData = computeLayoutWithCanvas(els.sourceText.value);
+        const bodyPages = computeLayoutWithCanvas(els.sourceText.value);
+        computedPagesData = buildFrontMatterAndColophonPages(bodyPages);
         renderCurrentPages();
         saveToStorage();
         if (layoutSpinner) layoutSpinner.hidden = true;
@@ -1695,6 +1886,12 @@ window.addEventListener("DOMContentLoaded", function () {
     "nombreFormatSelect",
     "nombreSizeSelect",
     "nombreTypeSelect",
+    "coverEnableToggle",
+    "coverTemplateSelect",
+    "colophonEnableToggle",
+    "colophonTemplateSelect",
+    "colophonHeightSelect",
+    "colophonPositionSelect",
   ];
   CHANGE_EVENT_IDS.forEach((id) => {
     if (els[id]) els[id].addEventListener("change", updatePreview);
@@ -1706,6 +1903,16 @@ window.addEventListener("DOMContentLoaded", function () {
     "sourceText",
     "pageTitle",
     "pageHeader",
+    "coverTitleInput",
+    "coverSubtitleInput",
+    "coverAuthorInput",
+    "colophonTitleInput",
+    "colophonDateInput",
+    "colophonAuthorInput",
+    "colophonCircleInput",
+    "colophonContactInput",
+    "colophonPrinterInput",
+    "colophonNoteInput",
   ];
   INPUT_EVENT_IDS.forEach((id) => {
     if (els[id]) els[id].addEventListener("input", debounceUpdatePreview);
