@@ -45,6 +45,7 @@
     />
     <link rel="stylesheet" href="css/lp.css" />
   </head>
+
   <body>
     <div class="app-shell">
       <div class="mobile-toc-toggle" id="mobileTocToggle">
@@ -82,9 +83,16 @@
           <a href="#header">柱（ヘッダー）</a>
           <a href="#nombre">ノンブル（ページ番号）</a>
 
+          <div class="toc-group-label">前付け・後付け</div>
+          <a href="#frontmatter">中表紙（扉ページ）</a>
+          <a href="#colophon">奥付</a>
+
           <div class="toc-group-label">出力・環境</div>
           <a href="#output">印刷・PDF出力</a>
           <a href="#local">データの保存について</a>
+          <div class="toc-group-label">その他</div>
+          <a href="#license">ライセンスについて</a>
+          <a href="#faq">問い合わせ先</a>
         </div>
       </nav>
 
@@ -131,6 +139,15 @@
               右上の「印刷・PDF出力」から縦書きPDFを書き出すか印刷します。
             </li>
           </ol>
+          <div class="tip-box">
+            <strong>元に戻す・やり直す</strong><br />
+            本文テキスト欄の下にある「元に戻す」「やり直す」ボタンで、直近5世代まで本文の変更を戻せます（<code
+              >Ctrl+Z</code
+            >
+            /
+            <code>Ctrl+Shift+Z</code
+            >のショートカットにも対応）。「消去」「読込」「サンプル」による本文の一括差し替えも対象に含まれます。
+          </div>
         </section>
 
         <section class="doc-section" id="engine">
@@ -194,6 +211,18 @@
                 <td><code>[右]言ノ葉 太郎</code></td>
               </tr>
               <tr>
+                <td>字下げなし</td>
+                <td>
+                  <code>[字下げなし]</code> または <code>[noindent]</code>
+                </td>
+                <td><code>[字下げなし]地の文をそのまま</code></td>
+              </tr>
+              <tr>
+                <td>字下げあり（強制）</td>
+                <td><code>[字下げあり]</code> または <code>[indent]</code></td>
+                <td><code>[字下げあり]「地の文扱いの会話」</code></td>
+              </tr>
+              <tr>
                 <td>手動改ページ</td>
                 <td><code>[改ページ]</code></td>
                 <td><code>[改ページ]</code></td>
@@ -215,6 +244,10 @@
               </tr>
             </tbody>
           </table>
+          <div class="tip-box">
+            <strong>字下げの自動判定と、記法による上書き</strong><br />
+            通常は「」『』などの括弧で始まる会話文は自動的に字下げが省略され、それ以外の地の文は自動で一字下げされます。<code>[字下げなし]</code>・<code>[字下げあり]</code>は、この自動判定を行単位で上書きしたいときに使います。中央寄せ・右寄せと併用した場合は、字下げ指定のほうが優先されます。
+          </div>
         </section>
 
         <section class="doc-section" id="paper">
@@ -296,7 +329,7 @@
                       &quot;MS Mincho&quot;, serif;
                   "
                 >
-                  言ノ葉、静かに紡がれる。
+                  ――言ノ葉、静かに紡がれる……。
                 </td>
               </tr>
               <tr>
@@ -309,7 +342,7 @@
                       &quot;MS Mincho&quot;, serif;
                   "
                 >
-                  言ノ葉、静かに紡がれる。
+                  ――言ノ葉、静かに紡がれる……。
                 </td>
               </tr>
               <tr>
@@ -322,7 +355,7 @@
                       &quot;MS Mincho&quot;, serif;
                   "
                 >
-                  言ノ葉、静かに紡がれる。
+                  ――言ノ葉、静かに紡がれる……。
                 </td>
               </tr>
               <tr>
@@ -335,7 +368,7 @@
                       &quot;MS Mincho&quot;, serif;
                   "
                 >
-                  言ノ葉、静かに紡がれる。
+                  ――言ノ葉、静かに紡がれる……。
                 </td>
               </tr>
               <tr>
@@ -348,7 +381,7 @@
                       serif;
                   "
                 >
-                  言ノ葉、静かに紡がれる。
+                  ――言ノ葉、静かに紡がれる……。
                 </td>
               </tr>
               <tr>
@@ -361,7 +394,7 @@
                       serif;
                   "
                 >
-                  言ノ葉、静かに紡がれる。
+                  ――言ノ葉、静かに紡がれる……。
                 </td>
               </tr>
             </tbody>
@@ -387,7 +420,7 @@
                     font-weight: 300;
                   "
                 >
-                  言ノ葉、静かに紡がれる。
+                  ――言ノ葉、静かに紡がれる……。
                 </td>
               </tr>
               <tr>
@@ -400,7 +433,7 @@
                       sans-serif;
                   "
                 >
-                  言ノ葉、静かに紡がれる。
+                  ――言ノ葉、静かに紡がれる……。
                 </td>
               </tr>
               <tr>
@@ -413,7 +446,7 @@
                       sans-serif;
                   "
                 >
-                  言ノ葉、静かに紡がれる。
+                  ――言ノ葉、静かに紡がれる……。
                 </td>
               </tr>
               <tr>
@@ -426,7 +459,7 @@
                       sans-serif;
                   "
                 >
-                  言ノ葉、静かに紡がれる。
+                  ――言ノ葉、静かに紡がれる……。
                 </td>
               </tr>
             </tbody>
@@ -436,7 +469,7 @@
           <p>
             フォント選択で「カスタムURL指定...」を選ぶと、任意のGoogle
             Fonts等のCSS
-            URLとfont-family名を指定して独自のフォントを読み込めます。
+            URLとfont-family名を指定して独自のフォントを読み込めます。<br />※現在、カスタムフォント機能に対応しているのは本文のみとなります。
           </p>
         </section>
 
@@ -536,21 +569,141 @@
           </div>
         </section>
 
+        <section class="doc-section" id="frontmatter">
+          <h2><span class="section-no">09</span>中表紙（扉ページ）</h2>
+          <p>
+            本文の前に挿入する扉ページです。タイトル・サブタイトル（任意）・著者名（任意）を設定できます。中表紙を作成すると、次に見開きを整えるための空白ページが自動で1枚挿入されます。
+          </p>
+          <table class="ref-table">
+            <thead>
+              <tr>
+                <th>項目</th>
+                <th>選択肢</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>レイアウト</td>
+                <td>
+                  縦書き・中央 / 縦書き・右上 / 横書き・中央 / 横書き・ミニマル
+                </td>
+              </tr>
+              <tr>
+                <td>枠</td>
+                <td>
+                  枠なし / 一重罫線 / 一重罫線（角落とし）/ 点線罫線 /
+                  一重罫線（極太）/ 二重罫線（均等）/ 二重罫線（外太・内細）/
+                  二重罫線（外細・内太）/ 二重罫線＋四隅ポイント / 角飾り /
+                  角飾り（隅立て）
+                </td>
+              </tr>
+              <tr>
+                <td>要素同士の間隔</td>
+                <td>狭い〜広い（5段階）</td>
+              </tr>
+              <tr>
+                <td>区切り線</td>
+                <td>引かない / 引く（長さを20〜100%で指定）</td>
+              </tr>
+              <tr>
+                <td>項目ごとのフォント・文字サイズ</td>
+                <td>
+                  タイトル・サブタイトル・著者名それぞれに独立してフォント・文字サイズを指定可能
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="tip-box">
+            <strong>区切り線について</strong><br />
+            タイトル・サブタイトルと著者名の間に引く線です。縦書きレイアウトでは縦棒、横書きレイアウトでは横棒（水平線）として表示されます。著者名が未入力の場合は表示されません。
+          </div>
+        </section>
+
+        <section class="doc-section" id="colophon">
+          <h2><span class="section-no">10</span>奥付</h2>
+          <p>
+            本文の後に挿入するページです。タイトル・発行日・著者・サークル名・連絡先・印刷所の6項目と、自由記載欄を設定できます。<br />未入力の項目は行ごと表示されず、詰めて配置されるため、「タイトルのみ入力、残りの項目は自由記載欄で入力」といった使い方も可能です。全体のページ数が奇数になる場合は、奥付の直前に空白ページが自動で1枚挿入されます。
+          </p>
+          <table class="ref-table">
+            <thead>
+              <tr>
+                <th>項目</th>
+                <th>選択肢</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>レイアウト</td>
+                <td>縦書き / 横書き</td>
+              </tr>
+              <tr>
+                <td>書き出し位置</td>
+                <td>右寄り / 中央 / 左寄り</td>
+              </tr>
+              <tr>
+                <td>天地位置</td>
+                <td>上寄せ / 中央 / 下寄せ</td>
+              </tr>
+              <tr>
+                <td>文字の揃え方</td>
+                <td>上揃え / 中央揃え / 下揃え</td>
+              </tr>
+              <tr>
+                <td>項目ごとのフォント・文字サイズ</td>
+                <td>
+                  タイトル・固定項目（発行日〜印刷）・自由記載欄の3グループごとに独立してフォント・文字サイズを指定可能
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <h3>自由記載欄の記法</h3>
+          <p>
+            行頭に<code>[中央]</code>または<code>[右]</code>と書くと、その行だけ中央寄せ・右寄せにできます（全角の<code>［中央］</code>・<code>［右］</code>表記にも対応）。本文で使えるルビや太字などのインライン装飾も利用できます。行ごとの寄せ指定は、奥付全体で設定した「文字の揃え方」よりも優先されます。
+          </p>
+          <div class="tip-box">
+            <strong>天地位置と文字の揃え方の違い</strong><br />
+            「天地位置」はページ全体の中で奥付の内容をどこに配置するか、「文字の揃え方」は内容そのものの行揃えです。両者は独立しているため、たとえば「下寄せ配置で中央揃えのテキスト」といった組み合わせも指定できます。
+          </div>
+        </section>
+
         <section class="doc-section" id="output">
-          <h2><span class="section-no">09</span>印刷・PDF出力</h2>
+          <h2><span class="section-no">11</span>印刷・PDF出力</h2>
           <p>
             ブラウザの標準印刷機能を利用し、全ページをプレビュー通り一括レンダリングします。そのまま縦書きPDF保存や印刷が可能で、同人誌入稿や紙面確認にそのまま使用できます。
           </p>
         </section>
 
         <section class="doc-section" id="local">
-          <h2><span class="section-no">10</span>データの保存について</h2>
+          <h2><span class="section-no">12</span>データの保存について</h2>
           <p>
-            原稿データは一切外部サーバーに送信されず、お使いのブラウザ内（LocalStorage）のみで保持されます。<code>.txt</code>や<code>.md</code>のインポート、タイトル指定での<code>.txt</code>保存（エクスポート）に対応しています。
+            原稿データは一切外部サーバーに送信されず、お使いのブラウザ内（LocalStorage）のみで保持されます。<br />テキストファイル<code>.txt</code>やマークダウンファイル<code>.md</code>の読込（インポート）、タイトル指定でのテキストファイル<code>.txt</code>保存（エクスポート）に対応しています。
+          </p>
+        </section>
+
+        <section class="doc-section" id="license">
+          <h2><span class="section-no">13</span>ライセンスについて</h2>
+          <p>
+            <a
+              href="https://github.com/AmayoSakura/kotonoha_edit/blob/main/LICENSE"
+              target="_blank"
+              rel="noopener noreferrer"
+              >MIT License</a
+            >
+          </p>
+        </section>
+
+        <section class="doc-section" id="faq">
+          <h2><span class="section-no">14</span>問い合わせ先</h2>
+          <p>
+            本ツールに関するご意見、バグ報告、機能要望は、以下のいずれかよりご連絡ください。
           </p>
           <p>
-            表示テーマはセピア / ライト / ダーク
-            の3種類から選べ、スマホ・タブレットでは編集/プレビュー画面の切り替えに対応しています。
+            ・<a
+              href="https://github.com/AmayoSakura/kotonoha_edit/issues"
+              target="_blank"
+              rel="noopener"
+              >GitHub</a
+            >
           </p>
         </section>
       </main>

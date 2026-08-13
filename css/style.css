@@ -261,9 +261,11 @@
     gap: 4px;
     margin-bottom: 14px;
     border-bottom: 1px solid var(--line);
+    flex-shrink: 0;
   }
 
   .editor-subtab-btn {
+    flex: 1;
     padding: 8px 14px;
     background: transparent;
     border: none;
@@ -272,6 +274,7 @@
     font-weight: 500;
     color: var(--muted);
     cursor: pointer;
+    text-align: center;
   }
 
   .editor-subtab-btn.active {
@@ -283,6 +286,8 @@
   .editor-subpane {
     display: none;
     flex-direction: column;
+    flex: 1;
+    min-height: 0;
   }
 
   .editor-subpane.active {
@@ -392,6 +397,16 @@
     flex-wrap: wrap;
     gap: 6px;
     margin-top: 14px;
+    flex-shrink: 0;
+  }
+
+  .controls-undo {
+    display: flex;
+    justify-content: space-between;
+    gap: 6px;
+    margin-top: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed var(--border-color, #999999);
     flex-shrink: 0;
   }
 }
@@ -623,28 +638,27 @@
     justify-content: flex-end;
   }
 
-  /* 天地位置に連動して行内の文字位置（縦書きでの上寄せ/下寄せ）も揃える */
-  .colophon-page.colophon-vert-top .colophon-row,
-  .colophon-page.colophon-vert-top .colophon-note {
+  /* 文字の揃え方（縦書きでの上/中央/下揃え）：天地位置とは独立した設定 */
+  .colophon-page.colophon-align-left .colophon-row,
+  .colophon-page.colophon-align-left .colophon-note {
     text-align: left;
   }
 
-  .colophon-page.colophon-vert-bottom .colophon-row,
-  .colophon-page.colophon-vert-bottom .colophon-note {
+  .colophon-page.colophon-align-center .colophon-row,
+  .colophon-page.colophon-align-center .colophon-note {
+    text-align: center;
+  }
+
+  .colophon-page.colophon-align-right .colophon-row,
+  .colophon-page.colophon-align-right .colophon-note {
     text-align: right;
   }
 
-  /* 中表紙：縦書き・中央テンプレート */
-  .cover-vertical-center {
-    writing-mode: vertical-rl;
-    -webkit-writing-mode: vertical-rl;
-    text-orientation: mixed;
+  /* 中表紙：テンプレート共通の要素スタイル */
+  .cover-content {
     font-family: var(--doc-font-family);
     display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 2em;
-    height: 100%;
+    gap: var(--cover-gap, 1.2em);
   }
 
   .cover-title {
@@ -664,17 +678,377 @@
     color: #555555;
   }
 
-  /* 奥付：縦書きテンプレート。書き出し位置＝右→左方向、天地位置＝上下方向の2軸で配置を決める */
-  .colophon-vertical {
+  .cover-divider {
+    background: #999999;
+  }
+
+  /* 縦書きテンプレート：区切り線は縦棒。長さは紙面内側の高さに対する%（余白には突き出さない） */
+  .cover-page.cover-tpl-vertical-center .cover-divider,
+  .cover-page.cover-tpl-vertical-top-right .cover-divider {
+    width: 1px;
+    height: var(--divider-length, 60%);
+    max-height: 100%;
+    margin: 0.3em 0;
+  }
+
+  /* 横書きテンプレート：区切り線は横棒（水平線）。長さは紙面内側の幅に対する% */
+  .cover-page.cover-tpl-horizontal-center .cover-divider,
+  .cover-page.cover-tpl-horizontal-minimal .cover-divider {
+    width: var(--divider-length, 60%);
+    height: 1px;
+    max-width: 100%;
+    margin: 0.4em 0;
+  }
+
+  /* front-matter-page の中央固定を外し、テンプレートごとに配置できるようにする */
+  .cover-page {
+    align-items: stretch;
+    justify-content: stretch;
+  }
+
+  /* テンプレート：縦書き・中央 */
+  .cover-page.cover-tpl-vertical-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cover-page.cover-tpl-vertical-center .cover-content {
     writing-mode: vertical-rl;
     -webkit-writing-mode: vertical-rl;
     text-orientation: mixed;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+  }
+
+  /* テンプレート：縦書き・右上 */
+  .cover-page.cover-tpl-vertical-top-right {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    padding-top: 15%;
+  }
+
+  .cover-page.cover-tpl-vertical-top-right .cover-content {
+    writing-mode: vertical-rl;
+    -webkit-writing-mode: vertical-rl;
+    text-orientation: mixed;
+    flex-direction: column;
+    align-items: flex-start;
+    height: 70%;
+  }
+
+  /* テンプレート：横書き・中央 */
+  .cover-page.cover-tpl-horizontal-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cover-page.cover-tpl-horizontal-center .cover-content {
+    writing-mode: horizontal-tb;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 80%;
+  }
+
+  /* テンプレート：横書き・ミニマル（上寄せ、著者名は右下） */
+  .cover-page.cover-tpl-horizontal-minimal {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding-top: 12%;
+    position: relative;
+  }
+
+  .cover-page.cover-tpl-horizontal-minimal .cover-content {
+    writing-mode: horizontal-tb;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 60%;
+  }
+
+  .cover-page.cover-tpl-horizontal-minimal .cover-author {
+    position: absolute;
+    bottom: 56px;
+    right: 48px;
+  }
+
+  /* 中表紙：枠パターン。ページ内側に罫線・角飾りを描く */
+  .cover-page.cover-frame-single::before {
+    content: "";
+    position: absolute;
+    top: 24px;
+    left: 24px;
+    right: 24px;
+    bottom: 24px;
+    border: 1px solid #999999;
+    pointer-events: none;
+  }
+
+  /* 一重罫線・角落とし：clip-pathで四隅を面取りする */
+  .cover-page.cover-frame-single-clipped::before {
+    content: "";
+    position: absolute;
+    top: 24px;
+    left: 24px;
+    right: 24px;
+    bottom: 24px;
+    border: 1px solid #999999;
+    pointer-events: none;
+    clip-path: polygon(
+      14px 0,
+      calc(100% - 14px) 0,
+      100% 14px,
+      100% calc(100% - 14px),
+      calc(100% - 14px) 100%,
+      14px 100%,
+      0 calc(100% - 14px),
+      0 14px
+    );
+  }
+
+  /* 点線罫線：一重枠の点線バージョン */
+  .cover-page.cover-frame-dotted::before {
+    content: "";
+    position: absolute;
+    top: 24px;
+    left: 24px;
+    right: 24px;
+    bottom: 24px;
+    border: 1px dotted #999999;
+    pointer-events: none;
+  }
+
+  /* 太罫線・一重極太 */
+  .cover-page.cover-frame-single-bold::before {
+    content: "";
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
+    border: 4px solid #999999;
+    pointer-events: none;
+  }
+
+  .cover-page.cover-frame-double::before {
+    content: "";
+    position: absolute;
+    top: 22px;
+    left: 22px;
+    right: 22px;
+    bottom: 22px;
+    border: 1px solid #999999;
+    pointer-events: none;
+  }
+
+  .cover-page.cover-frame-double::after {
+    content: "";
+    position: absolute;
+    top: 27px;
+    left: 27px;
+    right: 27px;
+    bottom: 27px;
+    border: 1px solid #999999;
+    pointer-events: none;
+  }
+
+  .cover-page.cover-frame-double-outer-thick::before {
+    content: "";
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
+    border: 3px solid #999999;
+    pointer-events: none;
+  }
+
+  .cover-page.cover-frame-double-outer-thick::after {
+    content: "";
+    position: absolute;
+    top: 28px;
+    left: 28px;
+    right: 28px;
+    bottom: 28px;
+    border: 1px solid #999999;
+    pointer-events: none;
+  }
+
+  .cover-page.cover-frame-double-inner-thick::before {
+    content: "";
+    position: absolute;
+    top: 22px;
+    left: 22px;
+    right: 22px;
+    bottom: 22px;
+    border: 1px solid #999999;
+    pointer-events: none;
+  }
+
+  .cover-page.cover-frame-double-inner-thick::after {
+    content: "";
+    position: absolute;
+    top: 29px;
+    left: 29px;
+    right: 29px;
+    bottom: 29px;
+    border: 3px solid #999999;
+    pointer-events: none;
+  }
+
+  .cover-page.cover-frame-corner .cover-corner {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    border-color: #999999;
+    pointer-events: none;
+  }
+
+  .cover-page.cover-frame-corner .cover-corner-tl {
+    top: 24px;
+    left: 24px;
+    border-top: 1px solid;
+    border-left: 1px solid;
+  }
+
+  .cover-page.cover-frame-corner .cover-corner-tr {
+    top: 24px;
+    right: 24px;
+    border-top: 1px solid;
+    border-right: 1px solid;
+  }
+
+  .cover-page.cover-frame-corner .cover-corner-bl {
+    bottom: 24px;
+    left: 24px;
+    border-bottom: 1px solid;
+    border-left: 1px solid;
+  }
+
+  .cover-page.cover-frame-corner .cover-corner-br {
+    bottom: 24px;
+    right: 24px;
+    border-bottom: 1px solid;
+    border-right: 1px solid;
+  }
+
+  /* 角飾り・隅立て（和柄風）：L字ではなく「入」字型の短い切れ込み線 */
+  .cover-page.cover-frame-corner-sumitate .cover-corner {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-color: #999999;
+    pointer-events: none;
+  }
+
+  .cover-page.cover-frame-corner-sumitate .cover-corner-tl {
+    top: 24px;
+    left: 24px;
+    border-top: 1px solid;
+    transform: rotate(-45deg);
+    transform-origin: top left;
+  }
+
+  .cover-page.cover-frame-corner-sumitate .cover-corner-tr {
+    top: 24px;
+    right: 24px;
+    border-top: 1px solid;
+    transform: rotate(45deg);
+    transform-origin: top right;
+  }
+
+  .cover-page.cover-frame-corner-sumitate .cover-corner-bl {
+    bottom: 24px;
+    left: 24px;
+    border-bottom: 1px solid;
+    transform: rotate(45deg);
+    transform-origin: bottom left;
+  }
+
+  .cover-page.cover-frame-corner-sumitate .cover-corner-br {
+    bottom: 24px;
+    right: 24px;
+    border-bottom: 1px solid;
+    transform: rotate(-45deg);
+    transform-origin: bottom right;
+  }
+
+  /* 二重罫線＋四隅ポイント：均等二重線に、角の小さな点飾りを合成 */
+  .cover-page.cover-frame-double-corner-point::before {
+    content: "";
+    position: absolute;
+    top: 22px;
+    left: 22px;
+    right: 22px;
+    bottom: 22px;
+    border: 1px solid #999999;
+    pointer-events: none;
+  }
+
+  .cover-page.cover-frame-double-corner-point::after {
+    content: "";
+    position: absolute;
+    top: 27px;
+    left: 27px;
+    right: 27px;
+    bottom: 27px;
+    border: 1px solid #999999;
+    pointer-events: none;
+  }
+
+  .cover-page.cover-frame-double-corner-point .cover-corner-point {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background-color: #999999;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .cover-page.cover-frame-double-corner-point .cover-corner-point-tl {
+    top: 19px;
+    left: 19px;
+  }
+
+  .cover-page.cover-frame-double-corner-point .cover-corner-point-tr {
+    top: 19px;
+    right: 19px;
+  }
+
+  .cover-page.cover-frame-double-corner-point .cover-corner-point-bl {
+    bottom: 19px;
+    left: 19px;
+  }
+
+  .cover-page.cover-frame-double-corner-point .cover-corner-point-br {
+    bottom: 19px;
+    right: 19px;
+  }
+
+  /* 奥付：共通コンテナ。書字方向はテンプレートクラス側で指定する */
+  .colophon-content {
     font-family: var(--doc-font-family);
     display: flex;
     flex-direction: column;
     gap: 3em;
-    width: 100%;
     font-size: 0.82em;
+  }
+
+  .colophon-page.colophon-tpl-vertical .colophon-content {
+    writing-mode: vertical-rl;
+    -webkit-writing-mode: vertical-rl;
+    text-orientation: mixed;
+    width: 100%;
+  }
+
+  .colophon-page.colophon-tpl-horizontal .colophon-content {
+    writing-mode: horizontal-tb;
+    height: 100%;
   }
 
   .colophon-fields {
@@ -686,6 +1060,12 @@
   .colophon-row {
     line-height: 2.2;
     white-space: nowrap;
+  }
+
+  .colophon-page.colophon-tpl-vertical .colophon-row .tcy-colon {
+    display: inline-block;
+    transform: rotate(90deg);
+    transform-origin: center;
   }
 
   .colophon-title {
@@ -700,26 +1080,29 @@
     line-height: 2;
   }
 
-  /* 占有する高さ：フルは表示上の制約を設けず、天地位置の効果がそのまま見えるようにする */
-  .colophon-page.colophon-full .colophon-vertical {
-    max-height: 100%;
+  .note-line {
+    line-height: 2;
   }
 
-  /* 占有する高さ：ハーフは天地の半分程度を上限とする */
-  .colophon-page.colophon-half .colophon-vertical {
-    max-height: 50%;
+  /* 行ごとの寄せ記法（[中央]/[右]）を、奥付全体の「文字の揃え方」設定より優先する */
+  .colophon-note .note-line.align-center {
+    text-align: center;
   }
 
-  /* 書き出し位置：column方向（縦書きの右→左）が主軸のため justify-content で制御 */
-  .colophon-page.colophon-write-lead .colophon-vertical {
+  .colophon-note .note-line.align-right {
+    text-align: right;
+  }
+
+  /* 書き出し位置：縦書きは右→左（column主軸）、横書きは上→下（column主軸）で制御 */
+  .colophon-page.colophon-write-lead .colophon-content {
     justify-content: flex-start;
   }
 
-  .colophon-page.colophon-write-center .colophon-vertical {
+  .colophon-page.colophon-write-center .colophon-content {
     justify-content: center;
   }
 
-  .colophon-page.colophon-write-trail .colophon-vertical {
+  .colophon-page.colophon-write-trail .colophon-content {
     justify-content: flex-end;
   }
 
@@ -773,7 +1156,7 @@
   }
 
   .column-divider {
-    border-top: 1px solid #d4cfc4;
+    border-top: 1px solid #dddddd;
     width: 100%;
     margin: 2mm 0;
     flex-shrink: 0;
@@ -836,7 +1219,7 @@
   .md-body hr {
     margin: 0 12px;
     border: 0;
-    border-right: 1px solid #dddddd;
+    border-right: 1px solid #aaaaaa;
     height: 100%;
   }
 
