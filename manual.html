@@ -49,6 +49,11 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@300&family=RocknRoll+One&family=IBM+Plex+Sans+JP:wght@400&family=LINE+Seed+JP:wght@400&family=Klee+One&family=Yomogi&display=swap"
     />
+    <!-- 中表紙・奥付用 欧文フォントプリセット -->
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Bonheur+Royale&family=Crafty+Girls&family=Fleur+De+Leah&family=Google+Sans+Flex:opsz,wght@6..144,1..1000&family=Henny+Penny&family=Kranky&family=Michroma&family=Zen+Loop:ital@0;1&display=swap"
+    />
     <link rel="stylesheet" href="css/lp.css" />
   </head>
 
@@ -96,6 +101,7 @@
           <div class="toc-group-label">出力・環境</div>
           <a href="#output">印刷・PDF出力</a>
           <a href="#local">データの保存について</a>
+          <a href="#pwa">アプリとしてインストール</a>
           <div class="toc-group-label">その他</div>
           <a href="#license">ライセンスについて</a>
           <a href="#faq">問い合わせ先</a>
@@ -231,7 +237,12 @@
               <tr>
                 <td>手動改ページ</td>
                 <td><code>[改ページ]</code></td>
-                <td><code>[改ページ]</code></td>
+                <td><code>[改ページ]</code>（行頭に単独で記載）</td>
+              </tr>
+              <tr>
+                <td>タイトル内の改行位置指定</td>
+                <td><code>[改行]</code></td>
+                <td><code>言ノ葉[改行]Editer</code></td>
               </tr>
               <tr>
                 <td>見出し</td>
@@ -250,6 +261,11 @@
               </tr>
             </tbody>
           </table>
+          <div class="tip-box">
+            <strong>[改行]記法について</strong><br />
+            <code>[改行]</code
+            >は本文中では使用できません。中表紙タイトル・中表紙サブタイトル・奥付タイトルの入力欄（1行のテキスト入力）専用の記法で、挿入した位置で強制的に改行されます。
+          </div>
           <div class="tip-box">
             <strong>字下げの自動判定と、記法による上書き</strong><br />
             通常は「」『』などの括弧で始まる会話文は自動的に字下げが省略され、それ以外の地の文は自動で一字下げされます。<code>[字下げなし]</code>・<code>[字下げあり]</code>は、この自動判定を行単位で上書きしたいときに使います。中央寄せ・右寄せと併用した場合は、字下げ指定のほうが優先されます。
@@ -311,9 +327,8 @@
         <section class="doc-section" id="font">
           <h2><span class="section-no">06</span>フォント</h2>
           <p>
-            明朝体を中心に10種類のプリセットフォントから選べるほか、任意のGoogle
-            Fonts等のCSS/Font
-            URLとfamily名を指定するカスタムWebフォントにも対応しています。
+            本文には和文フォント10種、中表紙・奥付にはそれに加えて欧文フォント10種のプリセットが用意されています。いずれの項目も「カスタムURL指定...」を選ぶことで、任意のGoogle
+            Fonts等のWebフォントに差し替えられます。
           </p>
 
           <h3>明朝体（本文向き）</h3>
@@ -471,12 +486,165 @@
             </tbody>
           </table>
 
+          <h3>欧文フォント（中表紙・奥付向き）</h3>
+          <p>
+            中表紙のタイトル・サブタイトル・著者名、奥付のタイトル・固定項目・自由記載欄、それぞれのフォント選択欄で、和文10種の後ろに以下の欧文フォントが並びます。英字タイトルにこだわりたい場合にお使いください。
+          </p>
+          <table class="ref-table">
+            <thead>
+              <tr>
+                <th>フォント名</th>
+                <th>サンプル</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Cormorant Garamond</td>
+                <td
+                  class="font-sample"
+                  style="font-family: &quot;Cormorant Garamond&quot;, serif"
+                >
+                  Kotonoha Editer
+                </td>
+              </tr>
+              <tr>
+                <td>Montserrat</td>
+                <td
+                  class="font-sample"
+                  style="font-family: &quot;Montserrat&quot;, sans-serif"
+                >
+                  Kotonoha Editer
+                </td>
+              </tr>
+              <tr>
+                <td>Bonheur Royale</td>
+                <td
+                  class="font-sample"
+                  style="font-family: &quot;Bonheur Royale&quot;, cursive"
+                >
+                  Kotonoha Editer
+                </td>
+              </tr>
+              <tr>
+                <td>Crafty Girls</td>
+                <td
+                  class="font-sample"
+                  style="font-family: &quot;Crafty Girls&quot;, cursive"
+                >
+                  Kotonoha Editer
+                </td>
+              </tr>
+              <tr>
+                <td>Fleur De Leah</td>
+                <td
+                  class="font-sample"
+                  style="font-family: &quot;Fleur De Leah&quot;, cursive"
+                >
+                  Kotonoha Editer
+                </td>
+              </tr>
+              <tr>
+                <td>Google Sans Flex</td>
+                <td
+                  class="font-sample"
+                  style="font-family: &quot;Google Sans Flex&quot;, sans-serif"
+                >
+                  Kotonoha Editer
+                </td>
+              </tr>
+              <tr>
+                <td>Henny Penny</td>
+                <td
+                  class="font-sample"
+                  style="font-family: &quot;Henny Penny&quot;, cursive"
+                >
+                  Kotonoha Editer
+                </td>
+              </tr>
+              <tr>
+                <td>Kranky</td>
+                <td
+                  class="font-sample"
+                  style="font-family: &quot;Kranky&quot;, cursive"
+                >
+                  Kotonoha Editer
+                </td>
+              </tr>
+              <tr>
+                <td>Michroma</td>
+                <td
+                  class="font-sample"
+                  style="font-family: &quot;Michroma&quot;, sans-serif"
+                >
+                  Kotonoha Editer
+                </td>
+              </tr>
+              <tr>
+                <td>Zen Loop</td>
+                <td
+                  class="font-sample"
+                  style="font-family: &quot;Zen Loop&quot;, cursive"
+                >
+                  Kotonoha Editer
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
           <h3>カスタムWebフォント</h3>
           <p>
-            フォント選択で「カスタムURL指定...」を選ぶと、任意のGoogle
-            Fonts等のCSS
-            URLとfont-family名を指定して独自のフォントを読み込めます。<br />※現在、カスタムフォント機能に対応しているのは本文のみとなります。
+            プリセットにないフォントを使いたい場合は、フォント選択で「カスタムURL指定...」を選ぶと、CSS/Font
+            URLとfamily名を入力する欄が表示されます。本文・中表紙（タイトル／サブタイトル／著者名）・奥付（タイトル／固定項目／自由記載欄）のあわせて7項目、それぞれ個別にカスタムフォントを指定できます。
           </p>
+
+          <h4 style="margin: 18px 0 8px; font-size: 15px">
+            設定の手順（Google Fontsを例に）
+          </h4>
+          <ol class="steps-list">
+            <li>
+              <strong>使いたいフォントをGoogle Fontsで探す</strong> —
+              <a
+                href="https://fonts.google.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                >fonts.google.com</a
+              >
+              で好みのフォントを選びます。ここでは例として「Zen
+              Kurenaido」というフォントを使うとします。
+            </li>
+            <li>
+              <strong>埋め込み用のCSS URLを取得する</strong> —
+              フォントページの「Get font」→「Get embed
+              code」を開くと、次のような<code>&lt;link&gt;</code>タグが表示されます。
+              <div class="panel-card" style="margin-top: 8px">
+                <code
+                  >&lt;link
+                  href="https://fonts.googleapis.com/css2?family=Zen+Kurenaido&amp;display=swap"
+                  rel="stylesheet"&gt;</code
+                >
+              </div>
+              この<code>href="..."</code>の中身（<code>https://fonts.googleapis.com/css2?family=Zen+Kurenaido&amp;display=swap</code>）だけをコピーします。
+            </li>
+            <li>
+              <strong>「CSS/Font URL」欄に貼り付ける</strong> —
+              手順2でコピーしたURLをそのまま貼り付けます。
+            </li>
+            <li>
+              <strong>「family名」欄にフォント名を入力する</strong> — Google
+              Fontsのフォント名をそのままダブルクォートで囲んで入力します。今回の例なら
+              <code>"Zen Kurenaido"</code> と入力します（末尾に
+              <code>, sans-serif</code>
+              のような総称フォント名を足しておくと、万一読み込みに失敗した際のフォールバックになり安全です）。
+            </li>
+          </ol>
+          <div class="tip-box">
+            <strong>family名の書き方</strong><br />
+            family名はCSSの<code>font-family</code>プロパティにそのまま渡されます。フォント名にスペースが含まれる場合は
+            <code>"Zen Kurenaido"</code>
+            のようにダブルクォートで囲んでください。複数指定する場合はカンマ区切りで
+            <code>"Zen Kurenaido", "Noto Serif JP", serif</code>
+            のように書けます。
+          </div>
         </section>
 
         <section class="doc-section" id="header">
@@ -614,7 +782,10 @@
               <tr>
                 <td>項目ごとのフォント・文字サイズ</td>
                 <td>
-                  タイトル・サブタイトル・著者名それぞれに独立してフォント・文字サイズを指定可能
+                  タイトル・サブタイトル・著者名それぞれに独立してフォント・文字サイズを指定可能（欧文フォント・カスタムWebフォントにも個別対応。詳細は<a
+                    href="#font"
+                    >06 フォント</a
+                  >を参照）
                 </td>
               </tr>
             </tbody>
@@ -622,6 +793,13 @@
           <div class="tip-box">
             <strong>区切り線について</strong><br />
             タイトル・サブタイトルと著者名の間に引く線です。縦書きレイアウトでは縦棒、横書きレイアウトでは横棒（水平線）として表示されます。著者名が未入力の場合は表示されません。
+          </div>
+          <div class="tip-box">
+            <strong>タイトルの改行位置指定</strong><br />
+            タイトル・サブタイトルの入力欄内で<code>[改行]</code>と入力すると、その位置で強制的に改行できます（詳細は<a
+              href="#markup"
+              >04 組版マークアップ</a
+            >を参照）。
           </div>
         </section>
 
@@ -657,7 +835,10 @@
               <tr>
                 <td>項目ごとのフォント・文字サイズ</td>
                 <td>
-                  タイトル・固定項目（発行日〜印刷）・自由記載欄の3グループごとに独立してフォント・文字サイズを指定可能
+                  タイトル・固定項目（発行日〜印刷）・自由記載欄の3グループごとに独立してフォント・文字サイズを指定可能（欧文フォント・カスタムWebフォントにも個別対応。詳細は<a
+                    href="#font"
+                    >06 フォント</a
+                  >を参照）
                 </td>
               </tr>
             </tbody>
@@ -666,9 +847,19 @@
           <p>
             行頭に<code>[中央]</code>または<code>[右]</code>と書くと、その行だけ中央寄せ・右寄せにできます（全角の<code>［中央］</code>・<code>［右］</code>表記にも対応）。本文で使えるルビや太字などのインライン装飾も利用できます。行ごとの寄せ指定は、奥付全体で設定した「文字の揃え方」よりも優先されます。
           </p>
+          <p>
+            また、<code>---</code>（<code>***</code>・<code>___</code>でも可）のみの行を書くと、区切り線（罫線）が引かれます。縦書きレイアウトでは縦罫線、横書きレイアウトでは横罫線として表示されます。固定項目（発行日〜印刷）を使わず、タイトルと自由記載欄だけで奥付を完結させたい場合に活用できます。
+          </p>
           <div class="tip-box">
             <strong>天地位置と文字の揃え方の違い</strong><br />
             「天地位置」はページ全体の中で奥付の内容をどこに配置するか、「文字の揃え方」は内容そのものの行揃えです。両者は独立しているため、たとえば「下寄せ配置で中央揃えのテキスト」といった組み合わせも指定できます。
+          </div>
+          <div class="tip-box">
+            <strong>タイトルの改行位置指定</strong><br />
+            奥付タイトルの入力欄内で<code>[改行]</code>と入力すると、その位置で強制的に改行できます（詳細は<a
+              href="#markup"
+              >04 組版マークアップ</a
+            >を参照）。
           </div>
         </section>
 
@@ -686,8 +877,41 @@
           </p>
         </section>
 
+        <section class="doc-section" id="pwa">
+          <h2><span class="section-no">13</span>アプリとしてインストール</h2>
+          <p>
+            言ノ葉Editerはブラウザから開くだけで使えますが、お使いの端末に「アプリ」としてインストールし、オフラインでも起動できるようにすることも可能です（PWA対応）。原稿データの保存先はインストール前後で変わらず、引き続きお使いのブラウザ内（LocalStorage）です。
+          </p>
+          <table class="ref-table">
+            <thead>
+              <tr>
+                <th>環境</th>
+                <th>手順</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>PC（Chrome / Edge）</td>
+                <td>
+                  アドレスバー右端のインストールアイコンをクリック→「インストール」
+                </td>
+              </tr>
+              <tr>
+                <td>Android（Chrome）</td>
+                <td>
+                  メニュー（<code>⋮</code>）→「アプリをインストール」または「ホーム画面に追加」
+                </td>
+              </tr>
+              <tr>
+                <td>iPhone / iPad（Safari）</td>
+                <td>共有ボタンをタップ→「ホーム画面に追加」</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
         <section class="doc-section" id="license">
-          <h2><span class="section-no">13</span>ライセンスについて</h2>
+          <h2><span class="section-no">14</span>ライセンスについて</h2>
           <p>
             <a
               href="https://github.com/AmayoSakura/kotonoha_edit/blob/main/LICENSE"
@@ -699,7 +923,7 @@
         </section>
 
         <section class="doc-section" id="faq">
-          <h2><span class="section-no">14</span>問い合わせ先</h2>
+          <h2><span class="section-no">15</span>問い合わせ先</h2>
           <p>
             本ツールに関するご意見、バグ報告、機能要望は、以下のいずれかよりご連絡ください。
           </p>
