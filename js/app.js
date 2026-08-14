@@ -11,6 +11,22 @@ window.addEventListener("DOMContentLoaded", function () {
       if (target) target.classList.add("active");
     });
   });
+  const subtabButtons = document.querySelectorAll(".editor-subtab-btn");
+  const subtabPanes = document.querySelectorAll(".editor-subpane");
+  subtabButtons.forEach((btn) => {
+    btn.addEventListener("click", function () {
+      subtabButtons.forEach((b) => b.classList.remove("active"));
+      subtabPanes.forEach((p) => p.classList.remove("active"));
+      this.classList.add("active");
+      const target = document.getElementById(this.dataset.target);
+      if (target) target.classList.add("active");
+      if (this.dataset.target === "subpane-cover") {
+        jumpToPageTypeInPreview("cover");
+      } else if (this.dataset.target === "subpane-colophon") {
+        jumpToPageTypeInPreview("colophon");
+      }
+    });
+  });
   const CONFIG_KEYS = {
     pageTitle: "title",
     pageHeader: "header",
@@ -37,15 +53,114 @@ window.addEventListener("DOMContentLoaded", function () {
     nombrePosSelect: "nombrePos",
     nombreSizeSelect: "nombreSize",
     nombreTypeSelect: "nombreType",
+    coverEnableToggle: "coverEnable",
+    coverTitleInput: "coverTitle",
+    coverSubtitleInput: "coverSubtitle",
+    coverAuthorInput: "coverAuthor",
+    coverTemplateSelect: "coverTemplate",
+    coverFrameSelect: "coverFrame",
+    coverTitleFontSelect: "coverTitleFont",
+    coverSubtitleFontSelect: "coverSubtitleFont",
+    coverAuthorFontSelect: "coverAuthorFont",
+    coverTitleSizeSelect: "coverTitleSize",
+    coverSubtitleSizeSelect: "coverSubtitleSize",
+    coverAuthorSizeSelect: "coverAuthorSize",
+    coverDividerToggle: "coverDivider",
+    coverDividerLengthSelect: "coverDividerLength",
+    coverGapSelect: "coverGap",
+    colophonEnableToggle: "colophonEnable",
+    colophonTitleInput: "colophonTitle",
+    colophonDateInput: "colophonDate",
+    colophonAuthorInput: "colophonAuthor",
+    colophonCircleInput: "colophonCircle",
+    colophonContactInput: "colophonContact",
+    colophonPrinterInput: "colophonPrinter",
+    colophonNoteInput: "colophonNote",
+    colophonTitleFontSelect: "colophonTitleFont",
+    colophonFieldsFontSelect: "colophonFieldsFont",
+    colophonNoteFontSelect: "colophonNoteFont",
+    colophonTitleSizeSelect: "colophonTitleSize",
+    colophonFieldsSizeSelect: "colophonFieldsSize",
+    colophonNoteSizeSelect: "colophonNoteSize",
+    colophonTemplateSelect: "colophonTemplate",
+    colophonWritePosSelect: "colophonWritePos",
+    colophonVertPosSelect: "colophonVertPos",
+    colophonAlignSelect: "colophonAlign",
+    coverTitleCustomFontUrl: "coverTitleCustomFontUrl",
+    coverTitleCustomFontFamily: "coverTitleCustomFontFamily",
+    coverSubtitleCustomFontUrl: "coverSubtitleCustomFontUrl",
+    coverSubtitleCustomFontFamily: "coverSubtitleCustomFontFamily",
+    coverAuthorCustomFontUrl: "coverAuthorCustomFontUrl",
+    coverAuthorCustomFontFamily: "coverAuthorCustomFontFamily",
+    colophonTitleCustomFontUrl: "colophonTitleCustomFontUrl",
+    colophonTitleCustomFontFamily: "colophonTitleCustomFontFamily",
+    colophonFieldsCustomFontUrl: "colophonFieldsCustomFontUrl",
+    colophonFieldsCustomFontFamily: "colophonFieldsCustomFontFamily",
+    colophonNoteCustomFontUrl: "colophonNoteCustomFontUrl",
+    colophonNoteCustomFontFamily: "colophonNoteCustomFontFamily",
   };
   const els = {};
   Object.keys(CONFIG_KEYS).forEach((id) => {
     els[id] = document.getElementById(id);
   });
   const customFontRow = document.getElementById("customFontRow");
+  const FRONT_MATTER_FONT_FIELDS = [
+    {
+      selectId: "coverTitleFontSelect",
+      colId: "coverTitleCustomFontCol",
+      urlId: "coverTitleCustomFontUrl",
+      familyId: "coverTitleCustomFontFamily",
+      dataKey: "coverTitleCustomFontFamily",
+      linkId: "dynamic-cover-title-font-link",
+    },
+    {
+      selectId: "coverSubtitleFontSelect",
+      colId: "coverSubtitleCustomFontCol",
+      urlId: "coverSubtitleCustomFontUrl",
+      familyId: "coverSubtitleCustomFontFamily",
+      dataKey: "coverSubtitleCustomFontFamily",
+      linkId: "dynamic-cover-subtitle-font-link",
+    },
+    {
+      selectId: "coverAuthorFontSelect",
+      colId: "coverAuthorCustomFontCol",
+      urlId: "coverAuthorCustomFontUrl",
+      familyId: "coverAuthorCustomFontFamily",
+      dataKey: "coverAuthorCustomFontFamily",
+      linkId: "dynamic-cover-author-font-link",
+    },
+    {
+      selectId: "colophonTitleFontSelect",
+      colId: "colophonTitleCustomFontCol",
+      urlId: "colophonTitleCustomFontUrl",
+      familyId: "colophonTitleCustomFontFamily",
+      dataKey: "colophonTitleCustomFontFamily",
+      linkId: "dynamic-colophon-title-font-link",
+    },
+    {
+      selectId: "colophonFieldsFontSelect",
+      colId: "colophonFieldsCustomFontCol",
+      urlId: "colophonFieldsCustomFontUrl",
+      familyId: "colophonFieldsCustomFontFamily",
+      dataKey: "colophonFieldsCustomFontFamily",
+      linkId: "dynamic-colophon-fields-font-link",
+    },
+    {
+      selectId: "colophonNoteFontSelect",
+      colId: "colophonNoteCustomFontCol",
+      urlId: "colophonNoteCustomFontUrl",
+      familyId: "colophonNoteCustomFontFamily",
+      dataKey: "colophonNoteCustomFontFamily",
+      linkId: "dynamic-colophon-note-font-link",
+    },
+  ];
   const customMarginRow = document.getElementById("customMarginRow");
   const gutterWidthRow = document.getElementById("gutterWidthRow");
   const columnRuleCol = document.getElementById("columnRuleCol");
+  const coverFieldsGroup = document.getElementById("coverFieldsGroup");
+  const colophonFieldsGroup = document.getElementById("colophonFieldsGroup");
+  els.undoButton = document.getElementById("undoButton");
+  els.redoButton = document.getElementById("redoButton");
   const charCount = document.getElementById("charCount");
   const pagesContainer = document.getElementById("pagesContainer");
   const layoutSpinner = document.getElementById("layoutSpinner");
@@ -65,12 +180,62 @@ window.addEventListener("DOMContentLoaded", function () {
   let currentPageIndex = 0;
   let isTyping = false;
   let typingIdleTimer = null;
+  const UNDO_LIMIT = 5;
+  let undoStack = [];
+  let redoStack = [];
+  let undoDebounceTimer = null;
+  let lastSnapshot = null;
   function markTypingActive() {
     isTyping = true;
     clearTimeout(typingIdleTimer);
     typingIdleTimer = setTimeout(() => {
       isTyping = false;
     }, 250);
+  }
+  function updateUndoRedoButtons() {
+    if (els.undoButton) els.undoButton.disabled = undoStack.length === 0;
+    if (els.redoButton) els.redoButton.disabled = redoStack.length === 0;
+  }
+  function pushUndoSnapshot(previousValue) {
+    undoStack.push(previousValue);
+    if (undoStack.length > UNDO_LIMIT) undoStack.shift();
+    redoStack = [];
+    updateUndoRedoButtons();
+  }
+  function scheduleUndoSnapshot() {
+    if (lastSnapshot === null) lastSnapshot = els.sourceText.value;
+    clearTimeout(undoDebounceTimer);
+    undoDebounceTimer = setTimeout(() => {
+      const current = els.sourceText.value;
+      if (current !== lastSnapshot) {
+        pushUndoSnapshot(lastSnapshot);
+      }
+      lastSnapshot = current;
+    }, 600);
+  }
+  function performUndo() {
+    if (undoStack.length === 0) return;
+    clearTimeout(undoDebounceTimer);
+    const current = els.sourceText.value;
+    const previous = undoStack.pop();
+    redoStack.push(current);
+    if (redoStack.length > UNDO_LIMIT) redoStack.shift();
+    els.sourceText.value = previous;
+    lastSnapshot = previous;
+    updateUndoRedoButtons();
+    updatePreview();
+  }
+  function performRedo() {
+    if (redoStack.length === 0) return;
+    clearTimeout(undoDebounceTimer);
+    const current = els.sourceText.value;
+    const next = redoStack.pop();
+    undoStack.push(current);
+    if (undoStack.length > UNDO_LIMIT) undoStack.shift();
+    els.sourceText.value = next;
+    lastSnapshot = next;
+    updateUndoRedoButtons();
+    updatePreview();
   }
   let syncEnabled = true;
   function findPageIndexForSrcIndex(srcIndex) {
@@ -158,6 +323,16 @@ window.addEventListener("DOMContentLoaded", function () {
     lineseedregular: '"LINE Seed JP", "Hiragino Sans", sans-serif',
     klee: '"Klee One", "Hiragino Mincho ProN", serif',
     yomogi: '"Yomogi", "Hiragino Mincho ProN", serif',
+    cormorant: '"Cormorant Garamond", "Times New Roman", serif',
+    montserrat: '"Montserrat", "Hiragino Sans", sans-serif',
+    bonheurroyale: '"Bonheur Royale", cursive',
+    craftygirls: '"Crafty Girls", cursive',
+    fleurdeleah: '"Fleur De Leah", cursive',
+    googlesansflex: '"Google Sans Flex", "Hiragino Sans", sans-serif',
+    hennypenny: '"Henny Penny", cursive',
+    kranky: '"Kranky", cursive',
+    michroma: '"Michroma", sans-serif',
+    zenloop: '"Zen Loop", cursive',
   };
   const FONT_WEIGHTS = {
     plexjpregular: "400",
@@ -233,6 +408,7 @@ window.addEventListener("DOMContentLoaded", function () {
       ) {
         customFontRow.style.display = "flex";
       }
+      updateAllFrontMatterCustomFontColVisibility();
       if (
         els.marginSelect &&
         els.marginSelect.value === "custom" &&
@@ -266,6 +442,15 @@ window.addEventListener("DOMContentLoaded", function () {
         document.getElementById("dynamic-font-link").href = url;
       }
     }
+    FRONT_MATTER_FONT_FIELDS.forEach((f) => {
+      const urlEl = els[f.urlId];
+      if (!urlEl) return;
+      const fmUrl = urlEl.value.trim();
+      if (fmUrl && /^https:\/\/[^\s"'<>]+$/i.test(fmUrl)) {
+        const fmLink = document.getElementById(f.linkId);
+        if (fmLink) fmLink.href = fmUrl;
+      }
+    });
     document.documentElement.style.setProperty("--paper-w", conf.w + "mm");
     document.documentElement.style.setProperty("--paper-h", conf.h + "mm");
     document.documentElement.style.setProperty(
@@ -303,6 +488,9 @@ window.addEventListener("DOMContentLoaded", function () {
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
+  }
+  function applyTitleManualLineBreaks(escapedText) {
+    return escapedText.replace(/\[改行\]/g, "<br>");
   }
   function parseInlineVerticalMarkdown(text) {
     let value = escapeHtml(text);
@@ -384,6 +572,22 @@ window.addEventListener("DOMContentLoaded", function () {
         const rightMatch = textToParse.match(
           /^(?:\[(?:右|right)\]|［(?:右|right)］)\s*(.*)$/i,
         );
+        const noIndentMatch = textToParse.match(
+          /^(?:\[(?:字下げなし|noindent)\]|［(?:字下げなし|noindent)］)\s*(.*)$/i,
+        );
+        const forceIndentMatch = textToParse.match(
+          /^(?:\[(?:字下げあり|indent)\]|［(?:字下げあり|indent)］)\s*(.*)$/i,
+        );
+        let forceIndent = null;
+        if (noIndentMatch) {
+          forceIndent = false;
+          localOffset += textToParse.length - noIndentMatch[1].length;
+          textToParse = noIndentMatch[1];
+        } else if (forceIndentMatch) {
+          forceIndent = true;
+          localOffset += textToParse.length - forceIndentMatch[1].length;
+          textToParse = forceIndentMatch[1];
+        }
         if (centerMatch) {
           align = "center";
           localOffset += textToParse.length - centerMatch[1].length;
@@ -428,6 +632,7 @@ window.addEventListener("DOMContentLoaded", function () {
         items.push({
           type: "p",
           isBracket,
+          forceIndent,
           text: textToParse,
           align: align,
           startIndex: lineAbsStart + leadingWs + localOffset,
@@ -1126,7 +1331,10 @@ window.addEventListener("DOMContentLoaded", function () {
             );
           });
         } else if (item.type === "p") {
-          const pHasIndent = !item.isBracket && !item.align;
+          const pHasIndent =
+            item.forceIndent !== null && item.forceIndent !== undefined
+              ? item.forceIndent
+              : !item.isBracket && !item.align;
           const pCacheKey =
             "p|" +
             (item.isBracket ? "1" : "0") +
@@ -1148,7 +1356,7 @@ window.addEventListener("DOMContentLoaded", function () {
                 type: "p",
                 text: pLine.raw,
                 isBracket: item.isBracket,
-                isIndent: idx === 0 && !item.isBracket && !item.align,
+                isIndent: idx === 0 && pHasIndent,
                 align: item.align,
                 srcIndex: item.startIndex + pLine.startOffset,
               },
@@ -1280,9 +1488,195 @@ window.addEventListener("DOMContentLoaded", function () {
     }
     return result || String(num);
   }
+  function renderBlankPageDom(pageEl, pageData) {
+    pageEl.className = "paper-page";
+    pageEl.innerHTML = "";
+  }
+  function renderCoverPageDom(pageEl, pageData) {
+    const frameClass = " cover-frame-" + (pageData.coverFrame || "none");
+    const templateClass =
+      " cover-tpl-" + (pageData.coverTemplate || "vertical-center");
+    pageEl.className =
+      "paper-page front-matter-page cover-page" + frameClass + templateClass;
+    const title = applyTitleManualLineBreaks(
+      escapeHtml(pageData.coverTitle || ""),
+    );
+    const resolveFrontMatterFont = (key, customFamily) =>
+      key === "custom"
+        ? escapeHtml(customFamily || "serif")
+        : FONTS[key] || FONTS.noto;
+    const titleFont = resolveFrontMatterFont(
+      pageData.coverTitleFont,
+      pageData.coverTitleCustomFontFamily,
+    );
+    const subtitleFont = resolveFrontMatterFont(
+      pageData.coverSubtitleFont,
+      pageData.coverSubtitleCustomFontFamily,
+    );
+    const authorFont = resolveFrontMatterFont(
+      pageData.coverAuthorFont,
+      pageData.coverAuthorCustomFontFamily,
+    );
+    const titleSize = pageData.coverTitleSize || "1.6";
+    const subtitleSize = pageData.coverSubtitleSize || "0.9";
+    const authorSize = pageData.coverAuthorSize || "0.85";
+    const subtitle = pageData.coverSubtitle
+      ? `<div class="cover-subtitle" style='font-family:${subtitleFont};font-size:${subtitleSize}em'>${applyTitleManualLineBreaks(escapeHtml(pageData.coverSubtitle))}</div>`
+      : "";
+    const author = pageData.coverAuthor
+      ? `<div class="cover-author" style='font-family:${authorFont};font-size:${authorSize}em'>${escapeHtml(pageData.coverAuthor)}</div>`
+      : "";
+    const divider =
+      pageData.coverDivider && pageData.coverAuthor
+        ? `<div class="cover-divider" style="--divider-length:${pageData.coverDividerLength || 60}%"></div>`
+        : "";
+    const corners =
+      pageData.coverFrame === "corner" ||
+      pageData.coverFrame === "corner-sumitate"
+        ? '<div class="cover-corner cover-corner-tl"></div>' +
+          '<div class="cover-corner cover-corner-tr"></div>' +
+          '<div class="cover-corner cover-corner-bl"></div>' +
+          '<div class="cover-corner cover-corner-br"></div>'
+        : pageData.coverFrame === "double-corner-point"
+          ? '<div class="cover-corner-point cover-corner-point-tl"></div>' +
+            '<div class="cover-corner-point cover-corner-point-tr"></div>' +
+            '<div class="cover-corner-point cover-corner-point-bl"></div>' +
+            '<div class="cover-corner-point cover-corner-point-br"></div>'
+          : "";
+    const gap = pageData.coverGap || "1.2";
+    pageEl.innerHTML =
+      corners +
+      `<div class="cover-content" style="--cover-gap:${gap}em">` +
+      `<div class="cover-title" style='font-family:${titleFont};font-size:${titleSize}em'>${title}</div>` +
+      subtitle +
+      divider +
+      author +
+      "</div>";
+  }
+  function wrapColonForVertical(labelText) {
+    // 全角コロン「：」は縦書き時に縦長に伸びて見えるため、90度回転させて横向きに固定する
+    return labelText.replace(/：/g, '<span class="tcy-colon">：</span>');
+  }
+  function parseSimpleNoteMarkdown(text) {
+    // 自由記載欄用の軽量パーサー。ページ送り等は扱わず、行ごとの寄せ記法とインライン装飾のみに対応する
+    if (!text) return "";
+    const lines = text.split(/\r\n|\r|\n/);
+    return lines
+      .map((line) => {
+        const trimmed = line.trim();
+        if (trimmed === "")
+          return '<div class="note-line note-empty">&nbsp;</div>';
+        if (/^(?:-{3,}|\*{3,}|_{3,})$/.test(trimmed)) {
+          return '<hr class="note-hr" />';
+        }
+        let align = null;
+        let body = trimmed;
+        const centerMatch = body.match(
+          /^(?:\[(?:中央|center)\]|［(?:中央|center)］)\s*(.*)$/i,
+        );
+        const rightMatch = body.match(
+          /^(?:\[(?:右|right)\]|［(?:右|right)］)\s*(.*)$/i,
+        );
+        if (centerMatch) {
+          align = "center";
+          body = centerMatch[1];
+        } else if (rightMatch) {
+          align = "right";
+          body = rightMatch[1];
+        }
+        const alignClass = align ? ` align-${align}` : "";
+        return `<div class="note-line${alignClass}">${parseInlineVerticalMarkdown(body)}</div>`;
+      })
+      .join("");
+  }
+  function renderColophonPageDom(pageEl, pageData) {
+    const templateClass =
+      " colophon-tpl-" + (pageData.colophonTemplate || "vertical");
+    const writePosClass =
+      " colophon-write-" + (pageData.colophonWritePos || "lead");
+    const vertPosClass =
+      " colophon-vert-" + (pageData.colophonVertPos || "center");
+    const alignClass =
+      " colophon-align-" + (pageData.colophonAlign || "center");
+    pageEl.className =
+      "paper-page front-matter-page colophon-page" +
+      templateClass +
+      writePosClass +
+      vertPosClass +
+      alignClass;
+    const resolveFrontMatterFont = (key, customFamily) =>
+      key === "custom"
+        ? escapeHtml(customFamily || "serif")
+        : FONTS[key] || FONTS.noto;
+    const titleFont = resolveFrontMatterFont(
+      pageData.colophonTitleFont,
+      pageData.colophonTitleCustomFontFamily,
+    );
+    const fieldsFont = resolveFrontMatterFont(
+      pageData.colophonFieldsFont,
+      pageData.colophonFieldsCustomFontFamily,
+    );
+    const noteFont = resolveFrontMatterFont(
+      pageData.colophonNoteFont,
+      pageData.colophonNoteCustomFontFamily,
+    );
+    const titleSize = pageData.colophonTitleSize || "1.2";
+    const fieldsSize = pageData.colophonFieldsSize || "0.9";
+    const noteSize = pageData.colophonNoteSize || "0.85";
+    const fieldsStyle = `font-family:${fieldsFont};font-size:${fieldsSize}em`;
+    const rows = [];
+    if (pageData.colophonTitle)
+      rows.push(
+        `<div class="colophon-row colophon-title" style='font-family:${titleFont};font-size:${titleSize}em'>${applyTitleManualLineBreaks(escapeHtml(pageData.colophonTitle))}</div>`,
+      );
+    if (pageData.colophonDate)
+      rows.push(
+        `<div class="colophon-row" style='${fieldsStyle}'>${escapeHtml(pageData.colophonDate)} 発行</div>`,
+      );
+    if (pageData.colophonAuthor)
+      rows.push(
+        `<div class="colophon-row" style='${fieldsStyle}'>${wrapColonForVertical("著者：")}${escapeHtml(pageData.colophonAuthor)}</div>`,
+      );
+    if (pageData.colophonCircle)
+      rows.push(
+        `<div class="colophon-row" style='${fieldsStyle}'>${wrapColonForVertical("サークル名：")}${escapeHtml(pageData.colophonCircle)}</div>`,
+      );
+    if (pageData.colophonContact)
+      rows.push(
+        `<div class="colophon-row" style='${fieldsStyle}'>${wrapColonForVertical("連絡先：")}${escapeHtml(pageData.colophonContact)}</div>`,
+      );
+    if (pageData.colophonPrinter)
+      rows.push(
+        `<div class="colophon-row" style='${fieldsStyle}'>${wrapColonForVertical("印刷：")}${escapeHtml(pageData.colophonPrinter)}</div>`,
+      );
+    const noteHtml = pageData.colophonNote
+      ? `<div class="colophon-note" style='font-family:${noteFont};font-size:${noteSize}em'>${parseSimpleNoteMarkdown(pageData.colophonNote)}</div>`
+      : "";
+    // 現状テンプレートは「縦書き・フル高さ」の1パターンのみ
+    // DOM順＝右→左の読み順：固定項目（先に読む＝右）→ 自由記載欄（後で読む＝左）
+    pageEl.innerHTML =
+      '<div class="colophon-content">' +
+      '<div class="colophon-fields">' +
+      rows.join("") +
+      "</div>" +
+      noteHtml +
+      "</div>";
+  }
   function renderPageDom(pageEl, pageIdx) {
     const pageData = computedPagesData[pageIdx];
     if (!pageData) return;
+    if (pageData.pageType === "cover") {
+      renderCoverPageDom(pageEl, pageData);
+      return;
+    }
+    if (pageData.pageType === "blank") {
+      renderBlankPageDom(pageEl, pageData);
+      return;
+    }
+    if (pageData.pageType === "colophon") {
+      renderColophonPageDom(pageEl, pageData);
+      return;
+    }
     const isTwoColumn = els.columnSelect.value === "2";
     const isGutterOn = els.gutterSelect && els.gutterSelect.value === "on";
     const startPageNum =
@@ -1350,7 +1744,10 @@ window.addEventListener("DOMContentLoaded", function () {
       : "arabic";
     // "off"（完全非表示）の場合はどの条件にも合致せず、nombreHtmlは空文字のまま出力される
     let nombreHtml = "";
-    if (nombreVal === "all" || (nombreVal === "skip-first" && pageIdx > 0)) {
+    if (
+      pageData.showNombre !== false &&
+      (nombreVal === "all" || (nombreVal === "skip-first" && pageIdx > 0))
+    ) {
       let currentNombrePos = nombrePosVal;
       if (nombrePosVal === "alternate")
         currentNombrePos = isOdd ? "left" : "right";
@@ -1521,6 +1918,14 @@ window.addEventListener("DOMContentLoaded", function () {
       syncEditorToPreview();
     }
   });
+  function jumpToPageTypeInPreview(pageType) {
+    if (!computedPagesData || computedPagesData.length === 0) return;
+    const idx = computedPagesData.findIndex((p) => p.pageType === pageType);
+    if (idx === -1) return;
+    const pagesPerView = getPagesPerView();
+    currentPageIndex = getSpreadStartIndex(idx, pagesPerView);
+    renderCurrentPages();
+  }
   function goToPage(pageNumber) {
     const total = computedPagesData.length;
     if (total === 0) return false;
@@ -1604,6 +2009,150 @@ window.addEventListener("DOMContentLoaded", function () {
       pageJumpInput.value = String(currentPageIndex + 1);
     }
   });
+  function buildFrontMatterAndColophonPages(bodyPages) {
+    // 本文ページ配列に pageType: "body" を付与しつつ、
+    // 中表紙（＋強制空白）・奥付（＋奇数調整の空白）を前後に結合する。
+    // 中表紙・奥付とも本文の組版エンジン（禁則・行送り）には一切乗らない、
+    // 別レイヤーの専用ページとして扱う。
+    const taggedBodyPages = bodyPages.map((p) => ({
+      ...p,
+      pageType: "body",
+      showNombre: true,
+    }));
+
+    const frontPages = [];
+    const coverEnabled =
+      els.coverEnableToggle && els.coverEnableToggle.value === "on";
+    if (coverEnabled) {
+      frontPages.push({
+        pageType: "cover",
+        showNombre: false,
+        coverTitle: els.coverTitleInput ? els.coverTitleInput.value.trim() : "",
+        coverSubtitle: els.coverSubtitleInput
+          ? els.coverSubtitleInput.value.trim()
+          : "",
+        coverAuthor: els.coverAuthorInput
+          ? els.coverAuthorInput.value.trim()
+          : "",
+        coverFrame: els.coverFrameSelect ? els.coverFrameSelect.value : "none",
+        coverTemplate: els.coverTemplateSelect
+          ? els.coverTemplateSelect.value
+          : "vertical-center",
+        coverTitleFont: els.coverTitleFontSelect
+          ? els.coverTitleFontSelect.value
+          : "noto",
+        coverSubtitleFont: els.coverSubtitleFontSelect
+          ? els.coverSubtitleFontSelect.value
+          : "noto",
+        coverAuthorFont: els.coverAuthorFontSelect
+          ? els.coverAuthorFontSelect.value
+          : "noto",
+        coverTitleCustomFontFamily: els.coverTitleCustomFontFamily
+          ? els.coverTitleCustomFontFamily.value.trim()
+          : "",
+        coverSubtitleCustomFontFamily: els.coverSubtitleCustomFontFamily
+          ? els.coverSubtitleCustomFontFamily.value.trim()
+          : "",
+        coverAuthorCustomFontFamily: els.coverAuthorCustomFontFamily
+          ? els.coverAuthorCustomFontFamily.value.trim()
+          : "",
+        coverTitleSize: els.coverTitleSizeSelect
+          ? els.coverTitleSizeSelect.value
+          : "1.6",
+        coverSubtitleSize: els.coverSubtitleSizeSelect
+          ? els.coverSubtitleSizeSelect.value
+          : "0.9",
+        coverAuthorSize: els.coverAuthorSizeSelect
+          ? els.coverAuthorSizeSelect.value
+          : "0.85",
+        coverDivider:
+          els.coverDividerToggle && els.coverDividerToggle.value === "on",
+        coverDividerLength: els.coverDividerLengthSelect
+          ? els.coverDividerLengthSelect.value
+          : "60",
+        coverGap: els.coverGapSelect ? els.coverGapSelect.value : "1.2",
+      });
+      // 中表紙の2ページ目は常に強制空白
+      frontPages.push({ pageType: "blank", showNombre: false });
+    }
+
+    const backPages = [];
+    const colophonEnabled =
+      els.colophonEnableToggle && els.colophonEnableToggle.value === "on";
+    if (colophonEnabled) {
+      const totalBeforeColophon = frontPages.length + taggedBodyPages.length;
+      // 奥付を足した結果、総ページ数が奇数になる場合は奥付の直前に空白を1ページ挟んで偶数に揃える
+      if ((totalBeforeColophon + 1) % 2 !== 0) {
+        backPages.push({ pageType: "blank", showNombre: false });
+      }
+      backPages.push({
+        pageType: "colophon",
+        showNombre: false,
+        colophonTitle: els.colophonTitleInput
+          ? els.colophonTitleInput.value.trim()
+          : "",
+        colophonDate: els.colophonDateInput
+          ? els.colophonDateInput.value.trim()
+          : "",
+        colophonAuthor: els.colophonAuthorInput
+          ? els.colophonAuthorInput.value.trim()
+          : "",
+        colophonCircle: els.colophonCircleInput
+          ? els.colophonCircleInput.value.trim()
+          : "",
+        colophonContact: els.colophonContactInput
+          ? els.colophonContactInput.value.trim()
+          : "",
+        colophonPrinter: els.colophonPrinterInput
+          ? els.colophonPrinterInput.value.trim()
+          : "",
+        colophonNote: els.colophonNoteInput
+          ? els.colophonNoteInput.value.trim()
+          : "",
+        colophonTitleFont: els.colophonTitleFontSelect
+          ? els.colophonTitleFontSelect.value
+          : "noto",
+        colophonFieldsFont: els.colophonFieldsFontSelect
+          ? els.colophonFieldsFontSelect.value
+          : "noto",
+        colophonNoteFont: els.colophonNoteFontSelect
+          ? els.colophonNoteFontSelect.value
+          : "noto",
+        colophonTitleCustomFontFamily: els.colophonTitleCustomFontFamily
+          ? els.colophonTitleCustomFontFamily.value.trim()
+          : "",
+        colophonFieldsCustomFontFamily: els.colophonFieldsCustomFontFamily
+          ? els.colophonFieldsCustomFontFamily.value.trim()
+          : "",
+        colophonNoteCustomFontFamily: els.colophonNoteCustomFontFamily
+          ? els.colophonNoteCustomFontFamily.value.trim()
+          : "",
+        colophonTitleSize: els.colophonTitleSizeSelect
+          ? els.colophonTitleSizeSelect.value
+          : "1.2",
+        colophonFieldsSize: els.colophonFieldsSizeSelect
+          ? els.colophonFieldsSizeSelect.value
+          : "0.9",
+        colophonNoteSize: els.colophonNoteSizeSelect
+          ? els.colophonNoteSizeSelect.value
+          : "0.85",
+        colophonWritePos: els.colophonWritePosSelect
+          ? els.colophonWritePosSelect.value
+          : "lead",
+        colophonVertPos: els.colophonVertPosSelect
+          ? els.colophonVertPosSelect.value
+          : "center",
+        colophonAlign: els.colophonAlignSelect
+          ? els.colophonAlignSelect.value
+          : "center",
+        colophonTemplate: els.colophonTemplateSelect
+          ? els.colophonTemplateSelect.value
+          : "vertical",
+      });
+    }
+
+    return frontPages.concat(taggedBodyPages, backPages);
+  }
   function updatePreview() {
     if (columnRuleCol) {
       columnRuleCol.style.display =
@@ -1622,7 +2171,8 @@ window.addEventListener("DOMContentLoaded", function () {
     if (layoutSpinner) layoutSpinner.hidden = false;
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        computedPagesData = computeLayoutWithCanvas(els.sourceText.value);
+        const bodyPages = computeLayoutWithCanvas(els.sourceText.value);
+        computedPagesData = buildFrontMatterAndColophonPages(bodyPages);
         renderCurrentPages();
         saveToStorage();
         if (layoutSpinner) layoutSpinner.hidden = true;
@@ -1642,6 +2192,23 @@ window.addEventListener("DOMContentLoaded", function () {
       updatePreview();
     });
   }
+  function updateFrontMatterCustomFontColVisibility(field) {
+    const colEl = document.getElementById(field.colId);
+    const selectEl = els[field.selectId];
+    if (!colEl || !selectEl) return;
+    colEl.style.display = selectEl.value === "custom" ? "block" : "none";
+  }
+  function updateAllFrontMatterCustomFontColVisibility() {
+    FRONT_MATTER_FONT_FIELDS.forEach(updateFrontMatterCustomFontColVisibility);
+  }
+  FRONT_MATTER_FONT_FIELDS.forEach((field) => {
+    const selectEl = els[field.selectId];
+    if (selectEl) {
+      selectEl.addEventListener("change", function () {
+        updateFrontMatterCustomFontColVisibility(field);
+      });
+    }
+  });
   if (els.marginSelect) {
     els.marginSelect.addEventListener("change", function () {
       customMarginRow.style.display =
@@ -1695,6 +2262,29 @@ window.addEventListener("DOMContentLoaded", function () {
     "nombreFormatSelect",
     "nombreSizeSelect",
     "nombreTypeSelect",
+    "coverEnableToggle",
+    "coverTemplateSelect",
+    "coverFrameSelect",
+    "coverTitleFontSelect",
+    "coverSubtitleFontSelect",
+    "coverAuthorFontSelect",
+    "coverTitleSizeSelect",
+    "coverSubtitleSizeSelect",
+    "coverAuthorSizeSelect",
+    "coverDividerToggle",
+    "coverDividerLengthSelect",
+    "coverGapSelect",
+    "colophonEnableToggle",
+    "colophonTemplateSelect",
+    "colophonTitleFontSelect",
+    "colophonFieldsFontSelect",
+    "colophonNoteFontSelect",
+    "colophonTitleSizeSelect",
+    "colophonFieldsSizeSelect",
+    "colophonNoteSizeSelect",
+    "colophonWritePosSelect",
+    "colophonVertPosSelect",
+    "colophonAlignSelect",
   ];
   CHANGE_EVENT_IDS.forEach((id) => {
     if (els[id]) els[id].addEventListener("change", updatePreview);
@@ -1706,12 +2296,35 @@ window.addEventListener("DOMContentLoaded", function () {
     "sourceText",
     "pageTitle",
     "pageHeader",
+    "coverTitleInput",
+    "coverSubtitleInput",
+    "coverAuthorInput",
+    "colophonTitleInput",
+    "colophonDateInput",
+    "colophonAuthorInput",
+    "colophonCircleInput",
+    "colophonContactInput",
+    "colophonPrinterInput",
+    "colophonNoteInput",
+    "coverTitleCustomFontUrl",
+    "coverTitleCustomFontFamily",
+    "coverSubtitleCustomFontUrl",
+    "coverSubtitleCustomFontFamily",
+    "coverAuthorCustomFontUrl",
+    "coverAuthorCustomFontFamily",
+    "colophonTitleCustomFontUrl",
+    "colophonTitleCustomFontFamily",
+    "colophonFieldsCustomFontUrl",
+    "colophonFieldsCustomFontFamily",
+    "colophonNoteCustomFontUrl",
+    "colophonNoteCustomFontFamily",
   ];
   INPUT_EVENT_IDS.forEach((id) => {
     if (els[id]) els[id].addEventListener("input", debounceUpdatePreview);
   });
   if (els.sourceText) {
     els.sourceText.addEventListener("input", markTypingActive);
+    els.sourceText.addEventListener("input", scheduleUndoSnapshot);
     els.sourceText.addEventListener("click", syncPreviewToCursor);
     els.sourceText.addEventListener("keyup", (e) => {
       const navigationKeys = [
@@ -1735,6 +2348,29 @@ window.addEventListener("DOMContentLoaded", function () {
       saveToStorage();
     });
   }
+  if (els.undoButton) {
+    els.undoButton.addEventListener("click", performUndo);
+  }
+  if (els.redoButton) {
+    els.redoButton.addEventListener("click", performRedo);
+  }
+  document.addEventListener("keydown", function (e) {
+    const isModifier = e.ctrlKey || e.metaKey;
+    if (!isModifier) return;
+    if (e.key === "z" || e.key === "Z") {
+      if (document.activeElement !== els.sourceText) return;
+      e.preventDefault();
+      if (e.shiftKey) {
+        performRedo();
+      } else {
+        performUndo();
+      }
+    } else if (e.key === "y" || e.key === "Y") {
+      if (document.activeElement !== els.sourceText) return;
+      e.preventDefault();
+      performRedo();
+    }
+  });
   document
     .getElementById("insertBreakButton")
     .addEventListener("click", function () {
@@ -1777,7 +2413,13 @@ window.addEventListener("DOMContentLoaded", function () {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = function (evt) {
+      const previousText = els.sourceText.value;
       els.sourceText.value = evt.target.result;
+      if (previousText !== "" && previousText !== els.sourceText.value) {
+        clearTimeout(undoDebounceTimer);
+        pushUndoSnapshot(previousText);
+        lastSnapshot = els.sourceText.value;
+      }
       const nameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
       if (!els.pageTitle.value.trim()) {
         els.pageTitle.value = nameWithoutExt;
@@ -1819,6 +2461,7 @@ window.addEventListener("DOMContentLoaded", function () {
   document
     .getElementById("sampleButton")
     .addEventListener("click", function () {
+      const previousText = els.sourceText.value;
       els.pageTitle.value = "言ノ葉Editer 取扱説明書";
       els.pageHeader.value = "～機能と特殊記法のご案内～";
       els.fontSelect.value = "noto";
@@ -1869,22 +2512,108 @@ window.addEventListener("DOMContentLoaded", function () {
         "## 7. 保存について\n\n" +
         "入力中の内容はブラウザ内に自動保存され、ページを閉じても再度開いたときに復元されます。ただし、これはブラウザの履歴やサイトデータを削除すると失われる一時的な保存です。\n\n" +
         "大切な原稿は、画面上部の「保存 (.txt)」ボタンでテキストファイルとして端末に書き出しておくことをおすすめします。書き出したファイルは「読込」ボタンでいつでも呼び戻せます。区切りのよいところで、こまめに保存しておくと安心です。";
+      if (previousText !== "" && previousText !== els.sourceText.value) {
+        clearTimeout(undoDebounceTimer);
+        pushUndoSnapshot(previousText);
+        lastSnapshot = els.sourceText.value;
+      }
       currentPageIndex = 0;
       updatePreview();
     });
   document.getElementById("clearButton").addEventListener("click", function () {
     if (confirm("入力した内容をすべて消去しますか？")) {
+      const previousText = els.sourceText.value;
       els.pageTitle.value = "";
       els.pageHeader.value = "";
       els.sourceText.value = "";
+      if (previousText !== "") {
+        clearTimeout(undoDebounceTimer);
+        pushUndoSnapshot(previousText);
+        lastSnapshot = "";
+      }
       localStorage.removeItem(STORAGE_KEY);
       currentPageIndex = 0;
       updatePreview();
       els.sourceText.focus();
     }
   });
+  function updateFrontMatterFieldsVisibility() {
+    if (els.coverEnableToggle && coverFieldsGroup) {
+      coverFieldsGroup.style.display =
+        els.coverEnableToggle.value === "on" ? "" : "none";
+    }
+    if (els.colophonEnableToggle && colophonFieldsGroup) {
+      colophonFieldsGroup.style.display =
+        els.colophonEnableToggle.value === "on" ? "" : "none";
+    }
+  }
+  function clearCoverFields() {
+    if (els.coverTitleInput) els.coverTitleInput.value = "";
+    if (els.coverSubtitleInput) els.coverSubtitleInput.value = "";
+    if (els.coverAuthorInput) els.coverAuthorInput.value = "";
+  }
+  function clearColophonFields() {
+    if (els.colophonTitleInput) els.colophonTitleInput.value = "";
+    if (els.colophonDateInput) els.colophonDateInput.value = "";
+    if (els.colophonAuthorInput) els.colophonAuthorInput.value = "";
+    if (els.colophonCircleInput) els.colophonCircleInput.value = "";
+    if (els.colophonContactInput) els.colophonContactInput.value = "";
+    if (els.colophonPrinterInput) els.colophonPrinterInput.value = "";
+    if (els.colophonNoteInput) els.colophonNoteInput.value = "";
+  }
+  if (els.coverEnableToggle) {
+    els.coverEnableToggle.addEventListener("change", function () {
+      if (
+        window.prevCoverEnable === "on" &&
+        this.value === "off" &&
+        (els.coverTitleInput.value ||
+          els.coverSubtitleInput.value ||
+          els.coverAuthorInput.value)
+      ) {
+        if (confirm("中表紙の入力内容を消去しますか？")) {
+          clearCoverFields();
+        } else {
+          this.value = "on";
+          return;
+        }
+      }
+      window.prevCoverEnable = this.value;
+      updateFrontMatterFieldsVisibility();
+    });
+  }
+  if (els.colophonEnableToggle) {
+    els.colophonEnableToggle.addEventListener("change", function () {
+      if (
+        window.prevColophonEnable === "on" &&
+        this.value === "off" &&
+        (els.colophonTitleInput.value ||
+          els.colophonDateInput.value ||
+          els.colophonAuthorInput.value ||
+          els.colophonCircleInput.value ||
+          els.colophonContactInput.value ||
+          els.colophonPrinterInput.value ||
+          els.colophonNoteInput.value)
+      ) {
+        if (confirm("奥付の入力内容を消去しますか？")) {
+          clearColophonFields();
+        } else {
+          this.value = "on";
+          return;
+        }
+      }
+      window.prevColophonEnable = this.value;
+      updateFrontMatterFieldsVisibility();
+    });
+  }
   window.DEBUG_LAYOUT = false;
   loadFromStorage();
+  window.prevCoverEnable = els.coverEnableToggle
+    ? els.coverEnableToggle.value
+    : "off";
+  window.prevColophonEnable = els.colophonEnableToggle
+    ? els.colophonEnableToggle.value
+    : "off";
+  updateFrontMatterFieldsVisibility();
   updatePreview();
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready
