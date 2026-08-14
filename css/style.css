@@ -343,6 +343,20 @@
     margin-bottom: 12px;
   }
 
+  /* 中表紙・奥付のカスタムフォント欄：非表示の列があってもグリッド位置がずれないよう固定する */
+  #coverTitleCustomFontCol,
+  #colophonTitleCustomFontCol {
+    grid-column: 1;
+  }
+  #coverSubtitleCustomFontCol,
+  #colophonFieldsCustomFontCol {
+    grid-column: 2;
+  }
+  #coverAuthorCustomFontCol,
+  #colophonNoteCustomFontCol {
+    grid-column: 3;
+  }
+
   .form-row.two-cols {
     grid-template-columns: repeat(2, 1fr);
     flex-shrink: 0;
@@ -1078,6 +1092,26 @@
     font-size: 0.9em;
     color: #555555;
     line-height: 2;
+  }
+
+  .note-hr {
+    border: 0;
+    background: none;
+  }
+
+  .colophon-page.colophon-tpl-vertical .note-hr {
+    display: block;
+    width: 1em;
+    border-right: 1px solid #aaaaaa;
+    margin: 0 0.5em;
+  }
+
+  .colophon-page.colophon-tpl-horizontal .note-hr {
+    display: block;
+    width: 100%;
+    height: 0;
+    border-top: 1px solid #aaaaaa;
+    margin: 0.6em 0;
   }
 
   .note-line {

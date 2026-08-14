@@ -86,12 +86,74 @@ window.addEventListener("DOMContentLoaded", function () {
     colophonWritePosSelect: "colophonWritePos",
     colophonVertPosSelect: "colophonVertPos",
     colophonAlignSelect: "colophonAlign",
+    coverTitleCustomFontUrl: "coverTitleCustomFontUrl",
+    coverTitleCustomFontFamily: "coverTitleCustomFontFamily",
+    coverSubtitleCustomFontUrl: "coverSubtitleCustomFontUrl",
+    coverSubtitleCustomFontFamily: "coverSubtitleCustomFontFamily",
+    coverAuthorCustomFontUrl: "coverAuthorCustomFontUrl",
+    coverAuthorCustomFontFamily: "coverAuthorCustomFontFamily",
+    colophonTitleCustomFontUrl: "colophonTitleCustomFontUrl",
+    colophonTitleCustomFontFamily: "colophonTitleCustomFontFamily",
+    colophonFieldsCustomFontUrl: "colophonFieldsCustomFontUrl",
+    colophonFieldsCustomFontFamily: "colophonFieldsCustomFontFamily",
+    colophonNoteCustomFontUrl: "colophonNoteCustomFontUrl",
+    colophonNoteCustomFontFamily: "colophonNoteCustomFontFamily",
   };
   const els = {};
   Object.keys(CONFIG_KEYS).forEach((id) => {
     els[id] = document.getElementById(id);
   });
   const customFontRow = document.getElementById("customFontRow");
+  const FRONT_MATTER_FONT_FIELDS = [
+    {
+      selectId: "coverTitleFontSelect",
+      colId: "coverTitleCustomFontCol",
+      urlId: "coverTitleCustomFontUrl",
+      familyId: "coverTitleCustomFontFamily",
+      dataKey: "coverTitleCustomFontFamily",
+      linkId: "dynamic-cover-title-font-link",
+    },
+    {
+      selectId: "coverSubtitleFontSelect",
+      colId: "coverSubtitleCustomFontCol",
+      urlId: "coverSubtitleCustomFontUrl",
+      familyId: "coverSubtitleCustomFontFamily",
+      dataKey: "coverSubtitleCustomFontFamily",
+      linkId: "dynamic-cover-subtitle-font-link",
+    },
+    {
+      selectId: "coverAuthorFontSelect",
+      colId: "coverAuthorCustomFontCol",
+      urlId: "coverAuthorCustomFontUrl",
+      familyId: "coverAuthorCustomFontFamily",
+      dataKey: "coverAuthorCustomFontFamily",
+      linkId: "dynamic-cover-author-font-link",
+    },
+    {
+      selectId: "colophonTitleFontSelect",
+      colId: "colophonTitleCustomFontCol",
+      urlId: "colophonTitleCustomFontUrl",
+      familyId: "colophonTitleCustomFontFamily",
+      dataKey: "colophonTitleCustomFontFamily",
+      linkId: "dynamic-colophon-title-font-link",
+    },
+    {
+      selectId: "colophonFieldsFontSelect",
+      colId: "colophonFieldsCustomFontCol",
+      urlId: "colophonFieldsCustomFontUrl",
+      familyId: "colophonFieldsCustomFontFamily",
+      dataKey: "colophonFieldsCustomFontFamily",
+      linkId: "dynamic-colophon-fields-font-link",
+    },
+    {
+      selectId: "colophonNoteFontSelect",
+      colId: "colophonNoteCustomFontCol",
+      urlId: "colophonNoteCustomFontUrl",
+      familyId: "colophonNoteCustomFontFamily",
+      dataKey: "colophonNoteCustomFontFamily",
+      linkId: "dynamic-colophon-note-font-link",
+    },
+  ];
   const customMarginRow = document.getElementById("customMarginRow");
   const gutterWidthRow = document.getElementById("gutterWidthRow");
   const columnRuleCol = document.getElementById("columnRuleCol");
@@ -261,6 +323,16 @@ window.addEventListener("DOMContentLoaded", function () {
     lineseedregular: '"LINE Seed JP", "Hiragino Sans", sans-serif',
     klee: '"Klee One", "Hiragino Mincho ProN", serif',
     yomogi: '"Yomogi", "Hiragino Mincho ProN", serif',
+    cormorant: '"Cormorant Garamond", "Times New Roman", serif',
+    montserrat: '"Montserrat", "Hiragino Sans", sans-serif',
+    bonheurroyale: '"Bonheur Royale", cursive',
+    craftygirls: '"Crafty Girls", cursive',
+    fleurdeleah: '"Fleur De Leah", cursive',
+    googlesansflex: '"Google Sans Flex", "Hiragino Sans", sans-serif',
+    hennypenny: '"Henny Penny", cursive',
+    kranky: '"Kranky", cursive',
+    michroma: '"Michroma", sans-serif',
+    zenloop: '"Zen Loop", cursive',
   };
   const FONT_WEIGHTS = {
     plexjpregular: "400",
@@ -336,6 +408,7 @@ window.addEventListener("DOMContentLoaded", function () {
       ) {
         customFontRow.style.display = "flex";
       }
+      updateAllFrontMatterCustomFontColVisibility();
       if (
         els.marginSelect &&
         els.marginSelect.value === "custom" &&
@@ -369,6 +442,15 @@ window.addEventListener("DOMContentLoaded", function () {
         document.getElementById("dynamic-font-link").href = url;
       }
     }
+    FRONT_MATTER_FONT_FIELDS.forEach((f) => {
+      const urlEl = els[f.urlId];
+      if (!urlEl) return;
+      const fmUrl = urlEl.value.trim();
+      if (fmUrl && /^https:\/\/[^\s"'<>]+$/i.test(fmUrl)) {
+        const fmLink = document.getElementById(f.linkId);
+        if (fmLink) fmLink.href = fmUrl;
+      }
+    });
     document.documentElement.style.setProperty("--paper-w", conf.w + "mm");
     document.documentElement.style.setProperty("--paper-h", conf.h + "mm");
     document.documentElement.style.setProperty(
@@ -406,6 +488,9 @@ window.addEventListener("DOMContentLoaded", function () {
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
+  }
+  function applyTitleManualLineBreaks(escapedText) {
+    return escapedText.replace(/\[改行\]/g, "<br>");
   }
   function parseInlineVerticalMarkdown(text) {
     let value = escapeHtml(text);
@@ -1413,15 +1498,30 @@ window.addEventListener("DOMContentLoaded", function () {
       " cover-tpl-" + (pageData.coverTemplate || "vertical-center");
     pageEl.className =
       "paper-page front-matter-page cover-page" + frameClass + templateClass;
-    const title = escapeHtml(pageData.coverTitle || "");
-    const titleFont = FONTS[pageData.coverTitleFont] || FONTS.noto;
-    const subtitleFont = FONTS[pageData.coverSubtitleFont] || FONTS.noto;
-    const authorFont = FONTS[pageData.coverAuthorFont] || FONTS.noto;
+    const title = applyTitleManualLineBreaks(
+      escapeHtml(pageData.coverTitle || ""),
+    );
+    const resolveFrontMatterFont = (key, customFamily) =>
+      key === "custom"
+        ? escapeHtml(customFamily || "serif")
+        : FONTS[key] || FONTS.noto;
+    const titleFont = resolveFrontMatterFont(
+      pageData.coverTitleFont,
+      pageData.coverTitleCustomFontFamily,
+    );
+    const subtitleFont = resolveFrontMatterFont(
+      pageData.coverSubtitleFont,
+      pageData.coverSubtitleCustomFontFamily,
+    );
+    const authorFont = resolveFrontMatterFont(
+      pageData.coverAuthorFont,
+      pageData.coverAuthorCustomFontFamily,
+    );
     const titleSize = pageData.coverTitleSize || "1.6";
     const subtitleSize = pageData.coverSubtitleSize || "0.9";
     const authorSize = pageData.coverAuthorSize || "0.85";
     const subtitle = pageData.coverSubtitle
-      ? `<div class="cover-subtitle" style='font-family:${subtitleFont};font-size:${subtitleSize}em'>${escapeHtml(pageData.coverSubtitle)}</div>`
+      ? `<div class="cover-subtitle" style='font-family:${subtitleFont};font-size:${subtitleSize}em'>${applyTitleManualLineBreaks(escapeHtml(pageData.coverSubtitle))}</div>`
       : "";
     const author = pageData.coverAuthor
       ? `<div class="cover-author" style='font-family:${authorFont};font-size:${authorSize}em'>${escapeHtml(pageData.coverAuthor)}</div>`
@@ -1466,6 +1566,9 @@ window.addEventListener("DOMContentLoaded", function () {
         const trimmed = line.trim();
         if (trimmed === "")
           return '<div class="note-line note-empty">&nbsp;</div>';
+        if (/^(?:-{3,}|\*{3,}|_{3,})$/.test(trimmed)) {
+          return '<hr class="note-hr" />';
+        }
         let align = null;
         let body = trimmed;
         const centerMatch = body.match(
@@ -1501,9 +1604,22 @@ window.addEventListener("DOMContentLoaded", function () {
       writePosClass +
       vertPosClass +
       alignClass;
-    const titleFont = FONTS[pageData.colophonTitleFont] || FONTS.noto;
-    const fieldsFont = FONTS[pageData.colophonFieldsFont] || FONTS.noto;
-    const noteFont = FONTS[pageData.colophonNoteFont] || FONTS.noto;
+    const resolveFrontMatterFont = (key, customFamily) =>
+      key === "custom"
+        ? escapeHtml(customFamily || "serif")
+        : FONTS[key] || FONTS.noto;
+    const titleFont = resolveFrontMatterFont(
+      pageData.colophonTitleFont,
+      pageData.colophonTitleCustomFontFamily,
+    );
+    const fieldsFont = resolveFrontMatterFont(
+      pageData.colophonFieldsFont,
+      pageData.colophonFieldsCustomFontFamily,
+    );
+    const noteFont = resolveFrontMatterFont(
+      pageData.colophonNoteFont,
+      pageData.colophonNoteCustomFontFamily,
+    );
     const titleSize = pageData.colophonTitleSize || "1.2";
     const fieldsSize = pageData.colophonFieldsSize || "0.9";
     const noteSize = pageData.colophonNoteSize || "0.85";
@@ -1511,7 +1627,7 @@ window.addEventListener("DOMContentLoaded", function () {
     const rows = [];
     if (pageData.colophonTitle)
       rows.push(
-        `<div class="colophon-row colophon-title" style='font-family:${titleFont};font-size:${titleSize}em'>${escapeHtml(pageData.colophonTitle)}</div>`,
+        `<div class="colophon-row colophon-title" style='font-family:${titleFont};font-size:${titleSize}em'>${applyTitleManualLineBreaks(escapeHtml(pageData.colophonTitle))}</div>`,
       );
     if (pageData.colophonDate)
       rows.push(
@@ -1931,6 +2047,15 @@ window.addEventListener("DOMContentLoaded", function () {
         coverAuthorFont: els.coverAuthorFontSelect
           ? els.coverAuthorFontSelect.value
           : "noto",
+        coverTitleCustomFontFamily: els.coverTitleCustomFontFamily
+          ? els.coverTitleCustomFontFamily.value.trim()
+          : "",
+        coverSubtitleCustomFontFamily: els.coverSubtitleCustomFontFamily
+          ? els.coverSubtitleCustomFontFamily.value.trim()
+          : "",
+        coverAuthorCustomFontFamily: els.coverAuthorCustomFontFamily
+          ? els.coverAuthorCustomFontFamily.value.trim()
+          : "",
         coverTitleSize: els.coverTitleSizeSelect
           ? els.coverTitleSizeSelect.value
           : "1.6",
@@ -1993,6 +2118,15 @@ window.addEventListener("DOMContentLoaded", function () {
         colophonNoteFont: els.colophonNoteFontSelect
           ? els.colophonNoteFontSelect.value
           : "noto",
+        colophonTitleCustomFontFamily: els.colophonTitleCustomFontFamily
+          ? els.colophonTitleCustomFontFamily.value.trim()
+          : "",
+        colophonFieldsCustomFontFamily: els.colophonFieldsCustomFontFamily
+          ? els.colophonFieldsCustomFontFamily.value.trim()
+          : "",
+        colophonNoteCustomFontFamily: els.colophonNoteCustomFontFamily
+          ? els.colophonNoteCustomFontFamily.value.trim()
+          : "",
         colophonTitleSize: els.colophonTitleSizeSelect
           ? els.colophonTitleSizeSelect.value
           : "1.2",
@@ -2058,6 +2192,23 @@ window.addEventListener("DOMContentLoaded", function () {
       updatePreview();
     });
   }
+  function updateFrontMatterCustomFontColVisibility(field) {
+    const colEl = document.getElementById(field.colId);
+    const selectEl = els[field.selectId];
+    if (!colEl || !selectEl) return;
+    colEl.style.display = selectEl.value === "custom" ? "block" : "none";
+  }
+  function updateAllFrontMatterCustomFontColVisibility() {
+    FRONT_MATTER_FONT_FIELDS.forEach(updateFrontMatterCustomFontColVisibility);
+  }
+  FRONT_MATTER_FONT_FIELDS.forEach((field) => {
+    const selectEl = els[field.selectId];
+    if (selectEl) {
+      selectEl.addEventListener("change", function () {
+        updateFrontMatterCustomFontColVisibility(field);
+      });
+    }
+  });
   if (els.marginSelect) {
     els.marginSelect.addEventListener("change", function () {
       customMarginRow.style.display =
@@ -2155,6 +2306,18 @@ window.addEventListener("DOMContentLoaded", function () {
     "colophonContactInput",
     "colophonPrinterInput",
     "colophonNoteInput",
+    "coverTitleCustomFontUrl",
+    "coverTitleCustomFontFamily",
+    "coverSubtitleCustomFontUrl",
+    "coverSubtitleCustomFontFamily",
+    "coverAuthorCustomFontUrl",
+    "coverAuthorCustomFontFamily",
+    "colophonTitleCustomFontUrl",
+    "colophonTitleCustomFontFamily",
+    "colophonFieldsCustomFontUrl",
+    "colophonFieldsCustomFontFamily",
+    "colophonNoteCustomFontUrl",
+    "colophonNoteCustomFontFamily",
   ];
   INPUT_EVENT_IDS.forEach((id) => {
     if (els[id]) els[id].addEventListener("input", debounceUpdatePreview);
