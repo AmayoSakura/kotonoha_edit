@@ -1,155 +1,967 @@
-# 言ノ葉Editer (Kotonoha Editor)
+<!doctype html>
+<html lang="ja" data-theme="sepia">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- OGP (Open Graph Protocol) -->
+    <meta property="og:title" content="言ノ葉Editer - 日本語組版エディタ" />
+    <meta
+      property="og:description"
+      content="言葉を整え、物語を美しく。縦書き対応の日本語組版エディタ。"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="image/ogp.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="ja_JP" />
 
-> **原稿を、縦書きの本のかたちに。**  
-> テキストで書かれた文章を流し込むだけで、禁則も字下げも自動で整う日本語組版エディタ。
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="言ノ葉Editer - 日本語組版エディタ" />
+    <meta
+      name="twitter:description"
+      content="言葉を整え、物語を美しく。縦書き対応の日本語組版エディタ。"
+    />
+    <meta name="twitter:image" content="image/ogp.png" />
 
-**言ノ葉Editer** は、Wordやテキストエディタで書かれた原稿を流し込み、リアルタイムで縦書きの本の紙面を確認しながら、そのまま高品質な印刷やPDF出力（同人誌入稿・文庫作成など）まで行えるWebベースの日本語自動組版エディタです。
+    <!-- 一般メタタグ -->
+    <meta
+      name="description"
+      content="言葉を整え、物語を美しく。縦書き対応の日本語組版エディタ。"
+    />
 
-原稿執筆から版組み・レイアウト調整・PDF化まで、サーバー不要・完全フロントエンド（ブラウザのみ）で完結できます。PWA対応により、お使いの端末にアプリとしてインストールし、オフラインで使用することも可能です。
+    <!-- ファビコン -->
+    <link rel="icon" type="image/svg+xml" href="image/favicon.svg" />
+    <link rel="apple-touch-icon" href="image/icon-180.png" />
 
----
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#7a502f" />
 
-## 📖 原稿は、組まれるのを待っている。
+    <title>取扱説明書 | 言ノ葉Editer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700&family=Noto+Serif+JP:wght@400;500;600&family=Sawarabi+Mincho&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@300&family=RocknRoll+One&family=IBM+Plex+Sans+JP:wght@400&family=LINE+Seed+JP:wght@400&family=Klee+One&family=Yomogi&display=swap"
+    />
+    <!-- 中表紙・奥付用 欧文フォントプリセット -->
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Bonheur+Royale&family=Crafty+Girls&family=Fleur+De+Leah&family=Google+Sans+Flex:opsz,wght@6..144,1..1000&family=Henny+Penny&family=Kranky&family=Michroma&family=Zen+Loop:ital@0;1&display=swap"
+    />
+    <link rel="stylesheet" href="css/lp.css" />
+  </head>
 
-「原稿はあるけれど、紙にする手段がない」  
-「手動で禁則処理や改ページ、字下げ、ノンブルを整えるのは大変」
+  <body>
+    <div class="app-shell">
+      <div class="mobile-toc-toggle" id="mobileTocToggle">
+        <span>☰</span><span>目次</span>
+      </div>
+      <div class="toc-scrim" id="tocScrim"></div>
 
-言ノ葉Editerは、その面倒な組版工程をまるごと引き受けます。テキストを流し込んだ瞬間から、本としての体裁が美しく組み上がっていきます。
+      <nav class="toc-sidebar" id="tocSidebar">
+        <div class="toc-brand">
+          <div class="toc-brand-title">言ノ葉Editer</div>
+          <div class="toc-brand-sub">取扱説明書</div>
+        </div>
+        <div class="toc-theme-row">
+          <label for="themeSelect">表示テーマ</label>
+          <select id="themeSelect">
+            <option value="standard">ライト</option>
+            <option value="dark">ダーク</option>
+            <option value="sepia" selected>セピア</option>
+          </select>
+        </div>
+        <div class="toc-nav" id="tocNav">
+          <div class="toc-group-label">はじめに</div>
+          <a href="#intro">言ノ葉Editerとは</a>
+          <a href="#quickstart">基本の使い方</a>
 
----
+          <div class="toc-group-label">組版エンジン</div>
+          <a href="#engine">自動組版のしくみ</a>
+          <a href="#markup">組版マークアップ</a>
 
-## 🌟 主な特徴
+          <div class="toc-group-label">レイアウト設定</div>
+          <a href="#paper">用紙・段組・余白</a>
+          <a href="#font">フォント</a>
 
-### 1. 崩れない日本語自動組版エンジン
-* **禁則処理・記号の分断防止**: 行頭・行尾禁則はもちろん、「――」（ダッシュ）や「……」（リーダー）などの記号が行途中や行末で泣き別れしないよう自動補正。
-* **会話文の自動字下げ調整**: 「」で始まる会話文の自動字下げスキップなど、日本語書籍の慣例に即した組版ルールを自動適用。行単位で字下げの有無を強制指定する記法にも対応。
-* **Canvas実測レイアウト**: フォントの縦書き字送りや約物（「」など）固有のアキを計算し、ミリ単位で精緻な自動ページ分割・組版を実施。
+          <div class="toc-group-label">柱・ノンブル</div>
+          <a href="#header">柱（ヘッダー）</a>
+          <a href="#nombre">ノンブル（ページ番号）</a>
 
-### 2. 本格的な装丁・レイアウト設計
-* **実寸の用紙規格対応**: A6（文庫本サイズ）、B6（同人誌主流）、A5、B5、A4、ハガキなどの実寸ミリ単位設計。
-* **段組・余白・のど（綴じ代）調整**: 
-  * 1段組 / 2段組（境界線の有無切り替え可能）
-  * のど（綴じ代）のあり・なし（奇数・偶数ページでの左右交互配置に対応、綴じ代幅はmm単位でカスタム指定可）
-  * 余白（狭い：天地12mm×左右10mm / 標準：天地18mm×左右14mm / 広い：天地24mm×左右18mm / カスタム）および本文文字サイズの細密設定
-* **本文フォント**: 和文プリセット10種に対応（詳細は「5. 豊富なフォント」を参照）。
+          <div class="toc-group-label">前付け・後付け</div>
+          <a href="#frontmatter">中表紙（扉ページ）</a>
+          <a href="#colophon">奥付</a>
 
-### 3. 柱（ヘッダー） & ノンブル（ページ番号）
-* **柱（ヘッダー）**: 表示条件（全ページ / 奇数 / 偶数 / 左右交互）、位置（右上 / 中央上 / 左上）、文字サイズ（小 / 標準 / 大）。
-* **ノンブル（ページ番号）**:
-  * 表示条件（全ページ / 1ページ目非表示 / 完全非表示）
-  * 位置（中央下 / 右下 / 左下 / 左右交互）
-  * 文字サイズ（小 / 標準 / 大）
-  * 数字タイプ（算用数字 `1, 2, 3...` / 漢数字・横書き `十, 二十一...` / 漢数字・縦書き `一〇, 二一...` / ローマ数字 `I, II, III...`）
-    * 漢数字・横書きは位取り記数法（例：`10`→`十`、`21`→`二十一`、`123`→`百二十三`）
-    * 漢数字・縦書きは位ごとの表記（例：`10`→`一〇`、`21`→`二一`）。中央配置時のみ自動で横書きに切り替わる。文字サイズ「大」選択時は縦書き表示の際に自動で「標準」に調整される
-  * 形式（`- 1 -`, `P.1`, `/ 1 /`, `数字のみ`）
-  * 開始ページ番号の任意指定。
+          <div class="toc-group-label">出力・環境</div>
+          <a href="#output">印刷・PDF出力</a>
+          <a href="#local">データの保存について</a>
+          <a href="#pwa">アプリとしてインストール</a>
+          <div class="toc-group-label">その他</div>
+          <a href="#license">ライセンスについて</a>
+          <a href="#faq">問い合わせ先</a>
+        </div>
+      </nav>
 
-### 4. 中表紙・奥付
-* **中表紙（扉ページ）**: タイトル・サブタイトル・著者名を設定できる扉ページ。作成すると見開きを整えるための空白ページが自動で1枚挿入されます。
-  * レイアウト4種（縦書き・中央 / 縦書き・右上 / 横書き・中央 / 横書き・ミニマル）
-  * 枠11種：枠なし / 一重罫線 / 一重罫線（角落とし）/ 点線罫線 / 一重罫線（極太）/ 二重罫線（均等）/ 二重罫線（外太・内細）/ 二重罫線（外細・内太）/ 二重罫線＋四隅ポイント / 角飾り / 角飾り（隅立て）
-  * タイトル・サブタイトル・著者名ごとに独立したフォント・文字サイズ指定（欧文フォント・カスタムWebフォント含む）
-  * タイトル・サブタイトルは `[改行]` 記法で任意の位置に改行を挿入可能
-  * 区切り線の有無・長さ調整、要素同士の間隔調整
-* **奥付**: タイトル・発行日・著者・サークル名・連絡先・印刷所の6項目（未入力項目は自動で詰めて非表示）と自由記載欄。全体のページ数が奇数になる場合は、奥付の直前に空白ページが自動で1枚挿入されます。
-  * レイアウト2種（縦書き / 横書き）
-  * 書き出し位置・天地位置・文字の揃え方をそれぞれ独立して指定可能
-  * タイトル／固定項目／自由記載欄の3グループごとにフォント・文字サイズを指定可能（欧文フォント・カスタムWebフォント含む）
-  * タイトルは `[改行]` 記法で任意の位置に改行を挿入可能
-  * 自由記載欄は行ごとの寄せ記法（`[中央]` `[右]`）・区切り線記法（`---`）とルビ・太字等のインライン装飾に対応
+      <main class="content-area">
+        <header class="doc-header">
+          <div class="doc-eyebrow">MANUAL</div>
+          <h1 class="doc-title">言ノ葉Editer 取扱説明書</h1>
+          <p class="doc-lead">
+            原稿をテキストで流し込むだけで、禁則も字下げも自動で整う日本語組版エディタです。このページでは、各設定項目の意味と使い方を実務目線でまとめています。目次から気になる項目にジャンプしてください。
+          </p>
+        </header>
 
-### 5. 豊富なフォント（和文10種＋欧文10種＋カスタムWebフォント）
-* **和文フォント10種**: 明朝体6種（システム標準明朝、Shippori Mincho、Noto Serif JP、Sawarabi Mincho、Klee One、Yomogi）、ゴシック体4種（M PLUS 1p Light、RocknRoll One、IBM Plex Sans JP、LINE Seed JP）。本文に使用可能。
-* **欧文フォント10種**（中表紙・奥付向き）: 定番2種（Cormorant Garamond、Montserrat）、個性系8種（Bonheur Royale、Crafty Girls、Fleur De Leah、Google Sans Flex、Henny Penny、Kranky、Michroma、Zen Loop）。
-* **カスタムWebフォント**: 任意のGoogle Fonts等のCSS/Font URLとfamily名を指定して独自のフォントを読み込み可能。本文・中表紙（タイトル／サブタイトル／著者名）・奥付（タイトル／固定項目／自由記載欄）の計7項目、それぞれ個別に指定できます。
+        <section class="doc-section" id="intro">
+          <h2><span class="section-no">01</span>言ノ葉Editerとは</h2>
+          <p>
+            Wordやテキストエディタで書かれた原稿を流し込み、リアルタイムで縦書きの本の紙面を確認しながら、そのまま高品質な印刷やPDF出力（同人誌入稿・文庫作成など）まで行えるWebベースの日本語自動組版エディタです。
+          </p>
+          <p>
+            原稿執筆から版組み・レイアウト調整・PDF化まで、サーバー不要・完全フロントエンド（ブラウザのみ）で完結します。原稿データが外部に送信されることはありません。
+          </p>
+        </section>
 
-### 6. 画面の中で終わらせない。そのまま印刷・PDF出力へ
-* **入稿データ・印刷物として書き出し**:
-  * ブラウザの標準印刷機能を利用し、全ページをプレビュー通り一括レンダリング。
-  * そのまま縦書きPDF保存や印刷が可能で、同人誌入稿や紙面確認にそのまま使用できます。
+        <section class="doc-section" id="quickstart">
+          <h2><span class="section-no">02</span>基本の使い方</h2>
+          <ol class="steps-list">
+            <li>
+              <strong>エディタを開く</strong> —
+              ランディングページから「原稿を組んでみる」を押すか、直接エディタ本体を開きます。
+            </li>
+            <li>
+              <strong>原稿を流し込む</strong> —
+              「本文入力」エリアに原稿を貼り付けるか、ファイルをインポートします。
+            </li>
+            <li>
+              <strong>版面・レイアウトを整える</strong> —
+              「組版・設定」タブで用紙サイズ、段組、のど、ノンブル、フォント等を調整します。
+            </li>
+            <li>
+              <strong>紙面をプレビューで確認</strong> —
+              リアルタイムで縦書き本のかたちに組み上がる紙面を確認・推敲します。
+            </li>
+            <li>
+              <strong>PDF・印刷出力</strong> —
+              右上の「印刷・PDF出力」から縦書きPDFを書き出すか印刷します。
+            </li>
+          </ol>
+          <div class="tip-box">
+            <strong>元に戻す・やり直す</strong><br />
+            本文テキスト欄の下にある「元に戻す」「やり直す」ボタンで、直近5世代まで本文の変更を戻せます（<code
+              >Ctrl+Z</code
+            >
+            /
+            <code>Ctrl+Shift+Z</code
+            >のショートカットにも対応）。「消去」「読込」「サンプル」による本文の一括差し替えも対象に含まれます。
+          </div>
+        </section>
 
-### 7. シンプルな組版マークアップ (Markdown + 独自拡張)
-* **ルビ（ふりがな）**: `｜漢字《かんじ》` または `漢字《かんじ》`
-* **傍点（圏点）**: `《《強調したい文字》》`
-* **縦中横 (TCY)**: 半角数字（1〜2桁 `12`）や、感嘆符・疑問符の組み合わせ（`!?`, `?!`, `!!`, `??`, `！？`など）を自動縦中横化。
-* **配置・改ページ制御**:
-  * 行頭に `[中央]` または `[center]`（中央寄せ）
-  * 行頭に `[右]` または `[right]`（右寄せ/下寄せ）
-  * 行頭に `[改ページ]` または `<!-- pagebreak -->` で手動改ページ
-  * 行頭に `[字下げなし]` または `[noindent]`（その行の字下げを強制解除）
-  * 行頭に `[字下げあり]` または `[indent]`（「」始まりの行など、通常は字下げが省略される行にも字下げを強制適用。中央寄せ・右寄せと併用した場合はこちらが優先）
-* **標準Markdownサポート**: 見出し（`#`〜`######`）、太字、斜体、引用枠、水平線など。
-* **中表紙・奥付タイトル専用記法**: `[改行]`（中表紙タイトル・サブタイトル・奥付タイトルの入力欄内で、任意の位置に改行を挿入。本文では使用不可）
-* **奥付自由記載欄専用記法**: `[中央]` `[右]` による行ごとの寄せ、`---`（`***` / `___`でも可）による区切り線。本文用の記法とは別の軽量パーサーで処理されます。
+        <section class="doc-section" id="engine">
+          <h2><span class="section-no">03</span>自動組版のしくみ</h2>
+          <p>
+            原稿を流し込むと、禁則処理・記号の分断防止・会話文の字下げ調整が自動で適用されます。行頭・行尾禁則はもちろん、「――」（ダッシュ）や「……」（リーダー）などの記号が行途中や行末で泣き別れしないよう自動補正されます。
+          </p>
+          <p>
+            フォントの縦書き字送りや約物（「」など）固有のアキはCanvasで実測され、ミリ単位で精緻な自動ページ分割・組版が行われます。
+          </p>
+        </section>
 
-### 8. 安心の完全ローカル・ブラウザ完結
-* **外部サーバー送信なし**: 原稿データは一切外部サーバーに送信されず、お使いのブラウザ内（LocalStorage）のみで保持。
-* **元に戻す・やり直す**: 本文の誤操作から復帰できるUndo/Redo機能（最大5世代）。「消去」「読込」「サンプル読込」による本文の一括差し替えも対象に含み、`Ctrl+Z`（元に戻す）/ `Ctrl+Shift+Z`（やり直す）のショートカットにも対応。Undoの対象は本文のみで、組版設定や中表紙・奥付の入力欄は対象外です。
-* **ファイル入出力**: `.txt` や `.md` のインポート、およびタイトル指定での `.txt` 保存（エクスポート）。
-* **テーマ＆レスポンシブ**: セピア ☕ / ライト ☀️ / ダーク 🌙 の表示テーマ切替、スマホ・タブレットでの編集/プレビュー画面切替に対応。
+        <section class="doc-section" id="markup">
+          <h2><span class="section-no">04</span>組版マークアップ</h2>
+          <p>
+            本文中に以下の記法を使うことで、ルビや傍点、配置などを制御できます。
+          </p>
+          <table class="ref-table">
+            <thead>
+              <tr>
+                <th>機能</th>
+                <th>記法</th>
+                <th>入力例</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>ルビ（ふりがな）</td>
+                <td>
+                  <code>｜漢字《かんじ》</code> または
+                  <code>漢字《かんじ》</code>
+                </td>
+                <td><code>｜瑠璃《るり》色の空</code></td>
+              </tr>
+              <tr>
+                <td>傍点（圏点）</td>
+                <td><code>《《文字》》</code></td>
+                <td><code>《《ここを強調》》</code></td>
+              </tr>
+              <tr>
+                <td>縦中横（半角数字）</td>
+                <td>1〜2桁の数字</td>
+                <td><code>12</code>月<code>31</code>日</td>
+              </tr>
+              <tr>
+                <td>縦中横（感嘆符・疑問符）</td>
+                <td>
+                  <code>!?</code> <code>?!</code> <code>!!</code>
+                  <code>??</code> 等
+                </td>
+                <td><code>本当!?</code></td>
+              </tr>
+              <tr>
+                <td>中央寄せ</td>
+                <td><code>[中央]</code> または <code>[center]</code></td>
+                <td><code>[中央]第一章</code></td>
+              </tr>
+              <tr>
+                <td>右寄せ（下寄せ）</td>
+                <td><code>[右]</code> または <code>[right]</code></td>
+                <td><code>[右]言ノ葉 太郎</code></td>
+              </tr>
+              <tr>
+                <td>字下げなし</td>
+                <td>
+                  <code>[字下げなし]</code> または <code>[noindent]</code>
+                </td>
+                <td><code>[字下げなし]地の文をそのまま</code></td>
+              </tr>
+              <tr>
+                <td>字下げあり（強制）</td>
+                <td><code>[字下げあり]</code> または <code>[indent]</code></td>
+                <td><code>[字下げあり]「地の文扱いの会話」</code></td>
+              </tr>
+              <tr>
+                <td>手動改ページ</td>
+                <td><code>[改ページ]</code></td>
+                <td><code>[改ページ]</code>（行頭に単独で記載）</td>
+              </tr>
+              <tr>
+                <td>タイトル内の改行位置指定</td>
+                <td><code>[改行]</code></td>
+                <td><code>言ノ葉[改行]Editer</code></td>
+              </tr>
+              <tr>
+                <td>見出し</td>
+                <td><code>#</code>〜<code>######</code></td>
+                <td><code>## 1. はじめに</code></td>
+              </tr>
+              <tr>
+                <td>太字 / 斜体</td>
+                <td><code>**太字**</code> / <code>*斜体*</code></td>
+                <td><code>**重要**</code></td>
+              </tr>
+              <tr>
+                <td>引用枠</td>
+                <td><code>&gt; 文章</code></td>
+                <td><code>&gt; これは引用文です。</code></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="tip-box">
+            <strong>縦中横にしたくない数字がある場合</strong><br />
+            半角数字1〜2桁は自動的に縦中横（横向き表示）になります。型番や記号列など、数字を横向きにしたくない場合は、全角数字（<code>１２</code>など）で入力すると縦中横化の対象から外れ、他の文字と同じ向きのまま表示されます。
+          </div>
+          <div class="tip-box">
+            <strong>[改行]記法について</strong><br />
+            <code>[改行]</code>は本文中では使用できません。中表紙タイトル・中表紙サブタイトル・奥付タイトルの入力欄（1行のテキスト入力）専用の記法で、挿入した位置で強制的に改行されます。
+          </div>
+          <div class="tip-box">
+            <strong>字下げの自動判定と、記法による上書き</strong><br />
+            通常は「」『』などの括弧で始まる会話文は自動的に字下げが省略され、それ以外の地の文は自動で一字下げされます。<code>[字下げなし]</code>・<code>[字下げあり]</code>は、この自動判定を行単位で上書きしたいときに使います。中央寄せ・右寄せと併用した場合は、字下げ指定のほうが優先されます。
+          </div>
+        </section>
 
-### 9. アプリとしてインストール（PWA対応）
-* Web App Manifest・Service Workerに対応し、PCやスマートフォンに「アプリ」としてインストール可能。
-* インストール後はオフラインでも起動でき、原稿データの保存先はインストール前後で変わらずブラウザ内（LocalStorage）のままです。
-* HTTPS環境（またはlocalhost）でのみ動作。`file://`での直接閲覧時はインストールできません。
+        <section class="doc-section" id="paper">
+          <h2><span class="section-no">05</span>用紙・段組・余白</h2>
+          <h3>用紙サイズ</h3>
+          <p>
+            A6（文庫本サイズ）、B6（同人誌主流）、A5、B5、A4、ハガキなど、実寸ミリ単位で設計されています。
+          </p>
+          <h3>段組</h3>
+          <p>
+            1段組 /
+            2段組を切り替えられます。2段組では段の境界線の有無も選択できます。
+          </p>
+          <h3>のど（綴じ代）</h3>
+          <p>
+            のどのあり・なしを切り替え可能で、あり設定時は奇数・偶数ページで左右交互に配置されます。綴じ代幅はmm単位でカスタム指定できます（初期値6mm）。
+          </p>
+          <h3>余白</h3>
+          <div class="panel-card">
+            <div class="panel-card-title">余白プリセット（天地 × 左右）</div>
+            <table class="ref-table">
+              <thead>
+                <tr>
+                  <th>プリセット</th>
+                  <th>天地</th>
+                  <th>左右</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>狭い</td>
+                  <td>12mm</td>
+                  <td>10mm</td>
+                </tr>
+                <tr>
+                  <td>標準</td>
+                  <td>18mm</td>
+                  <td>14mm</td>
+                </tr>
+                <tr>
+                  <td>広い</td>
+                  <td>24mm</td>
+                  <td>18mm</td>
+                </tr>
+                <tr>
+                  <td>カスタム</td>
+                  <td colspan="2">任意のmm数値を指定可能</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>本文文字サイズもあわせて細かく設定できます。</p>
+        </section>
 
----
+        <section class="doc-section" id="font">
+          <h2><span class="section-no">06</span>フォント</h2>
+          <p>
+            本文には和文フォント10種、中表紙・奥付にはそれに加えて欧文フォント10種のプリセットが用意されています。いずれの項目も「カスタムURL指定...」を選ぶことで、任意のGoogle
+            Fonts等のWebフォントに差し替えられます。
+          </p>
 
-## 📝 組版記法クイックリファレンス
+          <h3>明朝体（本文向き）</h3>
+          <table class="ref-table">
+            <thead>
+              <tr>
+                <th>フォント名</th>
+                <th>サンプル</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>システム標準明朝</td>
+                <td
+                  class="font-sample"
+                  style="
+                    font-family:
+                      &quot;Hiragino Mincho ProN&quot;, &quot;Yu Mincho&quot;,
+                      &quot;MS Mincho&quot;, serif;
+                  "
+                >
+                  ――言ノ葉、静かに紡がれる……。
+                </td>
+              </tr>
+              <tr>
+                <td>しっぽり明朝</td>
+                <td
+                  class="font-sample"
+                  style="
+                    font-family:
+                      &quot;Shippori Mincho&quot;, &quot;Yu Mincho&quot;,
+                      &quot;MS Mincho&quot;, serif;
+                  "
+                >
+                  ――言ノ葉、静かに紡がれる……。
+                </td>
+              </tr>
+              <tr>
+                <td>Noto Serif JP</td>
+                <td
+                  class="font-sample"
+                  style="
+                    font-family:
+                      &quot;Noto Serif JP&quot;, &quot;Yu Mincho&quot;,
+                      &quot;MS Mincho&quot;, serif;
+                  "
+                >
+                  ――言ノ葉、静かに紡がれる……。
+                </td>
+              </tr>
+              <tr>
+                <td>さわらび明朝</td>
+                <td
+                  class="font-sample"
+                  style="
+                    font-family:
+                      &quot;Sawarabi Mincho&quot;, &quot;Yu Mincho&quot;,
+                      &quot;MS Mincho&quot;, serif;
+                  "
+                >
+                  ――言ノ葉、静かに紡がれる……。
+                </td>
+              </tr>
+              <tr>
+                <td>Klee One</td>
+                <td
+                  class="font-sample"
+                  style="
+                    font-family:
+                      &quot;Klee One&quot;, &quot;Hiragino Mincho ProN&quot;,
+                      serif;
+                  "
+                >
+                  ――言ノ葉、静かに紡がれる……。
+                </td>
+              </tr>
+              <tr>
+                <td>よもぎフォント</td>
+                <td
+                  class="font-sample"
+                  style="
+                    font-family:
+                      &quot;Yomogi&quot;, &quot;Hiragino Mincho ProN&quot;,
+                      serif;
+                  "
+                >
+                  ――言ノ葉、静かに紡がれる……。
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
-| 機能 | 記法 | 表示イメージ / 入力例 |
-| :--- | :--- | :--- |
-| **ルビ (ふりがな)** | `｜漢字《かんじ》` または `漢字《かんじ》` | `｜瑠璃《るり》色の空` |
-| **傍点 (圏点)** | `《《文字》》` | `《《ここを強調》》` |
-| **縦中横 (半角数字)** | 1〜2桁の数字 | `12` 月 `31` 日 |
-| **縦中横 (感嘆符・疑問符)** | `!?` `?!` `!!` `??` 等 | `本当!?` `嘘でしょ？！` |
-| **中央寄せ** | `[中央]` または `[center]` | `[中央]第一章` |
-| **右寄せ (下寄せ)** | `[right]` または `[右]` | `[右]言ノ葉 太郎` |
-| **字下げなし** | `[字下げなし]` または `[noindent]` | `[字下げなし]地の文をそのまま` |
-| **字下げあり (強制)** | `[字下げあり]` または `[indent]` | `[字下げあり]「地の文扱いにしたい会話」` |
-| **手動改ページ** | `[改ページ]` | `[改ページ]` |
-| **見出し** | `#` 〜 `######` | `## 1. はじめに` |
-| **太字 / 斜体** | `**太字**` / `*斜体*` | `**重要**` |
-| **引用枠** | `> 文章` | `> これは引用文です。` |
-| **タイトル内改行**（中表紙・奥付タイトル専用） | `[改行]` | `言ノ葉[改行]Editer` |
-| **奥付自由記載欄の区切り線** | `---` （`***` / `___`も可） | `---` |
+          <h3>ゴシック体（タイトル・見出し向き）</h3>
+          <table class="ref-table">
+            <thead>
+              <tr>
+                <th>フォント名</th>
+                <th>サンプル</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>M PLUS 1p Light</td>
+                <td
+                  class="font-sample"
+                  style="
+                    font-family:
+                      &quot;M PLUS 1p&quot;, &quot;Hiragino Sans&quot;,
+                      sans-serif;
+                    font-weight: 300;
+                  "
+                >
+                  ――言ノ葉、静かに紡がれる……。
+                </td>
+              </tr>
+              <tr>
+                <td>RocknRoll One</td>
+                <td
+                  class="font-sample"
+                  style="
+                    font-family:
+                      &quot;RocknRoll One&quot;, &quot;Hiragino Sans&quot;,
+                      sans-serif;
+                  "
+                >
+                  ――言ノ葉、静かに紡がれる……。
+                </td>
+              </tr>
+              <tr>
+                <td>IBM Plex Sans JP</td>
+                <td
+                  class="font-sample"
+                  style="
+                    font-family:
+                      &quot;IBM Plex Sans JP&quot;, &quot;Hiragino Sans&quot;,
+                      sans-serif;
+                  "
+                >
+                  ――言ノ葉、静かに紡がれる……。
+                </td>
+              </tr>
+              <tr>
+                <td>LINE Seed JP</td>
+                <td
+                  class="font-sample"
+                  style="
+                    font-family:
+                      &quot;LINE Seed JP&quot;, &quot;Hiragino Sans&quot;,
+                      sans-serif;
+                  "
+                >
+                  ――言ノ葉、静かに紡がれる……。
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
----
+          <h3>欧文フォント（中表紙・奥付向き）</h3>
+          <p>
+            中表紙のタイトル・サブタイトル・著者名、奥付のタイトル・固定項目・自由記載欄、それぞれのフォント選択欄で、和文10種の後ろに以下の欧文フォントが並びます。英字タイトルにこだわりたい場合にお使いください。
+          </p>
+          <table class="ref-table">
+            <thead>
+              <tr>
+                <th>フォント名</th>
+                <th>サンプル</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Cormorant Garamond</td>
+                <td
+                  class="font-sample"
+                  style="font-family: &quot;Cormorant Garamond&quot;, serif"
+                >
+                  Kotonoha Editer
+                </td>
+              </tr>
+              <tr>
+                <td>Montserrat</td>
+                <td
+                  class="font-sample"
+                  style="font-family: &quot;Montserrat&quot;, sans-serif"
+                >
+                  Kotonoha Editer
+                </td>
+              </tr>
+              <tr>
+                <td>Bonheur Royale</td>
+                <td
+                  class="font-sample"
+                  style="font-family: &quot;Bonheur Royale&quot;, cursive"
+                >
+                  Kotonoha Editer
+                </td>
+              </tr>
+              <tr>
+                <td>Crafty Girls</td>
+                <td
+                  class="font-sample"
+                  style="font-family: &quot;Crafty Girls&quot;, cursive"
+                >
+                  Kotonoha Editer
+                </td>
+              </tr>
+              <tr>
+                <td>Fleur De Leah</td>
+                <td
+                  class="font-sample"
+                  style="font-family: &quot;Fleur De Leah&quot;, cursive"
+                >
+                  Kotonoha Editer
+                </td>
+              </tr>
+              <tr>
+                <td>Google Sans Flex</td>
+                <td
+                  class="font-sample"
+                  style="
+                    font-family: &quot;Google Sans Flex&quot;, sans-serif;
+                  "
+                >
+                  Kotonoha Editer
+                </td>
+              </tr>
+              <tr>
+                <td>Henny Penny</td>
+                <td
+                  class="font-sample"
+                  style="font-family: &quot;Henny Penny&quot;, cursive"
+                >
+                  Kotonoha Editer
+                </td>
+              </tr>
+              <tr>
+                <td>Kranky</td>
+                <td
+                  class="font-sample"
+                  style="font-family: &quot;Kranky&quot;, cursive"
+                >
+                  Kotonoha Editer
+                </td>
+              </tr>
+              <tr>
+                <td>Michroma</td>
+                <td
+                  class="font-sample"
+                  style="font-family: &quot;Michroma&quot;, sans-serif"
+                >
+                  Kotonoha Editer
+                </td>
+              </tr>
+              <tr>
+                <td>Zen Loop</td>
+                <td
+                  class="font-sample"
+                  style="font-family: &quot;Zen Loop&quot;, cursive"
+                >
+                  Kotonoha Editer
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
-## 🚀 使い方
+          <h3>カスタムWebフォント</h3>
+          <p>
+            プリセットにないフォントを使いたい場合は、フォント選択で「カスタムURL指定...」を選ぶと、CSS/Font
+            URLとfamily名を入力する欄が表示されます。本文・中表紙（タイトル／サブタイトル／著者名）・奥付（タイトル／固定項目／自由記載欄）のあわせて7項目、それぞれ個別にカスタムフォントを指定できます。
+          </p>
 
-1. **エディタを開く**: `index.html`（LP）から「原稿を組んでみる」を押すか、直接 `kotonoha.html` をブラウザで開きます。
-2. **原稿を流し込む**: 「本文入力」タブに原稿を貼り付けるかインポートします。
-3. **版面・レイアウトを整える**: 「本文組版・設定」タブで用紙サイズ（A6〜A4）、段組、のど、ノンブル、フォント等を調整します。
-4. **中表紙・奥付を設定する**: 「中表紙・奥付」タブで扉ページや奥付の内容・レイアウトを設定します（任意）。
-5. **紙面をプレビューで確認**: リアルタイムで縦書き本のかたちに組み上がる紙面を確認・推敲します。
-6. **PDF・印刷出力**: 右上の「印刷・PDF出力」から縦書きPDFを書き出すか印刷します。
+          <h4 style="margin: 18px 0 8px; font-size: 15px">
+            設定の手順（Google Fontsを例に）
+          </h4>
+          <ol class="steps-list">
+            <li>
+              <strong>使いたいフォントをGoogle Fontsで探す</strong> —
+              <a
+                href="https://fonts.google.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                >fonts.google.com</a
+              >
+              で好みのフォントを選びます。ここでは例として「Zen Kurenaido」というフォントを使うとします。
+            </li>
+            <li>
+              <strong>埋め込み用のCSS URLを取得する</strong> —
+              フォントページの「Get font」→「Get embed code」を開くと、次のような<code
+                >&lt;link&gt;</code
+              >タグが表示されます。
+              <div class="panel-card" style="margin-top: 8px">
+                <code
+                  >&lt;link href="https://fonts.googleapis.com/css2?family=Zen+Kurenaido&amp;display=swap"
+                  rel="stylesheet"&gt;</code
+                >
+              </div>
+              この<code>href="..."</code>の中身（<code
+                >https://fonts.googleapis.com/css2?family=Zen+Kurenaido&amp;display=swap</code
+              >）だけをコピーします。
+            </li>
+            <li>
+              <strong>「CSS/Font URL」欄に貼り付ける</strong> —
+              手順2でコピーしたURLをそのまま貼り付けます。
+            </li>
+            <li>
+              <strong>「family名」欄にフォント名を入力する</strong> —
+              Google
+              Fontsのフォント名をそのままダブルクォートで囲んで入力します。今回の例なら
+              <code>"Zen Kurenaido"</code> と入力します（末尾に
+              <code>, sans-serif</code>
+              のような総称フォント名を足しておくと、万一読み込みに失敗した際のフォールバックになり安全です）。
+            </li>
+          </ol>
+          <div class="tip-box">
+            <strong>family名の書き方</strong><br />
+            family名はCSSの<code>font-family</code>プロパティにそのまま渡されます。フォント名にスペースが含まれる場合は
+            <code>"Zen Kurenaido"</code>
+            のようにダブルクォートで囲んでください。複数指定する場合はカンマ区切りで
+            <code>"Zen Kurenaido", "Noto Serif JP", serif</code>
+            のように書けます。
+          </div>
+        </section>
 
-より詳しい使い方は、同梱の `manual.html`（取扱説明書）をご覧ください。
+        <section class="doc-section" id="header">
+          <h2><span class="section-no">07</span>柱（ヘッダー）</h2>
+          <p>ページ上部に表示する柱（章タイトルなど）の設定です。</p>
+          <table class="ref-table">
+            <thead>
+              <tr>
+                <th>項目</th>
+                <th>選択肢</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>表示条件</td>
+                <td>全ページ / 奇数ページのみ / 偶数ページのみ / 左右交互</td>
+              </tr>
+              <tr>
+                <td>位置</td>
+                <td>右上 / 中央上 / 左上</td>
+              </tr>
+              <tr>
+                <td>文字サイズ</td>
+                <td>小 / 標準 / 大</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
 
----
+        <section class="doc-section" id="nombre">
+          <h2><span class="section-no">08</span>ノンブル（ページ番号）</h2>
+          <p>
+            ページ番号の表示条件・位置・文字サイズ・数字タイプ・形式・開始番号を設定できます。
+          </p>
+          <table class="ref-table">
+            <thead>
+              <tr>
+                <th>項目</th>
+                <th>選択肢</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>表示条件</td>
+                <td>全ページ / 1ページ目非表示 / 完全非表示</td>
+              </tr>
+              <tr>
+                <td>位置</td>
+                <td>中央下 / 右下 / 左下 / 左右交互</td>
+              </tr>
+              <tr>
+                <td>文字サイズ</td>
+                <td>小 / 標準 / 大</td>
+              </tr>
+              <tr>
+                <td>数字タイプ</td>
+                <td>
+                  算用数字 / 漢数字（横書き）/ 漢数字（縦書き）/ ローマ数字
+                </td>
+              </tr>
+              <tr>
+                <td>形式</td>
+                <td>
+                  <code>- 1 -</code> / <code>P.1</code> / <code>/ 1 /</code> /
+                  数字のみ
+                </td>
+              </tr>
+              <tr>
+                <td>開始ページ番号</td>
+                <td>任意の数値を指定可能</td>
+              </tr>
+            </tbody>
+          </table>
 
-## 📂 ファイル構成
+          <h3>数字タイプについて</h3>
+          <p>
+            漢数字は横書き・縦書きで表記方式が異なります。<strong>横書き</strong>は通常の位取り記数法です（例：<code
+              >10</code
+            >
+            → <code>十</code>、<code>21</code> → <code>二十一</code>、<code
+              >123</code
+            >
+            →
+            <code>百二十三</code
+            >）。<strong>縦書き</strong>は位ごとにそのまま並べる表記です（例：<code
+              >10</code
+            >
+            → <code>一〇</code>、<code>21</code> →
+            <code>二一</code>）。ローマ数字は大文字表記（<code
+              >I, II, III...</code
+            >）です。
+          </p>
+          <div class="tip-box">
+            <strong>漢数字（縦書き）の挙動について</strong><br />
+            中央配置を選んでいる場合は、縦書きが不自然になるため自動的に横書きへ切り替わります（この場合も表記は位ごとのままです）。また、文字サイズに「大」を選んでいても、縦書き表示の際は余白とのバランスをとるため自動的に「標準」へ調整されます。
+          </div>
+        </section>
 
-```text
-kotonoha/
-├── index.html      # ランディングページ (LP)
-├── kotonoha.html   # 組版エディタ本体（UI構造・設定パネル・プレビュー領域）
-├── manual.html     # 取扱説明書（目次固定・単体完結、テーマはkotonoha.htmlと連携）
-├── manifest.json   # PWA用マニフェスト（アプリ名・アイコン・テーマカラー等）
-├── sw.js           # Service Worker（オフラインキャッシュ）
-├── css/
-│   ├── style.css   # 組版エディタテーマ・UIデザイン・組版レイアウト・印刷用CSS
-│   └── lp.css      # ランディングページ・取扱説明書用CSS
-├── js/
-│   ├── app.js      # 自動組版エンジン・Canvas計算・DOM操作・ファイルI/O・自動保存
-│   └── lp.js       # ランディングページ・取扱説明書用スクリプト
-└── image/          # ファビコン（SVG）・PWAアイコン（複数サイズPNG）・OGP画像等
-```
+        <section class="doc-section" id="frontmatter">
+          <h2><span class="section-no">09</span>中表紙（扉ページ）</h2>
+          <p>
+            本文の前に挿入する扉ページです。タイトル・サブタイトル（任意）・著者名（任意）を設定できます。中表紙を作成すると、次に見開きを整えるための空白ページが自動で1枚挿入されます。
+          </p>
+          <table class="ref-table">
+            <thead>
+              <tr>
+                <th>項目</th>
+                <th>選択肢</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>レイアウト</td>
+                <td>
+                  縦書き・中央 / 縦書き・右上 / 横書き・中央 / 横書き・ミニマル
+                </td>
+              </tr>
+              <tr>
+                <td>枠</td>
+                <td>
+                  枠なし / 一重罫線 / 一重罫線（角落とし）/ 点線罫線 /
+                  一重罫線（極太）/ 二重罫線（均等）/ 二重罫線（外太・内細）/
+                  二重罫線（外細・内太）/ 二重罫線＋四隅ポイント / 角飾り /
+                  角飾り（隅立て）
+                </td>
+              </tr>
+              <tr>
+                <td>要素同士の間隔</td>
+                <td>狭い〜広い（5段階）</td>
+              </tr>
+              <tr>
+                <td>区切り線</td>
+                <td>引かない / 引く（長さを20〜100%で指定）</td>
+              </tr>
+              <tr>
+                <td>項目ごとのフォント・文字サイズ</td>
+                <td>
+                  タイトル・サブタイトル・著者名それぞれに独立してフォント・文字サイズを指定可能（欧文フォント・カスタムWebフォントにも個別対応。詳細は<a
+                    href="#font"
+                    >06 フォント</a
+                  >を参照）
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="tip-box">
+            <strong>区切り線について</strong><br />
+            タイトル・サブタイトルと著者名の間に引く線です。縦書きレイアウトでは縦棒、横書きレイアウトでは横棒（水平線）として表示されます。著者名が未入力の場合は表示されません。
+          </div>
+          <div class="tip-box">
+            <strong>タイトルの改行位置指定</strong><br />
+            タイトル・サブタイトルの入力欄内で<code>[改行]</code>と入力すると、その位置で強制的に改行できます（詳細は<a
+              href="#markup"
+              >04 組版マークアップ</a
+            >を参照）。
+          </div>
+        </section>
 
----
+        <section class="doc-section" id="colophon">
+          <h2><span class="section-no">10</span>奥付</h2>
+          <p>
+            本文の後に挿入するページです。タイトル・発行日・著者・サークル名・連絡先・印刷所の6項目と、自由記載欄を設定できます。<br />未入力の項目は行ごと表示されず、詰めて配置されるため、「タイトルのみ入力、残りの項目は自由記載欄で入力」といった使い方も可能です。全体のページ数が奇数になる場合は、奥付の直前に空白ページが自動で1枚挿入されます。
+          </p>
+          <table class="ref-table">
+            <thead>
+              <tr>
+                <th>項目</th>
+                <th>選択肢</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>レイアウト</td>
+                <td>縦書き / 横書き</td>
+              </tr>
+              <tr>
+                <td>書き出し位置</td>
+                <td>右寄り / 中央 / 左寄り</td>
+              </tr>
+              <tr>
+                <td>天地位置</td>
+                <td>上寄せ / 中央 / 下寄せ</td>
+              </tr>
+              <tr>
+                <td>文字の揃え方</td>
+                <td>上揃え / 中央揃え / 下揃え</td>
+              </tr>
+              <tr>
+                <td>項目ごとのフォント・文字サイズ</td>
+                <td>
+                  タイトル・固定項目（発行日〜印刷）・自由記載欄の3グループごとに独立してフォント・文字サイズを指定可能（欧文フォント・カスタムWebフォントにも個別対応。詳細は<a
+                    href="#font"
+                    >06 フォント</a
+                  >を参照）
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <h3>自由記載欄の記法</h3>
+          <p>
+            行頭に<code>[中央]</code>または<code>[右]</code>と書くと、その行だけ中央寄せ・右寄せにできます（全角の<code>［中央］</code>・<code>［右］</code>表記にも対応）。本文で使えるルビや太字などのインライン装飾も利用できます。行ごとの寄せ指定は、奥付全体で設定した「文字の揃え方」よりも優先されます。
+          </p>
+          <p>
+            また、<code>---</code>（<code>***</code>・<code>___</code>でも可）のみの行を書くと、区切り線（罫線）が引かれます。縦書きレイアウトでは縦罫線、横書きレイアウトでは横罫線として表示されます。固定項目（発行日〜印刷）を使わず、タイトルと自由記載欄だけで奥付を完結させたい場合に活用できます。
+          </p>
+          <div class="tip-box">
+            <strong>天地位置と文字の揃え方の違い</strong><br />
+            「天地位置」はページ全体の中で奥付の内容をどこに配置するか、「文字の揃え方」は内容そのものの行揃えです。両者は独立しているため、たとえば「下寄せ配置で中央揃えのテキスト」といった組み合わせも指定できます。
+          </div>
+          <div class="tip-box">
+            <strong>タイトルの改行位置指定</strong><br />
+            奥付タイトルの入力欄内で<code>[改行]</code>と入力すると、その位置で強制的に改行できます（詳細は<a
+              href="#markup"
+              >04 組版マークアップ</a
+            >を参照）。
+          </div>
+        </section>
 
-## 📄 ライセンス
+        <section class="doc-section" id="output">
+          <h2><span class="section-no">11</span>印刷・PDF出力</h2>
+          <p>
+            ブラウザの標準印刷機能を利用し、全ページをプレビュー通り一括レンダリングします。そのまま縦書きPDF保存や印刷が可能で、同人誌入稿や紙面確認にそのまま使用できます。
+          </p>
+        </section>
 
-[MIT License](https://opensource.org/licenses/MIT) © 2026 [Squall](https://amexfuri.work/)
+        <section class="doc-section" id="local">
+          <h2><span class="section-no">12</span>データの保存について</h2>
+          <p>
+            原稿データは一切外部サーバーに送信されず、お使いのブラウザ内（LocalStorage）のみで保持されます。<br />テキストファイル<code>.txt</code>やマークダウンファイル<code>.md</code>の読込（インポート）、タイトル指定でのテキストファイル<code>.txt</code>保存（エクスポート）に対応しています。
+          </p>
+        </section>
+
+        <section class="doc-section" id="pwa">
+          <h2><span class="section-no">13</span>アプリとしてインストール</h2>
+          <p>
+            言ノ葉Editerはブラウザから開くだけで使えますが、お使いの端末に「アプリ」としてインストールし、オフラインでも起動できるようにすることも可能です（PWA対応）。原稿データの保存先はインストール前後で変わらず、引き続きお使いのブラウザ内（LocalStorage）です。
+          </p>
+          <table class="ref-table">
+            <thead>
+              <tr>
+                <th>環境</th>
+                <th>手順</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>PC（Chrome / Edge）</td>
+                <td>
+                  アドレスバー右端のインストールアイコンをクリック→「インストール」
+                </td>
+              </tr>
+              <tr>
+                <td>Android（Chrome）</td>
+                <td>
+                  メニュー（<code>⋮</code>）→「アプリをインストール」または「ホーム画面に追加」
+                </td>
+              </tr>
+              <tr>
+                <td>iPhone / iPad（Safari）</td>
+                <td>共有ボタンをタップ→「ホーム画面に追加」</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="tip-box">
+            <strong>インストールできない場合</strong><br />
+            PWAインストールにはHTTPS環境（または開発時のlocalhost）が必要です。ファイルを直接ダブルクリックして開いた場合（アドレスバーが<code>file://</code>から始まる場合）はインストールできません。
+          </div>
+        </section>
+
+        <section class="doc-section" id="license">
+          <h2><span class="section-no">14</span>ライセンスについて</h2>
+          <p>
+            <a
+              href="https://github.com/AmayoSakura/kotonoha_edit/blob/main/LICENSE"
+              target="_blank"
+              rel="noopener noreferrer"
+              >MIT License</a
+            >
+          </p>
+        </section>
+
+        <section class="doc-section" id="faq">
+          <h2><span class="section-no">15</span>問い合わせ先</h2>
+          <p>
+            本ツールに関するご意見、バグ報告、機能要望は、以下のいずれかよりご連絡ください。
+          </p>
+          <p>
+            ・<a href="https://x.com/AmexAmexxx" target="_blank" rel="noopener"
+              >X（旧Twitter）</a
+            ><br />
+            ・<a
+              href="https://github.com/AmayoSakura/kotonoha_edit/issues"
+              target="_blank"
+              rel="noopener"
+              >GitHub</a
+            >
+          </p>
+        </section>
+      </main>
+    </div>
+
+    <script src="js/lp.js"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", function () {
+          navigator.serviceWorker.register("sw.js").catch(function (err) {
+            console.warn("Service Worker登録に失敗しました:", err);
+          });
+        });
+      }
+    </script>
+  </body>
+</html>

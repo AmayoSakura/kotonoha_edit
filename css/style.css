@@ -1049,7 +1049,7 @@
     font-family: var(--doc-font-family);
     display: flex;
     flex-direction: column;
-    gap: 3em;
+    gap: 1.5em;
     font-size: 0.82em;
   }
 
