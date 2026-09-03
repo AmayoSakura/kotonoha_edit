@@ -290,7 +290,7 @@
       transform-origin: center center;
       display: inline-block;
       white-space: pre-wrap;
-      max-width: 85%;
+      max-width: 90%;
       word-break: break-word;
       transition: border-color 0.15s;
       color: #ffffff;
@@ -911,11 +911,11 @@
         <div id="card-overlay" class="card-overlay"></div>
 
         <div id="item-title" class="drag-item font-shippori selected" data-label="タイトル"
-          style="top: 70px; left: 32px; font-size: 34px; font-weight: 800; color: #ffffff;">記事のメインタイトルを入力</div>
+          style="top: 64px; left: 32px; font-size: 28px; font-weight: 800; color: #ffffff;">記事のメインタイトルを入力</div>
         <div id="item-subtitle" class="drag-item font-sans" data-label="サブ"
-          style="top: 168px; left: 32px; font-size: 16px; font-weight: 600; color: #ffffff;">サブタイトルや補足テキストを入力</div>
+          style="top: 172px; left: 32px; font-size: 16px; font-weight: 600; color: #ffffff;">サブタイトルや補足テキストを入力</div>
         <div id="item-author" class="drag-item font-sans" data-label="作者名"
-          style="top: 222px; left: 32px; font-size: 14px; font-weight: 700; color: #e8a6b4;">@creator_name</div>
+          style="top: 226px; left: 32px; font-size: 14px; font-weight: 700; color: #e8a6b4;">@creator_name</div>
 
         <div id="guide-lines" class="guide-lines">
           <div id="guide-v" class="guide-line guide-v"></div>
@@ -1453,7 +1453,7 @@
         btn.classList.toggle('active', btn.dataset.target === activeItem.id);
       });
 
-      inputActiveText.value = activeItem.textContent;
+      inputActiveText.value = activeItem.textContent.trim();
       inputTextColor.value = itemStates[activeItem.id].color;
 
       const currentOpacity = itemStates[activeItem.id].opacity !== undefined ? itemStates[activeItem.id].opacity : 100;
@@ -1868,7 +1868,7 @@
         panelSide: panelSide,
         items: dragItems.map(item => ({
           id: item.id,
-          text: item.textContent,
+          text: item.textContent.trim(),
           fontClass: allFonts.find(f => item.classList.contains(f)) || 'font-sans',
           label: itemStates[item.id] ? itemStates[item.id].label : item.id,
           top: item.style.top,
@@ -1920,7 +1920,7 @@
           const el = document.createElement('div');
           el.id = itemData.id;
           el.className = `drag-item ${itemData.fontClass}`;
-          el.textContent = itemData.text;
+          el.textContent = typeof itemData.text === 'string' ? itemData.text.trim() : itemData.text;
           el.style.top = itemData.top;
           el.style.left = itemData.left;
           el.style.fontSize = itemData.fontSize;
@@ -2034,7 +2034,7 @@
     btnSendBack.addEventListener('click', () => setTimeout(pushUndoSnapshot, 0));
 
     // ==================== 自動保存（localStorage） ====================
-    const AUTOSAVE_KEY = 'noteHeaderStudio_autosave_v1';
+    const AUTOSAVE_KEY = 'visualHeaderStudio_autosave_v2';
 
     function autoSave() {
       if (isRestoring) return;
