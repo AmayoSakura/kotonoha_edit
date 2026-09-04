@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 const CACHE_NAME = "kotonoha-v1.0.2";
+=======
+const CACHE_NAME = "kotonoha-v1.0.1";
+>>>>>>> 02b6ad0056d232baafb0c1df2c5bb56508deed35
 const APP_SHELL = [
   "./kotonoha.html",
   "./manual.html",
