@@ -32,7 +32,7 @@
 
   <title>Visual Header Studio</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <link rel="icon" type="image/svg+xml" href="../image/favicon.svg" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -809,6 +809,12 @@
       gap: 4px;
     }
 
+    .panel-scroll-actions {
+      margin-top: 4px;
+      padding-top: 14px;
+      border-top: 1px dashed var(--line);
+    }
+
     .footer-action-btn {
       background: var(--panel-input);
       border: 1px solid var(--line);
@@ -887,6 +893,107 @@
     [data-theme="dark"] .btn-download:hover {
       background: var(--plum-soft);
     }
+
+    /* ============ スマホ：ボトムシート化 ============ */
+    .sheet-handle {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .app-container,
+      .app-container.panel-left {
+        display: block;
+        position: relative;
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      .viewport {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        padding: 16px;
+      }
+
+      .card-wrapper {
+        max-width: 100%;
+      }
+
+      .control-panel,
+      .app-container.panel-left .control-panel {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: 78vh;
+        max-height: 78vh;
+        border-left: none;
+        border-right: none;
+        border-top: 1px solid var(--line);
+        border-radius: 16px 16px 0 0;
+        box-shadow: 0 -8px 24px var(--shadow);
+        transform: translateY(calc(100% - 64px));
+        transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+        z-index: 20;
+        order: 0;
+      }
+
+      .control-panel.sheet-open {
+        transform: translateY(0);
+      }
+
+      .sheet-handle {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 0 6px;
+        cursor: pointer;
+        touch-action: none;
+        flex-shrink: 0;
+      }
+
+      .sheet-handle-bar {
+        width: 40px;
+        height: 4px;
+        border-radius: 2px;
+        background: var(--line);
+      }
+
+      .sheet-handle-label {
+        font-family: 'Shippori Mincho', serif;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--ink-soft);
+      }
+
+      .panel-header {
+        display: none;
+      }
+
+      .theme-toggle {
+        top: 14px;
+        right: 14px;
+      }
+
+      .theme-btn {
+        padding: 5px 10px;
+        font-size: 0.65rem;
+      }
+
+      .brand-logo {
+        font-size: 0.72rem;
+        top: 14px;
+        left: 14px;
+      }
+
+      .mode-indicator {
+        bottom: calc(64px + 14px);
+      }
+    }
   </style>
 </head>
 
@@ -929,8 +1036,12 @@
       </div>
     </main>
 
-    <!-- 右：コントロールパネル -->
-    <aside class="control-panel">
+    <!-- 右：コントロールパネル（スマホではボトムシート化） -->
+    <aside id="control-panel" class="control-panel">
+      <div id="sheet-handle" class="sheet-handle">
+        <span class="sheet-handle-bar"></span>
+        <span class="sheet-handle-label">編集パネル</span>
+      </div>
       <div class="panel-header">
         <div>
           <h2>編集パネル</h2>
@@ -1199,19 +1310,21 @@
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="panel-footer">
-        <div class="footer-actions">
-          <button id="btn-undo" class="footer-action-btn" title="元に戻す (Ctrl+Z)">↺ 元に戻す</button>
-          <button id="btn-save-preset" class="footer-action-btn" title="現在の状態をプリセットとして保存">プリセット保存</button>
-          <label class="footer-action-btn" for="input-load-preset" title="保存したプリセットを読み込む" style="text-align:center; cursor:pointer;">
-            プリセット読込
-            <input type="file" id="input-load-preset" accept="application/json" style="display:none;">
-          </label>
+        <!-- パネル操作類（スクロール領域内・固定しない） -->
+        <div class="form-group panel-scroll-actions">
+          <div class="footer-actions">
+            <button id="btn-undo" class="footer-action-btn" title="元に戻す (Ctrl+Z)">↺ 元に戻す</button>
+            <button id="btn-save-preset" class="footer-action-btn" title="現在の状態をプリセットとして保存">プリセット保存</button>
+            <label class="footer-action-btn" for="input-load-preset" title="保存したプリセットを読み込む" style="text-align:center; cursor:pointer;">
+              プリセット読込
+              <input type="file" id="input-load-preset" accept="application/json" style="display:none;">
+            </label>
+          </div>
+          <button id="btn-clear-all" class="footer-action-btn footer-action-btn-danger footer-action-btn-wide" title="編集内容を初期状態に戻す">🗑 全体クリア（初期状態に戻す）</button>
         </div>
-        <button id="btn-clear-all" class="footer-action-btn footer-action-btn-danger footer-action-btn-wide" title="編集内容を初期状態に戻す">🗑 全体クリア（初期状態に戻す）</button>
-        <div class="form-group" style="margin-bottom: 10px;">
+
+        <div class="form-group">
           <label class="form-label">書き出しサイズ</label>
           <select id="select-export-size">
             <option value="1280x670">note ヘッダー（1280×670）</option>
@@ -1224,6 +1337,9 @@
           <input type="checkbox" id="input-transparent-bg">
           <span>背景を透過してPNG書き出し</span>
         </label>
+      </div>
+
+      <div class="panel-footer">
         <button id="download-btn" class="btn-download">1280×670 px で書き出す</button>
       </div>
     </aside>
@@ -1253,6 +1369,69 @@
       panelSide = panelSide === 'right' ? 'left' : 'right';
       appContainer.classList.toggle('panel-left', panelSide === 'left');
       btnPanelSide.textContent = panelSide === 'right' ? 'パネル：右' : 'パネル：左';
+    });
+
+    // ==================== スマホ：ボトムシート開閉 ====================
+    const controlPanel = document.getElementById('control-panel');
+    const sheetHandle = document.getElementById('sheet-handle');
+    let sheetOpen = false;
+    let sheetDragging = false;
+    let sheetStartY = 0;
+    let sheetStartTranslate = 0;
+
+    function isMobileLayout() {
+      if (typeof window.matchMedia !== 'function') {
+        return window.innerWidth <= 768;
+      }
+      return window.matchMedia('(max-width: 768px)').matches;
+    }
+
+    function setSheetOpen(open) {
+      sheetOpen = open;
+      controlPanel.classList.toggle('sheet-open', open);
+      controlPanel.style.transform = '';
+    }
+
+    sheetHandle.addEventListener('click', () => {
+      if (sheetDragging) return; // ドラッグ終了直後の誤クリックを防ぐ
+      if (!isMobileLayout()) return;
+      setSheetOpen(!sheetOpen);
+    });
+
+    sheetHandle.addEventListener('pointerdown', (e) => {
+      if (!isMobileLayout()) return;
+      sheetDragging = false;
+      sheetStartY = e.clientY;
+      const panelHeight = controlPanel.offsetHeight;
+      sheetStartTranslate = sheetOpen ? 0 : panelHeight - 64;
+      sheetHandle.setPointerCapture(e.pointerId);
+    });
+
+    sheetHandle.addEventListener('pointermove', (e) => {
+      if (!isMobileLayout() || sheetStartY === 0) return;
+      const dy = e.clientY - sheetStartY;
+      if (Math.abs(dy) > 4) sheetDragging = true;
+      if (!sheetDragging) return;
+
+      const panelHeight = controlPanel.offsetHeight;
+      let newTranslate = sheetStartTranslate + dy;
+      newTranslate = Math.max(0, Math.min(panelHeight - 64, newTranslate));
+      controlPanel.style.transform = `translateY(${newTranslate}px)`;
+    });
+
+    sheetHandle.addEventListener('pointerup', (e) => {
+      if (!isMobileLayout()) {
+        sheetStartY = 0;
+        return;
+      }
+      if (sheetDragging) {
+        const panelHeight = controlPanel.offsetHeight;
+        const currentTranslate = sheetStartTranslate + (e.clientY - sheetStartY);
+        // 半分より多く開いていれば開ききる、そうでなければ閉じる
+        setSheetOpen(currentTranslate < panelHeight / 2);
+      }
+      sheetStartY = 0;
+      setTimeout(() => { sheetDragging = false; }, 50);
     });
 
     // メインタブ切替
