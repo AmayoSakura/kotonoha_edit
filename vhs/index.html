@@ -899,12 +899,18 @@
 
     /* ============ スマホ：上下2分割固定レイアウト ============ */
     @media (max-width: 768px) {
+      body {
+        height: 100vh;
+        height: 100dvh;
+      }
+
       .app-container,
       .app-container.panel-left {
         display: flex;
         flex-direction: column;
         position: relative;
         height: 100vh;
+        height: 100dvh;
         overflow: hidden;
       }
 
@@ -913,9 +919,9 @@
       }
 
       .viewport {
-        flex: 0 0 42vh;
-        height: 42vh;
-        padding: 12px;
+        flex: 0 0 38vh;
+        height: 38vh;
+        padding: 10px;
         position: relative;
       }
 
@@ -928,11 +934,13 @@
         position: relative;
         display: flex;
         flex-direction: column;
-        flex: 1 1 auto;
+        flex: 1 1 0;
         width: 100%;
         min-height: 0;
         max-height: none;
-        overflow: hidden;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
         border-left: none;
         border-right: none;
         border-top: 1px solid var(--line);
@@ -944,6 +952,12 @@
 
       .panel-header {
         display: none;
+      }
+
+      .main-tabs {
+        position: sticky;
+        top: 0;
+        z-index: 10;
       }
 
       #btn-panel-side,
@@ -982,18 +996,21 @@
         padding: 9px 2px;
       }
 
-      /* スマホ：書き出しフッターを確実に表示させる */
-      /* panel-contentはmin-height:0で縮小可能にし、panel-footerを押し出さない */
+      /* スマホ：panel-contentは個別スクロールさせず、control-panel全体でスクロール */
       .panel-content {
-        min-height: 0;
-        flex: 1 1 0;
+        flex: none;
+        overflow: visible;
+        min-height: auto;
+        padding-bottom: 8px;
       }
 
+      /* スマホ：書き出しフッターは固定ではなく、スクロールメニューの末尾の一部として配置 */
       .panel-footer {
         flex-shrink: 0;
         background: var(--panel);
-        border-top: 1px solid var(--line);
-        padding-bottom: env(safe-area-inset-bottom, 8px);
+        border-top: 1px dashed var(--line);
+        padding: 14px 20px calc(24px + env(safe-area-inset-bottom, 12px));
+        margin-top: 0;
       }
     }
   </style>
