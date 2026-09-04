@@ -797,12 +797,13 @@
     }
 
     .panel-footer {
-      padding: 16px 20px 20px;
+      padding: 16px 20px;
       border-top: 1px solid var(--line);
+      background: var(--panel);
       display: flex;
       flex-direction: column;
       gap: 10px;
-      margin-top: 8px;
+      flex-shrink: 0;
     }
 
     .footer-actions {
@@ -979,6 +980,20 @@
       .footer-action-btn {
         font-size: 0.6rem;
         padding: 9px 2px;
+      }
+
+      /* スマホ：書き出しフッターを確実に表示させる */
+      /* panel-contentはmin-height:0で縮小可能にし、panel-footerを押し出さない */
+      .panel-content {
+        min-height: 0;
+        flex: 1 1 0;
+      }
+
+      .panel-footer {
+        flex-shrink: 0;
+        background: var(--panel);
+        border-top: 1px solid var(--line);
+        padding-bottom: env(safe-area-inset-bottom, 8px);
       }
     }
   </style>
@@ -1320,10 +1335,10 @@
           <input type="checkbox" id="input-transparent-bg">
           <span>背景を透過してPNG書き出し</span>
         </label>
+      </div>
 
-        <div class="panel-footer">
-          <button id="download-btn" class="btn-download">1280×670 px で書き出す</button>
-        </div>
+      <div class="panel-footer">
+        <button id="download-btn" class="btn-download">1280×670 px で書き出す</button>
       </div>
     </aside>
   </div>
