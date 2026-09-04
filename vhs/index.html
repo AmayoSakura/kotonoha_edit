@@ -126,8 +126,8 @@
       position: relative;
       background: var(--paper-deep);
       background-image:
-        radial-gradient(circle at 15% 20%, color-mix(in srgb, var(--sakura) 10%, transparent) 0%, transparent 45%),
-        radial-gradient(circle at 85% 80%, color-mix(in srgb, var(--plum) 14%, transparent) 0%, transparent 50%);
+        radial-gradient(circle at 15% 20%, rgba(232, 166, 180, 0.1) 0%, transparent 45%),
+        radial-gradient(circle at 85% 80%, rgba(92, 53, 72, 0.14) 0%, transparent 50%);
       overflow: hidden;
     }
 
@@ -151,7 +151,7 @@
       height: 9px;
       background: var(--sakura-deep);
       border-radius: 50%;
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--sakura) 25%, transparent);
+      box-shadow: 0 0 0 3px rgba(232, 166, 180, 0.25);
     }
 
     .theme-toggle {
@@ -197,7 +197,7 @@
     .mode-indicator {
       position: absolute;
       bottom: 22px;
-      background: color-mix(in srgb, var(--panel) 92%, transparent);
+      background: var(--panel);
       border: 1px solid var(--line);
       backdrop-filter: blur(8px);
       padding: 7px 16px;
@@ -231,7 +231,7 @@
       aspect-ratio: 1280 / 670;
       position: relative;
       border-radius: 6px;
-      box-shadow: 0 24px 48px var(--shadow), 0 2px 0 color-mix(in srgb, var(--sepia) 40%, transparent);
+      box-shadow: 0 24px 48px var(--shadow), 0 2px 0 rgba(168, 129, 90, 0.35);
       z-index: 1;
       overflow: hidden;
       background: linear-gradient(135deg, var(--card-grad-a), var(--card-grad-b));
@@ -845,14 +845,14 @@
       margin-bottom: 4px;
       padding: 9px 2px;
       font-size: 0.72rem;
-      border-color: color-mix(in srgb, var(--sakura-deep) 45%, var(--line));
+      border-color: rgba(209, 115, 138, 0.45);
       color: var(--sakura-deep);
     }
 
     .footer-action-btn-danger:hover {
       border-color: var(--sakura-deep);
       color: var(--sakura-deep);
-      background: color-mix(in srgb, var(--sakura) 12%, var(--panel-input));
+      background: rgba(232, 166, 180, 0.12);
     }
 
     .footer-action-btn:disabled {
@@ -1944,11 +1944,21 @@
       const currentSelected = document.querySelector('.drag-item.selected');
       if (currentSelected) currentSelected.classList.remove('selected');
 
-      const [exportW] = selectExportSize.value.split('x').map(Number);
-      const scaleFactor = exportW / cardPreview.offsetWidth;
+      const [exportW, exportH] = selectExportSize.value.split('x').map(Number);
+      const previewW = cardPreview.offsetWidth;
+      if (!previewW || !exportW) {
+        alert('書き出しサイズの取得に失敗しました。ページをリロードしてお試しください。');
+        return;
+      }
+      const scaleFactor = exportW / previewW;
       const isTransparent = inputTransparentBg.checked;
       const prevBgDisplay = cardBg.style.display;
       const prevOverlayDisplay = cardOverlay.style.display;
+
+      // ボタンを処理中状態にする
+      const origText = downloadBtn.textContent;
+      downloadBtn.disabled = true;
+      downloadBtn.textContent = '書き出し中…';
 
       if (isTransparent) {
         cardBg.style.display = 'none';
@@ -1958,7 +1968,9 @@
       html2canvas(cardPreview, {
         scale: scaleFactor,
         useCORS: true,
-        backgroundColor: isTransparent ? null : undefined
+        allowTaint: true,
+        backgroundColor: isTransparent ? null : undefined,
+        logging: false
       }).then(canvas => {
         if (currentSelected) currentSelected.classList.add('selected');
         cardBg.style.display = prevBgDisplay;
@@ -1968,6 +1980,17 @@
         link.download = `header-${selectExportSize.value}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
+
+        downloadBtn.disabled = false;
+        downloadBtn.textContent = origText;
+      }).catch(err => {
+        if (currentSelected) currentSelected.classList.add('selected');
+        cardBg.style.display = prevBgDisplay;
+        cardOverlay.style.display = prevOverlayDisplay;
+        downloadBtn.disabled = false;
+        downloadBtn.textContent = origText;
+        console.error('書き出しエラー:', err);
+        alert('書き出しに失敗しました。\n\n' + err.message);
       });
     });
 
