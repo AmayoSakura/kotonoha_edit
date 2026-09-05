@@ -2024,8 +2024,89 @@
 
     selectExportSize.addEventListener('change', updateExportSizeLabel);
 
+    function loadImageAsync(src) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('背景画像の読み込みに失敗しました。'));
+        img.src = src;
+      });
+    }
+
+    async function renderBackgroundCanvas(exportW, exportH, scaleFactor) {
+      const bgCanvas = document.createElement('canvas');
+      bgCanvas.width = exportW;
+      bgCanvas.height = exportH;
+      const ctx = bgCanvas.getContext('2d');
+
+      // 1. ベースのグラデーション背景を描画（テーマに合わせて取得）
+      const computed = getComputedStyle(cardPreview);
+      const gradA = computed.getPropertyValue('--card-grad-a').trim() || '#45283a';
+      const gradB = computed.getPropertyValue('--card-grad-b').trim() || '#5c3548';
+      const grad = ctx.createLinearGradient(0, 0, exportW, exportH);
+      grad.addColorStop(0, gradA);
+      grad.addColorStop(1, gradB);
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, exportW, exportH);
+
+      // 2. 背景画像URLの取得
+      const bgStyle = cardBg.style.backgroundImage || '';
+      const cleanUrl = bgStyle.replace(/^url\(["']?/, '').replace(/["']?\)$/, '').trim();
+      if (!cleanUrl || cleanUrl === 'none') {
+        return bgCanvas;
+      }
+
+      const img = await loadImageAsync(cleanUrl);
+      if (!img.naturalWidth || !img.naturalHeight) {
+        return bgCanvas;
+      }
+
+      // 3. サイズと位置の計算
+      const bgSize = cardBg.style.backgroundSize || 'cover';
+      const imgRatio = img.naturalWidth / img.naturalHeight;
+      const containerRatio = exportW / exportH;
+      let drawW, drawH;
+
+      if (bgSize === 'cover') {
+        if (imgRatio > containerRatio) {
+          drawH = exportH;
+          drawW = exportH * imgRatio;
+        } else {
+          drawW = exportW;
+          drawH = exportW / imgRatio;
+        }
+      } else {
+        const zoom = parseFloat(inputBgZoom.value) || 100;
+        drawW = exportW * (zoom / 100);
+        drawH = drawW / imgRatio;
+      }
+
+      const posXVal = parseFloat(inputBgX.value);
+      const posYVal = parseFloat(inputBgY.value);
+      const posX = !isNaN(posXVal) ? posXVal / 100 : 0.5;
+      const posY = !isNaN(posYVal) ? posYVal / 100 : 0.5;
+
+      const drawX = (exportW - drawW) * posX;
+      const drawY = (exportH - drawH) * posY;
+
+      // 4. ぼかし & 明るさの適用
+      const blurVal = parseFloat(document.getElementById('input-blur').value) || 0;
+      const brightnessVal = parseFloat(inputBrightness.value) || 100;
+      const scaledBlur = blurVal * scaleFactor;
+
+      ctx.save();
+      if (scaledBlur > 0 || brightnessVal !== 100) {
+        ctx.filter = `blur(${scaledBlur}px) brightness(${brightnessVal}%)`;
+      }
+      ctx.drawImage(img, drawX, drawY, drawW, drawH);
+      ctx.restore();
+
+      return bgCanvas;
+    }
+
     // 書き出し
-    downloadBtn.addEventListener('click', () => {
+    downloadBtn.addEventListener('click', async () => {
       const currentSelected = document.querySelector('.drag-item.selected');
       if (currentSelected) currentSelected.classList.remove('selected');
 
@@ -2039,44 +2120,81 @@
       const isTransparent = inputTransparentBg.checked;
       const prevBgDisplay = cardBg.style.display;
       const prevOverlayDisplay = cardOverlay.style.display;
+      const prevCardBackground = cardPreview.style.background;
 
       // ボタンを処理中状態にする
       const origText = downloadBtn.textContent;
       downloadBtn.disabled = true;
       downloadBtn.textContent = '書き出し中…';
 
-      if (isTransparent) {
-        cardBg.style.display = 'none';
-        cardOverlay.style.display = 'none';
-      }
+      try {
+        let finalCanvas;
+        const bgStyle = cardBg.style.backgroundImage || '';
+        const cleanUrl = bgStyle.replace(/^url\(["']?/, '').replace(/["']?\)$/, '').trim();
+        const hasBgImage = !!(cleanUrl && cleanUrl !== 'none');
 
-      html2canvas(cardPreview, {
-        scale: scaleFactor,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: isTransparent ? null : undefined,
-        logging: false
-      }).then(canvas => {
-        if (currentSelected) currentSelected.classList.add('selected');
-        cardBg.style.display = prevBgDisplay;
-        cardOverlay.style.display = prevOverlayDisplay;
+        if (isTransparent) {
+          // 透過書き出し: 背景画像・オーバーレイを非表示にしてテキストのみ透過出力
+          cardBg.style.display = 'none';
+          cardOverlay.style.display = 'none';
+          finalCanvas = await html2canvas(cardPreview, {
+            scale: scaleFactor,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: null,
+            logging: false
+          });
+        } else if (hasBgImage) {
+          // 背景画像がある場合:
+          // html2canvas は CSS の filter: blur(...) をレンダリングできないため、
+          // Canvas 2D API で直接背景画像を描画（ぼかし・明るさ・ズーム・位置を完全に反映）
+          const bgCanvas = await renderBackgroundCanvas(exportW, exportH, scaleFactor);
+
+          // cardPreview の背景色と cardBg を一時的に非表示/透明にし、
+          // オーバーレイとテキストのみを透明背景でキャプチャ
+          cardPreview.style.background = 'transparent';
+          cardBg.style.display = 'none';
+
+          const overlayAndTextCanvas = await html2canvas(cardPreview, {
+            scale: scaleFactor,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: null,
+            logging: false
+          });
+
+          // 背景キャンバスの上に、オーバーレイとテキストを合成
+          const ctx = bgCanvas.getContext('2d');
+          ctx.filter = 'none';
+          ctx.drawImage(overlayAndTextCanvas, 0, 0);
+
+          finalCanvas = bgCanvas;
+        } else {
+          // 背景画像がない場合（CSSグラデーション背景）
+          finalCanvas = await html2canvas(cardPreview, {
+            scale: scaleFactor,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: undefined,
+            logging: false
+          });
+        }
 
         const link = document.createElement('a');
         link.download = `header-${selectExportSize.value}.png`;
-        link.href = canvas.toDataURL('image/png');
+        link.href = finalCanvas.toDataURL('image/png');
         link.click();
-
-        downloadBtn.disabled = false;
-        downloadBtn.textContent = origText;
-      }).catch(err => {
+      } catch (err) {
+        console.error('書き出しエラー:', err);
+        alert('書き出しに失敗しました。\n\n' + err.message);
+      } finally {
         if (currentSelected) currentSelected.classList.add('selected');
+        cardPreview.style.background = prevCardBackground;
         cardBg.style.display = prevBgDisplay;
         cardOverlay.style.display = prevOverlayDisplay;
         downloadBtn.disabled = false;
         downloadBtn.textContent = origText;
-        console.error('書き出しエラー:', err);
-        alert('書き出しに失敗しました。\n\n' + err.message);
-      });
+      }
     });
 
     // 初期オーバーレイ反映
