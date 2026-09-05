@@ -695,6 +695,29 @@
       gap: 4px;
     }
 
+    .btn-add-text {
+      width: 100%;
+      background: var(--panel-input);
+      border: 1.5px dashed color-mix(in srgb, var(--plum) 55%, var(--line));
+      color: var(--plum-deep);
+      padding: 10px 0;
+      font-family: 'Shippori Mincho', serif;
+      font-size: 0.82rem;
+      font-weight: 700;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    [data-theme="dark"] .btn-add-text {
+      color: var(--sakura);
+    }
+
+    .btn-add-text:hover {
+      border-style: solid;
+      background: color-mix(in srgb, var(--sakura) 10%, var(--panel-input));
+    }
+
     .item-action-btn {
       background: var(--panel-input);
       border: 1px solid var(--line);
@@ -1036,12 +1059,8 @@
         <div id="card-bg" class="card-bg-image"></div>
         <div id="card-overlay" class="card-overlay"></div>
 
-        <div id="item-title" class="drag-item font-shippori selected" data-label="タイトル"
-          style="top: 64px; left: 32px; font-size: 28px; font-weight: 800; color: #ffffff;">記事のメインタイトルを入力</div>
-        <div id="item-subtitle" class="drag-item font-sans" data-label="サブ"
-          style="top: 172px; left: 32px; font-size: 16px; font-weight: 600; color: #ffffff;">サブタイトルや補足テキストを入力</div>
-        <div id="item-author" class="drag-item font-sans" data-label="作者名"
-          style="top: 226px; left: 32px; font-size: 14px; font-weight: 700; color: #e8a6b4;">@creator_name</div>
+        <div id="item-1" class="drag-item font-shippori selected" data-label="テキストボックス"
+          style="top: 64px; left: 32px; font-size: 28px; font-weight: 800; color: #ffffff;">テキストを入力</div>
 
         <div id="guide-lines" class="guide-lines">
           <div id="guide-v" class="guide-line guide-v"></div>
@@ -1083,15 +1102,17 @@
           <div class="form-group">
             <label class="form-label">操作対象テキスト</label>
             <div id="element-selector" class="element-selector">
-              <button class="elem-btn active" data-target="item-title">タイトル</button>
-              <button class="elem-btn" data-target="item-subtitle">サブ</button>
-              <button class="elem-btn" data-target="item-author">作者名</button>
+              <button class="elem-btn active" data-target="item-1">テキストボックス</button>
             </div>
           </div>
 
           <div class="form-group">
+            <button id="btn-add-text" class="btn-add-text" title="新しいテキストボックスを追加">＋ テキストボックスを追加</button>
+          </div>
+
+          <div class="form-group">
             <div class="item-actions">
-              <button id="btn-duplicate" class="item-action-btn" title="選択中のテキストを複製">複製</button>
+              <button id="btn-duplicate" class="item-action-btn" title="選択中のテキストを今のスタイルごと複製">複製</button>
               <button id="btn-bring-front" class="item-action-btn" title="最前面へ">前面へ</button>
               <button id="btn-send-back" class="item-action-btn" title="最背面へ">背面へ</button>
               <button id="btn-delete-item" class="item-action-btn danger" title="選択中のテキストを削除">削除</button>
@@ -1100,7 +1121,7 @@
 
           <div class="form-group">
             <label class="form-label" for="input-active-text">テキスト内容</label>
-            <textarea id="input-active-text">記事のメインタイトルを入力</textarea>
+            <textarea id="input-active-text">テキストを入力</textarea>
           </div>
 
           <div class="form-group">
@@ -1457,7 +1478,7 @@
     const bgXVal = document.getElementById('bg-x-val');
     const bgYVal = document.getElementById('bg-y-val');
 
-    let activeItem = document.getElementById('item-title');
+    let activeItem = document.getElementById('item-1');
     const itemStates = {};
 
     const allFonts = [
@@ -1485,6 +1506,14 @@
       };
     });
 
+    // テキスト内容の先頭文字からボタン用ラベルを作る（空なら「(空のテキスト)」）
+    function makeItemLabel(text) {
+      const trimmed = (text || '').trim();
+      if (!trimmed) return '(空のテキスト)';
+      const short = trimmed.slice(0, 5);
+      return trimmed.length > 5 ? `${short}…` : short;
+    }
+
     // 要素選択ボタンをdragItemsの現在の並び順から再構築
     function rebuildElementSelector() {
       elementSelector.innerHTML = '';
@@ -1492,7 +1521,7 @@
         const btn = document.createElement('button');
         btn.className = 'elem-btn' + (item === activeItem ? ' active' : '');
         btn.dataset.target = item.id;
-        btn.textContent = itemStates[item.id].label;
+        btn.textContent = makeItemLabel(item.textContent);
         btn.addEventListener('click', () => {
           switchMode('text');
           setActiveItem(item);
@@ -1606,7 +1635,12 @@
     rebuildElementSelector();
 
     inputActiveText.addEventListener('input', (e) => {
-      if (activeItem) activeItem.textContent = e.target.value;
+      if (activeItem) {
+        activeItem.textContent = e.target.value;
+        // 対応する要素選択ボタンのラベルだけ即時更新（全再構築はしない）
+        const btn = elementSelector.querySelector(`.elem-btn[data-target="${activeItem.id}"]`);
+        if (btn) btn.textContent = makeItemLabel(activeItem.textContent);
+      }
     });
 
     // 複製・重なり順・削除
@@ -1629,10 +1663,10 @@
       clone.style.top = `${curTop + 16}px`;
       clone.style.left = `${curLeft + 16}px`;
 
-      const baseLabel = itemStates[activeItem.id].label;
+      const baseLabel = makeItemLabel(activeItem.textContent);
       itemStates[newId] = {
         ...itemStates[activeItem.id],
-        label: `${baseLabel}のコピー`
+        label: baseLabel
       };
 
       cardPreview.appendChild(clone);
@@ -1640,6 +1674,40 @@
       attachDragHandlers(clone);
       rebuildElementSelector();
       setActiveItem(clone);
+    });
+
+    // 「追加」：デフォルトスタイルの新規テキストボックスを作る
+    const btnAddText = document.getElementById('btn-add-text');
+
+    btnAddText.addEventListener('click', () => {
+      itemCounter++;
+      const newId = `item-new-${itemCounter}`;
+      const el = document.createElement('div');
+      el.id = newId;
+      el.className = 'drag-item font-sans';
+      el.textContent = '新しいテキスト';
+
+      // 少しずつ位置をずらして重なりを避ける（カード中央付近を基準に）
+      const offset = (itemCounter % 6) * 14;
+      el.style.top = `${90 + offset}px`;
+      el.style.left = `${32 + offset}px`;
+      el.style.fontSize = '20px';
+      el.style.fontWeight = '700';
+      el.style.color = '#ffffff';
+
+      cardPreview.insertBefore(el, guideLines);
+      dragItems.push(el);
+      itemStates[newId] = {
+        rot: 0,
+        font: 'font-sans',
+        color: '#ffffff',
+        opacity: 100,
+        label: makeItemLabel('新しいテキスト')
+      };
+
+      attachDragHandlers(el);
+      rebuildElementSelector();
+      setActiveItem(el);
     });
 
     btnBringFront.addEventListener('click', () => {
@@ -2188,7 +2256,7 @@
     btnSendBack.addEventListener('click', () => setTimeout(pushUndoSnapshot, 0));
 
     // ==================== 自動保存（localStorage） ====================
-    const AUTOSAVE_KEY = 'visualHeaderStudio_autosave_v2';
+    const AUTOSAVE_KEY = 'visualHeaderStudio_autosave_v4';
 
     function autoSave() {
       if (isRestoring) return;
