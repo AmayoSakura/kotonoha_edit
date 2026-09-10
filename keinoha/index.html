@@ -697,10 +697,15 @@
     .section.is-collapsed .category-content { display: none; }
     .category-subgroup .section { margin: 12px 0; border: none; box-shadow: none; padding: 12px 0 0; }
 
+    .scene-subgroup-tabs-guide { font-size: .72rem; color: var(--text-muted); margin-bottom: 8px; }
+    .scene-subgroup-tabs-summary { font-size: .74rem; color: var(--accent); margin-bottom: 10px; line-height: 1.6; }
     .scene-subgroup-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
-    .scene-subgroup-tab { appearance: none; border: 1px solid var(--card-border); background: var(--bg); color: var(--text-muted); border-radius: 3px; padding: 7px 13px; font-size: .74rem; cursor: pointer; }
+    .scene-subgroup-tab { appearance: none; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--card-border); background: var(--bg); color: var(--text-muted); border-radius: 3px; padding: 7px 13px; font-size: .74rem; cursor: pointer; }
     .scene-subgroup-tab:hover { border-color: var(--accent); }
     .scene-subgroup-tab.active { background: var(--primary); border-color: var(--primary); color: var(--card-bg); }
+    .scene-subgroup-tab.has-selection:not(.active) { border-color: var(--accent); color: var(--text-main); }
+    .scene-subgroup-tab-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: var(--accent); color: var(--card-bg); font-size: .64rem; line-height: 1; }
+    .scene-subgroup-tab.active .scene-subgroup-tab-badge { background: var(--card-bg); color: var(--primary); }
 
     /* --- プリセット・ジャンル --- */
     .preset-section { border: 1px solid var(--card-border); background: var(--card-bg); }
@@ -5468,10 +5473,51 @@ const selectedTags = new Set();
       const tabbedSubs=allSubs.filter(sub=>tabbedIds.has(sub.dataset.subgroupId));
       if(!tabbedSubs.length) return;
 
+      // タブは見た目上「どれか1つ」を切り替える形だが、実際は世界観を跨いで
+      // 複数選択できる（例：幻想＋SF を同時に選んでよい）。
+      // その仕様が伝わるよう、ガイド文と「選択中の世界観」サマリーを常時表示する。
+      const guide=document.createElement('div');
+      guide.className='scene-subgroup-tabs-guide';
+      guide.textContent='タブは表示の切り替えだけ。複数の世界観を組み合わせて選べる。';
+      heading.after(guide);
+
+      const summaryRow=document.createElement('div');
+      summaryRow.className='scene-subgroup-tabs-summary';
+      guide.after(summaryRow);
+
       const nav=document.createElement('div'); nav.className='scene-subgroup-tabs';
+      summaryRow.after(nav);
+
+      const countSelected=sub=>{
+        const catIds=(categorySubgroups['scene-detail'].find(s=>s.id===sub.dataset.subgroupId)?.cats)||[];
+        let n=0;
+        catIds.forEach(catId=>{
+          const cat=categoriesData.find(c=>c.id===catId);
+          if(!cat) return;
+          cat.items.forEach(item=>{ if(!item.isNone && item.value && selectedTags.has(item.value)) n++; });
+        });
+        return n;
+      };
+
+      const refreshSummary=()=>{
+        const picked=tabbedSubs
+          .map(sub=>({sub,title:sub.querySelector('.category-subgroup-title strong')?.textContent||'',count:countSelected(sub)}))
+          .filter(x=>x.count>0);
+        summaryRow.innerHTML = picked.length
+          ? `選択中の世界観：${picked.map(x=>`${escapeHtml(x.title)}（${x.count}）`).join('　＋　')}`
+          : '選択中の世界観：まだなし';
+      };
+
       tabbedSubs.forEach((sub,idx)=>{
         const id=sub.dataset.subgroupId; const title=sub.querySelector('.category-subgroup-title strong')?.textContent||'';
-        const btn=document.createElement('button'); btn.type='button'; btn.className='scene-subgroup-tab'; btn.textContent=title;
+        const btn=document.createElement('button'); btn.type='button'; btn.className='scene-subgroup-tab';
+        const labelEl=document.createElement('span'); labelEl.textContent=title; btn.appendChild(labelEl);
+        const n=countSelected(sub);
+        if(n>0){
+          const badge=document.createElement('span'); badge.className='scene-subgroup-tab-badge'; badge.textContent=String(n);
+          btn.appendChild(badge);
+          btn.classList.add('has-selection');
+        }
         const active=id===activeSceneSubgroup || (!tabbedSubs.some(x=>x.dataset.subgroupId===activeSceneSubgroup)&&idx===0);
         btn.classList.toggle('active',active); sub.hidden=!active;
         btn.addEventListener('click',()=>{
@@ -5482,7 +5528,8 @@ const selectedTags = new Set();
         });
         nav.appendChild(btn);
       });
-      heading.after(nav);
+
+      refreshSummary();
     }
 
     function renderTagSearchResults() {
@@ -5754,7 +5801,9 @@ const selectedTags = new Set();
             sec.className = 'section';
             sec.dataset.categoryId = cat.id;
             const isCompositionCategory = groupId === 'composition-detail';
-            if (!isCompositionCategory && collapsedCategories.has(cat.id)) sec.classList.add('is-collapsed');
+            const isSoleCategoryInSubgroup = subCats.length === 1;
+            const suppressInnerToggle = isCompositionCategory || isSoleCategoryInSubgroup;
+            if (!suppressInnerToggle && collapsedCategories.has(cat.id)) sec.classList.add('is-collapsed');
             if (isCompositionCategory) sec.classList.add('composition-control-card');
 
             const head = document.createElement('div'); head.className = 'category-section-head';
@@ -5773,7 +5822,7 @@ const selectedTags = new Set();
             collapseBtn.setAttribute('aria-expanded',String(!collapsedCategories.has(cat.id)));
             collapseBtn.setAttribute('aria-label',`${cat.title}を${collapsedCategories.has(cat.id)?'開く':'閉じる'}`);
             collapseBtn.textContent=collapsedCategories.has(cat.id)?'開く':'閉じる';
-            if (isCompositionCategory) collapseBtn.hidden = true;
+            if (suppressInnerToggle) collapseBtn.hidden = true;
             head.appendChild(collapseBtn); sec.appendChild(head);
 
             const content=document.createElement('div'); content.className='category-content';
@@ -5823,7 +5872,7 @@ const selectedTags = new Set();
               if(collapsed) collapsedCategories.add(cat.id); else collapsedCategories.delete(cat.id);
               collapseBtn.textContent=collapsed?'開く':'閉じる'; collapseBtn.setAttribute('aria-expanded',String(!collapsed)); collapseBtn.setAttribute('aria-label',`${cat.title}を${collapsed?'開く':'閉じる'}`);
             };
-            if (!isCompositionCategory) {
+            if (!suppressInnerToggle) {
               head.addEventListener('click',e=>{if(e.target.closest('button')) return; toggleCategory();});
               collapseBtn.addEventListener('click',toggleCategory);
             }
