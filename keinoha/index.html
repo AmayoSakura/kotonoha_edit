@@ -505,7 +505,7 @@
     .mode-card strong { display: block; font-family: 'Shippori Mincho B1', serif; font-size: .92rem; margin-bottom: 5px; }
     .mode-card small { display: block; opacity: .72; line-height: 1.5; font-size: .7rem; }
 
-    .design-method-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border: 1px solid var(--card-border); border-radius: 3px; overflow: hidden; margin-top: 16px; }
+    .design-method-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0; border: 1px solid var(--card-border); border-radius: 3px; overflow: hidden; margin-top: 16px; }
     .design-method {
       appearance: none;
       border: none;
@@ -534,6 +534,11 @@
       color: var(--tag-text);
       border-radius: 3px;
       padding: 7px 13px;
+      min-height: 40px;
+      box-sizing: border-box;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       font-size: .8rem;
       cursor: pointer;
       transition: border-color .15s, background-color .15s;
@@ -898,7 +903,22 @@
     @media (max-width: 480px) {
       .preset-grid, .genre-grid { grid-template-columns: 1fr; }
     }
-  </style>
+  
+/* v77: style library family headings */
+.style-family-heading {
+  grid-column: 1 / -1;
+  flex-basis: 100%;
+  margin: 14px 0 7px;
+  padding: 6px 10px;
+  border-left: 2px solid var(--accent, #8a7560);
+  background: rgba(138,117,96,.06);
+  color: var(--text, #333);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+.style-family-heading:first-child { margin-top: 4px; }
+</style>
 
 <style>
 .category-selection-preview{
@@ -1044,7 +1064,7 @@
     content: "DESIGN FLOW";
     display: block;
     padding: 0 10px 10px;
-    color: var(--muted, #7d7469);
+    color: var(--text-muted, #7d7469);
     font-size: 10px;
     font-weight: 700;
     letter-spacing: .16em;
@@ -1103,37 +1123,29 @@
     opacity: .62;
   }
 
-  .tool-tab:hover {
-    background: color-mix(in srgb, var(--accent, #8a7560) 6%, transparent);
+  .tool-tab.active {
+    background: color-mix(in srgb, var(--accent, #8a7560) 10%, transparent);
+    border-left-color: var(--accent, #8a7560);
   }
 
-  .tool-tab.active,
-  .tool-tab.is-active {
-    background: color-mix(in srgb, var(--accent, #8a7560) 9%, transparent);
-  }
-
-  .tool-tab.active::before,
-  .tool-tab.is-active::before {
+  .tool-tab.active::before {
     background: var(--accent, #8a7560);
   }
 
   .tool-tab.active .step-number,
   .tool-tab.is-active .step-number,
-  .tool-tab.active .number,
-  .tool-tab.is-active .number {
+  .tool-tab.active .number {
     opacity: 1;
-    color: var(--accent, #8a7560);
   }
 }
 
 /* Existing markup uses compact step labels: make the nav itself feel intentional. */
 @media (min-width: 901px) {
   .tool-tabs {
-    border-top: 1px solid color-mix(in srgb, var(--text, #403a34) 12%, transparent);
+    border-top: 1px solid color-mix(in srgb, var(--text-main, #403a34) 12%, transparent);
   }
 
-  .tool-tabs .tab,
-  .tool-tabs button {
+    .tool-tabs button {
     transition: background .18s ease, border-color .18s ease, color .18s ease;
   }
 }
@@ -1216,6 +1228,27 @@
   line-height: 1.6;
 }
 
+
+/* v77: 画風の説明を常時表示 */
+.tag-container:has(.tag-description){
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:8px;
+}
+.tag-btn:has(.tag-description){
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:4px;
+  text-align:left;
+  min-height:72px;
+  padding:9px 12px;
+}
+.tag-label{display:block;line-height:1.35;font-weight:600}
+.tag-description{display:block;font-size:.68rem;line-height:1.55;color:var(--text-muted);font-weight:400}
+.tag-btn.active .tag-description{color:color-mix(in srgb,var(--card-bg) 78%,transparent)}
+@media(max-width:720px){.tag-container:has(.tag-description){grid-template-columns:1fr}.tag-btn:has(.tag-description){min-height:0}}
+
 </style>
 </head>
 
@@ -1285,26 +1318,28 @@
         </label>
         <div class="helper-note">ONにするとタイトル・キャッチコピー・タイポグラフィ指定を使わず、純粋なビジュアルとして生成する。</div>
       </div>
-      <div class="form-group">
-        <label for="work-mood">作品の雰囲気</label>
-        <input type="text" id="work-mood" placeholder="例：静かで少し寂しい、でも最後に希望が残る">
-      </div>
-      <div class="form-group">
-        <label for="work-motif">入れたいモチーフ</label>
-        <input type="text" id="work-motif" placeholder="例：雨、古い時計、黒猫">
-      </div>
+      
+      
       <div class="form-group">
         <label for="work-avoid">避けたい表現 <span class="optional-label">任意</span></label>
         <input type="text" id="work-avoid" placeholder="例：過度な流血、ホラー表現、文字の多用">
       </div>
       <div class="form-group">
-        <label for="output-purpose">用途</label>
+        <label for="output-purpose">制作目的</label>
         <select id="output-purpose">
           <option value="novel promotion image, visually striking composition">小説の宣伝画像</option>
-          <option value="book cover composition, strong title-safe layout">表紙</option>
+          <option value="book cover composition, strong title-safe layout">小説表紙</option>
           <option value="web novel header image, wide composition">Web小説ヘッダー</option>
-          <option value="social media promotional graphic, eye-catching composition">SNS告知画像</option>
+          <option value="social media promotional graphic, eye-catching composition">SNS宣伝・告知画像</option>
           <option value="illustration for a novel scene, story-focused composition">作中イメージ・挿絵</option>
+          <option value="novel posting site promotional image, clear subject and readable composition">投稿サイト用ビジュアル</option>
+          <option value="OGP social preview image, balanced composition for link sharing">OGP</option>
+          <option value="website or profile header image, wide balanced composition">Webサイト・プロフィール用ヘッダー</option>
+          <option value="character introduction visual, character-focused composition">キャラクター紹介</option>
+          <option value="scene introduction visual, story-focused composition">シーン紹介</option>
+          <option value="worldbuilding showcase, atmospheric environment-focused composition">世界観紹介</option>
+          <option value="announcement graphic, clear focal point and promotional composition">告知・お知らせ</option>
+          <option value="consistent series key visual, unified visual identity across the series">シリーズ共通ビジュアル</option>
         </select>
       </div>
     </div>
@@ -1338,7 +1373,7 @@
 
   <!-- 画像タイプ -->
   <div class="section">
-    <div class="step-label">STEP 2 / VISUAL DIRECTION</div>
+    <div class="step-label">STEP 2 / VISUAL DESIGN</div>
     <div class="section-title">画像タイプ</div>
     <div class="mode-card-grid">
       <button class="mode-card active" data-mode="character" onclick="switchMode('character', event)"><strong>人物</strong><small>キャラクターを主役にした一枚</small></button>
@@ -1346,7 +1381,7 @@
       <button class="mode-card" data-mode="abstract" onclick="switchMode('abstract', event)"><strong>感情・概念</strong><small>物語のテーマをビジュアル化</small></button>
       <button class="mode-card" data-mode="all" onclick="switchMode('all', event)"><strong>詳細設定</strong><small>全部の項目を自分で細かく決める</small></button>
     </div>
-    <div class="workflow-note">迷ったら「人物」「世界・風景」「感情・概念」のどれか一つだけ選べばOK。最初は主要項目だけ表示し、細部は「詳細設定」から広げられる。</div>
+    <div class="workflow-note">STEP 2は「何を描くか／何を意味させるか／どんな色にするか」を決める場所。迷ったら必要なカテゴリだけ選べばOK。</div>
   </div>
 
   <!-- 制作方法 -->
@@ -1422,19 +1457,22 @@
     </div>
     <div class="workflow-guide-grid">
       <button type="button" class="workflow-guide-btn" data-guide-group="character-detail">
-        <span class="guide-no">01</span><strong>描きたいもの</strong><small>人物・世界・モチーフなど</small><span class="guide-status">必要なところから</span>
+        <span class="guide-no">01</span><strong>人物</strong><small>誰を描く？ 外見・服装・表情など</small><span class="guide-status">必要なところから</span>
       </button>
       <button type="button" class="workflow-guide-btn" data-guide-group="scene-detail">
-        <span class="guide-no">02</span><strong>世界をつくる</strong><small>どこ・いつ？</small><span class="guide-status">必要なら設定</span>
+        <span class="guide-no">02</span><strong>世界・風景</strong><small>どこ・いつ・どんな環境？</small><span class="guide-status">必要なら設定</span>
       </button>
       <button type="button" class="workflow-guide-btn" data-guide-group="visual-detail">
-        <span class="guide-no">03</span><strong>色・画風</strong><small>どんな質感？</small><span class="guide-status">印象を整える</span>
+        <span class="guide-no">03</span><strong>色・配色</strong><small>どんな色で見せる？</small><span class="guide-status">色の方向性</span>
       </button>
       <button type="button" class="workflow-guide-btn" data-guide-group="concept-detail">
-        <span class="guide-no">04</span><strong>意味を設定</strong><small>感情・心象・概念</small><span class="guide-status">心象・象徴</span>
+        <span class="guide-no">04</span><strong>感情・心象・概念</strong><small>何を感じさせる？</small><span class="guide-status">意味・テーマ</span>
+      </button>
+      <button type="button" class="workflow-guide-btn" data-guide-group="concept-detail">
+        <span class="guide-no">05</span><strong>象徴・モチーフ</strong><small>何を象徴として置く？ 自由入力も可</small><span class="guide-status">意味を持つ要素</span>
       </button>
       <button type="button" class="workflow-guide-btn workflow-guide-next" data-next-step="3">
-        <span class="guide-no">05</span><strong>画面設定へ</strong><small>構図・カメラ・光・演出</small><span class="guide-status">STEP 3で見せ方を決める</span>
+        <span class="guide-no">06</span><strong>画面設定へ</strong><small>構図・視点・カメラ・光・演出・画風</small><span class="guide-status">STEP 3で見せ方を決める</span>
       </button>
     </div>
   </div>
@@ -1445,7 +1483,7 @@
     <button type="button" onclick="setAllCategoriesCollapsed(true)">すべて閉じる</button>
     <button type="button" class="category-clear-btn" onclick="clearStep2Selections()">選択肢をクリア</button>
   </div>
-  <div class="section-lead workflow-note" style="margin:10px 0 14px">STEP 2は「何を描くか」と「どんな世界・人物にするか」を決める場所。人物、世界観、感情、色、質感、画風など、絵をつくるための素材をここで整える。</div>
+  <div class="section-lead workflow-note" style="margin:10px 0 14px">STEP 2は「何を描くか／何を意味させるか／どんな色にするか」を決める場所。人物、世界・風景、感情・心象、概念・テーマ、象徴・モチーフ、色・配色をここで整える。画風や構図・カメラ・光・演出はSTEP 3で決める。</div>
   <div id="dynamic-categories"></div>
 
     <div class="step-nav"><span class="step-nav-note">STEP 2 / 4</span><button type="button" class="next" onclick="showStep(3)">次へ：画面設定 →</button></div>
@@ -3089,6 +3127,7 @@
 
             ]
       },
+
       {
             "id": "landscape-sf",
             "group": "scene-detail",
@@ -3226,6 +3265,13 @@
             "items": [
                   {"label":"指定なし","isNone":true},
                   {"label":"桜","value":"cherry blossoms in the environment"},
+                  {"label":"紫陽花","value":"hydrangeas in the environment"},
+                  {"label":"藤","value":"wisteria flowers in the environment"},
+                  {"label":"百合","value":"lilies in the environment"},
+                  {"label":"向日葵","value":"sunflowers in the environment"},
+                  {"label":"朝顔","value":"morning glories in the environment"},
+                  {"label":"金木犀","value":"fragrant olive flowers in the environment"},
+                  {"label":"椿","value":"camellia flowers in the environment"},
                   {"label":"新緑","value":"fresh green foliage in the environment"},
                   {"label":"紅葉","value":"autumn foliage in the environment"},
                   {"label":"落葉","value":"fallen leaves covering the ground"},
@@ -3381,7 +3427,6 @@
                   {"label":"屋上","value":"an open rooftop overlooking the city"},
                   {"label":"港","value":"a working harbor and waterfront"},
                   {"label":"海辺の防波堤","value":"a quiet seaside breakwater"},
-                  {"label":"神社の境内","value":"quiet Japanese shrine grounds"},
                   {"label":"寺町","value":"a traditional temple district"},
                   {"label":"古い旅館","value":"a traditional Japanese inn"},
                   {"label":"銭湯","value":"a nostalgic Japanese public bath"},
@@ -3558,210 +3603,290 @@
                   "abstract",
                   "all"
             ],
-            "title": "画風・アートスタイル",
+            "title": "画風・質感",
             "items": [
                   {
-                        "label": "指定なし",
-                        "isNone": true
+                                    "label": "指定なし",
+                                    "isNone": true
                   },
                   {
-                        "label": "[AI] 画風おまかせ",
-                        "value": "creative artistic style",
-                        "isOmakase": true
+                                    "label": "[AI] 画風おまかせ",
+                                    "value": "creative artistic style",
+                                    "isOmakase": true,
+                                    "description": "内容に合わせて、合いそうな画風をAIにまかせます。",
+                                    "family": "おまかせ"
                   },
                   {
-                        "label": "アニメキービジュアル",
-                        "value": "anime key visual, detailed lineart"
+                                    "label": "アニメキービジュアル",
+                                    "value": "anime key visual, detailed lineart",
+                                    "description": "アニメ作品の宣伝絵のような、見栄えのする華やかな表現。",
+                                    "family": "漫画・アニメ"
                   },
                   {
-                        "label": "現代アニメ・セル調",
-                        "value": "modern anime aesthetic, clean cel shading"
+                                    "label": "現代アニメ・セル調",
+                                    "value": "modern anime aesthetic, clean cel shading",
+                                    "description": "輪郭がはっきりしていて、色を面で塗ったような現代アニメらしい表現。",
+                                    "family": "漫画・アニメ"
                   },
                   {
-                        "label": "90年代アニメ",
-                        "value": "90s anime aesthetic, nostalgic cel shading"
+                                    "label": "90年代アニメ",
+                                    "value": "90s anime aesthetic, nostalgic cel shading",
+                                    "description": "少し懐かしい、90年代アニメのような色使いと描き方。",
+                                    "family": "漫画・アニメ"
                   },
                   {
-                        "label": "リアル・シネマ",
-                        "value": "cinematic photorealistic rendering, natural detail"
+                                    "label": "少女漫画・繊細線画",
+                                    "value": "delicate shoujo manga-inspired linework, elegant visual composition",
+                                    "description": "細く繊細な線を中心にした、華やかで上品な少女漫画風の表現。",
+                                    "family": "漫画・アニメ"
                   },
                   {
-                        "label": "水彩",
-                        "value": "delicate watercolor painting, translucent washes"
+                                    "label": "コミック・インク線画",
+                                    "value": "bold expressive ink linework, graphic comic illustration",
+                                    "description": "太めのインク線を活かした、力強くメリハリのある漫画風の表現。",
+                                    "family": "漫画・アニメ"
                   },
                   {
-                        "label": "色鉛筆・アナログ",
-                        "value": "delicate colored-pencil texture, soft hand-drawn lines"
+                                    "label": "リアル・シネマ",
+                                    "value": "cinematic photorealistic rendering, natural detail",
+                                    "description": "実写映画のワンシーンのような、自然で現実感のある表現。",
+                                    "family": "写実・写真"
                   },
                   {
-                        "label": "油絵・重厚",
-                        "value": "rich oil painting, textured impasto brushwork"
+                                    "label": "写真集・エディトリアル",
+                                    "value": "editorial photography aesthetic, refined magazine composition",
+                                    "description": "雑誌の写真や広告のような、洗練された構成と落ち着いた表現。",
+                                    "family": "写実・写真"
                   },
                   {
-                        "label": "インク・水墨",
-                        "value": "ink wash painting, expressive monochrome brushwork"
+                                    "label": "自然な手描き",
+                                    "value": "natural hand-drawn illustration, organic irregular linework, varied line thickness, slightly uneven contours, soft matte colors, subtle paper texture, restrained digital polish",
+                                    "description": "整いすぎない線や色ムラを残した、自然な手描きイラスト。",
+                                    "family": "手描き・線画"
                   },
                   {
-                        "label": "コンセプトアート",
-                        "value": "cinematic concept art, detailed environment design"
+                                    "label": "ラフな手描き",
+                                    "value": "loose hand-drawn illustration, casual sketch-like strokes, spontaneous marks, slightly irregular proportions, simple coloring, relaxed composition, human-made imperfections",
+                                    "description": "下書きのような気軽さと、少し不揃いな線を楽しむ手描き表現。",
+                                    "family": "手描き・線画"
                   },
                   {
-                        "label": "ミニマリズム",
-                        "value": "minimalist art, clean shapes, restrained detail"
+                                    "label": "ゆるい手描き",
+                                    "value": "loose friendly doodle illustration, simple rounded shapes, uneven hand-drawn outlines, slightly awkward charming proportions, muted colors, generous empty space, casual human-made feeling",
+                                    "description": "少し不揃いで、力の抜けたかわいらしさのある手描き表現。",
+                                    "family": "手描き・線画"
                   },
                   {
-                        "label": "シュルレアリスム",
-                        "value": "surreal dreamlike visual, impossible imagery"
+                                    "label": "落書き・ドゥードル",
+                                    "value": "casual doodle illustration, spontaneous pen strokes, uneven line weight, quirky simplified shapes, sparse details, imperfect spacing, authentic notebook drawing quality",
+                                    "description": "ノートの隅に描いた落書きのような、自由で気軽な線の表現。",
+                                    "family": "手描き・線画"
                   },
                   {
-                        "label": "ダークファンタジー",
-                        "value": "dark fantasy art, gothic atmosphere, intricate detail"
+                                    "label": "一筆書き・線画",
+                                    "value": "continuous-line drawing, loose flowing ink stroke, spontaneous hand movement, irregular curves, minimal details, expressive simplified forms, abundant negative space",
+                                    "description": "一本の線を流れるようにつないで描く、シンプルで印象的な表現。",
+                                    "family": "手描き・線画"
                   },
                   {
-                        "label": "サイバーパンク",
-                        "value": "cyberpunk visual style, neon futuristic cityscape"
+                                    "label": "鉛筆スケッチ",
+                                    "value": "soft graphite pencil sketch with visible paper texture",
+                                    "description": "鉛筆の濃淡や紙の質感が残る、スケッチのような手描き表現。",
+                                    "family": "鉛筆・色鉛筆"
                   },
                   {
-                        "label": "絵本・童話",
-                        "value": "storybook illustration, whimsical painterly texture"
+                                    "label": "色鉛筆",
+                                    "value": "colored pencil illustration on textured paper, visible pencil strokes, layered pigment, uneven hand pressure, subtle paper showing through, soft edges, muted natural colors",
+                                    "description": "紙の上に色鉛筆を重ねたような、細かな線とやわらかな色の表現。",
+                                    "family": "鉛筆・色鉛筆"
                   },
                   {
-                        "label": "少女漫画・繊細線画",
-                        "value": "delicate shoujo manga-inspired linework, elegant visual composition"
+                                    "label": "ボールペン・ノート",
+                                    "value": "ballpoint pen illustration, visible pressure variation, thin scratchy lines, repeated sketch strokes, subtle cross-hatching, imperfect contours, notebook paper texture",
+                                    "description": "ノートにボールペンで描いたような、細い線と手癖が残る表現。",
+                                    "family": "鉛筆・色鉛筆"
                   },
                   {
-                        "label": "コミック・インク線画",
-                        "value": "bold expressive ink linework, graphic comic illustration"
+                                    "label": "クレヨン・手描き",
+                                    "value": "hand-drawn crayon illustration, visible wax texture, uneven coloring, rough organic edges, overlapping crayon strokes, warm limited palette, tactile paper surface",
+                                    "description": "クレヨンで描いたような、ざらっとした線と温かみのある表現。",
+                                    "family": "手描き・画材"
                   },
                   {
-                        "label": "鉛筆スケッチ",
-                        "value": "soft graphite pencil sketch with visible paper texture"
+                                    "label": "水彩",
+                                    "value": "delicate watercolor painting, translucent washes",
+                                    "description": "水で絵の具をにじませたような、やわらかく透明感のある表現。",
+                                    "family": "水彩"
                   },
                   {
-                        "label": "版画・木版画",
-                        "value": "Japanese woodblock print aesthetic, textured carved lines"
+                                    "label": "水彩・にじみ",
+                                    "value": "traditional watercolor illustration, translucent washes, gentle pigment bleeding, uneven watercolor edges, textured paper, loose brushwork, organic color variation",
+                                    "description": "水彩絵の具が紙の上で広がったような、にじみと色ムラのある表現。",
+                                    "family": "水彩"
                   },
                   {
-                        "label": "レトロポスター",
-                        "value": "vintage Japanese poster illustration, aged print texture"
+                                    "label": "水彩＋ペン",
+                                    "value": "hand-drawn ink and watercolor illustration, irregular ink outlines, varied line weight, transparent watercolor washes, subtle pigment bleeding, textured watercolor paper, handmade finish",
+                                    "description": "ペンで輪郭を描き、その上から水彩で色をつけたような表現。",
+                                    "family": "水彩"
                   },
                   {
-                        "label": "写真集・エディトリアル",
-                        "value": "editorial photography aesthetic, refined magazine composition"
+                                    "label": "インク・水墨",
+                                    "value": "ink wash painting, expressive monochrome brushwork",
+                                    "description": "墨やインクで描いたような、線の強弱とにじみを活かした表現。",
+                                    "family": "インク・筆"
                   },
                   {
-                        "label": "幻想絵画",
-                        "value": "ethereal fine-art painting, luminous dreamlike atmosphere"
+                                    "label": "インク画・かすれ",
+                                    "value": "expressive ink illustration, varied brush pressure, broken irregular lines, dry-brush texture, organic silhouettes, strong negative space, spontaneous human brushwork",
+                                    "description": "筆やペンのかすれを活かした、勢いのある線中心の表現。",
+                                    "family": "インク・筆"
                   },
                   {
-                        "label": "ゴシック絵画",
-                        "value": "dark gothic fine-art painting, ornate dramatic composition"
+                                    "label": "マーカー・スケッチ",
+                                    "value": "hand-rendered marker illustration, visible marker strokes, overlapping translucent areas, slightly uneven fills, bold simplified shapes, loose outlines, natural paper texture",
+                                    "description": "マーカーで手早く塗ったような、線と色が重なるラフな表現。",
+                                    "family": "インク・筆"
                   },
                   {
-                        "label": "自然な手描き",
-                        "value": "natural hand-drawn illustration, organic irregular linework, varied line thickness, slightly uneven contours, soft matte colors, subtle paper texture, restrained digital polish"
+                                    "label": "油絵・重厚",
+                                    "value": "rich oil painting, textured impasto brushwork",
+                                    "description": "絵の具を厚く重ねたような、深い色と重みのある表現。",
+                                    "family": "絵画・画材"
                   },
                   {
-                        "label": "ラフな手描き",
-                        "value": "loose hand-drawn illustration, casual sketch-like strokes, spontaneous marks, slightly irregular proportions, simple coloring, relaxed composition, human-made imperfections"
+                                    "label": "パステル・粉彩",
+                                    "value": "soft pastel illustration, visible chalk texture, powdery blended colors, irregular edges, textured paper, gentle transitions, loose hand-drawn shapes",
+                                    "description": "粉っぽいパステルで描いたような、やわらかく淡い色の表現。",
+                                    "family": "絵画・画材"
                   },
                   {
-                        "label": "鉛筆・紙",
-                        "value": "traditional graphite pencil illustration, visible graphite strokes, varied pencil pressure, soft shading, subtle smudging, natural paper grain, imperfect hand-drawn edges"
+                                    "label": "幻想絵画",
+                                    "value": "ethereal fine-art painting, luminous dreamlike atmosphere",
+                                    "description": "光や空気が夢の中のように感じられる、幻想的で美しい絵画表現。",
+                                    "family": "絵画・画材"
                   },
                   {
-                        "label": "色鉛筆・紙",
-                        "value": "colored pencil illustration on textured paper, visible pencil strokes, layered pigment, uneven hand pressure, subtle paper showing through, soft edges, muted natural colors"
+                                    "label": "ゴシック絵画",
+                                    "value": "dark gothic fine-art painting, ornate dramatic composition",
+                                    "description": "暗く重厚で装飾的な、古い絵画のようなゴシック調の表現。",
+                                    "family": "絵画・画材"
                   },
                   {
-                        "label": "クレヨン・手描き",
-                        "value": "hand-drawn crayon illustration, visible wax texture, uneven coloring, rough organic edges, overlapping crayon strokes, warm limited palette, tactile paper surface"
+                                    "label": "絵本・童話",
+                                    "value": "storybook illustration, whimsical painterly texture",
+                                    "description": "絵本のページのような、やさしく親しみやすい物語性のある表現。",
+                                    "family": "絵本・イラスト"
                   },
                   {
-                        "label": "水彩・にじみ",
-                        "value": "traditional watercolor illustration, translucent washes, gentle pigment bleeding, uneven watercolor edges, textured paper, loose brushwork, organic color variation"
+                                    "label": "日本の児童書挿絵",
+                                    "value": "gentle Japanese children's book illustration, slightly irregular hand-drawn lines, soft restrained colors, simplified forms, quiet composition, subtle paper texture, warm everyday atmosphere",
+                                    "description": "日本の児童書の挿絵のような、素朴で静かで親しみやすい表現。",
+                                    "family": "絵本・イラスト"
                   },
                   {
-                        "label": "水彩＋ペン",
-                        "value": "hand-drawn ink and watercolor illustration, irregular ink outlines, varied line weight, transparent watercolor washes, subtle pigment bleeding, textured watercolor paper, handmade finish"
+                                    "label": "版画",
+                                    "value": "hand-carved printmaking illustration, rough carved lines, irregular ink edges, simplified bold shapes, visible print texture, uneven ink coverage, limited colors",
+                                    "description": "彫った線を紙に刷ったような、ざっくりとした線とインクの質感。",
+                                    "family": "印刷・紙"
                   },
                   {
-                        "label": "日本の児童書挿絵",
-                        "value": "gentle Japanese children's book illustration, slightly irregular hand-drawn lines, soft restrained colors, simplified forms, quiet composition, subtle paper texture, warm everyday atmosphere"
+                                    "label": "木版画",
+                                    "value": "traditional woodblock-inspired illustration, carved organic outlines, flattened perspective, limited natural colors, visible paper and ink texture, simplified forms, subtle printing imperfections",
+                                    "description": "木を彫って刷ったような、素朴な線と平面的な色面が特徴の表現。",
+                                    "family": "印刷・紙"
                   },
                   {
-                        "label": "AI感の弱いフラット",
-                        "value": "human-designed flat illustration, simple geometric forms with subtle irregularities, intentional asymmetry, restrained palette, natural spacing, subtle print texture, avoid overly polished vector aesthetics"
+                                    "label": "レトロ印刷",
+                                    "value": "vintage printed illustration, limited ink palette, imperfect print registration, subtle halftone texture, faded colors, rough paper grain, uneven ink coverage",
+                                    "description": "昔の印刷物のような、かすれや色ズレを含んだ味のある表現。",
+                                    "family": "印刷・紙"
                   },
                   {
-                        "label": "ミニマル・フラット",
-                        "value": "minimal editorial flat illustration, very simple shapes, limited color palette, generous negative space, clean silhouettes, subtle handmade irregularities, quiet graphic design"
+                                    "label": "シルクスクリーン",
+                                    "value": "screen-print illustration, limited spot colors, imperfect ink registration, bold simplified forms, textured ink coverage, rough paper surface, handmade printmaking character",
+                                    "description": "インクを版で刷ったような、限られた色と力強い形の表現。",
+                                    "family": "印刷・紙"
                   },
                   {
-                        "label": "雑誌・エディトリアル",
-                        "value": "contemporary editorial illustration, conceptual simplified forms, expressive proportions, sophisticated limited palette, bold negative space, subtle texture, intelligent visual simplicity"
+                                    "label": "リソグラフ",
+                                    "value": "risograph-style illustration, limited ink colors, visible grain, imperfect color registration, uneven ink density, bold simple shapes, textured paper, small-press print character",
+                                    "description": "少し色がずれたり粒状になったりする、独特な印刷の質感。",
+                                    "family": "印刷・紙"
                   },
                   {
-                        "label": "ポップな手描き",
-                        "value": "playful hand-drawn graphic illustration, bold irregular outlines, simplified chunky shapes, bright limited colors, imperfect proportions, energetic handmade strokes, subtle screen-print texture"
+                                    "label": "レトロポスター",
+                                    "value": "vintage Japanese poster illustration, aged print texture",
+                                    "description": "昔のポスターを思わせる、少しくすんだ色と印刷物らしい質感。",
+                                    "family": "印刷・紙"
                   },
                   {
-                        "label": "ゆるい手描き",
-                        "value": "loose friendly doodle illustration, simple rounded shapes, uneven hand-drawn outlines, slightly awkward charming proportions, muted colors, generous empty space, casual human-made feeling"
+                                    "label": "切り絵・ペーパー",
+                                    "value": "hand-cut paper collage illustration, layered paper shapes, slightly irregular cut edges, subtle paper fibers, flat colors, minimal shading, tactile craft aesthetic",
+                                    "description": "紙を切って重ねたような、平面的で手作り感のある表現。",
+                                    "family": "コラージュ・クラフト"
                   },
                   {
-                        "label": "落書き・ドゥードル",
-                        "value": "casual doodle illustration, spontaneous pen strokes, uneven line weight, quirky simplified shapes, sparse details, imperfect spacing, authentic notebook drawing quality"
+                                    "label": "紙コラージュ",
+                                    "value": "mixed paper collage illustration, torn and hand-cut edges, layered colored paper textures, subtle layer shadows, imperfect handmade shapes, limited palette",
+                                    "description": "紙を切ったり破ったりして重ねたような、素材感のある表現。",
+                                    "family": "コラージュ・クラフト"
                   },
                   {
-                        "label": "レトロ印刷",
-                        "value": "vintage printed illustration, limited ink palette, imperfect print registration, subtle halftone texture, faded colors, rough paper grain, uneven ink coverage"
+                                    "label": "ミニマリズム",
+                                    "value": "minimalist art, clean shapes, restrained detail",
+                                    "description": "要素を絞って、すっきりと余白を活かしたシンプルな表現。",
+                                    "family": "フラット・グラフィック"
                   },
                   {
-                        "label": "シルクスクリーン",
-                        "value": "screen-print illustration, limited spot colors, imperfect ink registration, bold simplified forms, textured ink coverage, rough paper surface, handmade printmaking character"
+                                    "label": "AI感の弱いフラット",
+                                    "value": "human-designed flat illustration, simple geometric forms with subtle irregularities, intentional asymmetry, restrained palette, natural spacing, subtle print texture, avoid overly polished vector aesthetics",
+                                    "description": "デジタルっぽく整いすぎない、自然なゆらぎを残したシンプルな表現。",
+                                    "family": "フラット・グラフィック"
                   },
                   {
-                        "label": "リソグラフ",
-                        "value": "risograph-style illustration, limited ink colors, visible grain, imperfect color registration, uneven ink density, bold simple shapes, textured paper, small-press print character"
+                                    "label": "ミニマル・フラット",
+                                    "value": "minimal editorial flat illustration, very simple shapes, limited color palette, generous negative space, clean silhouettes, subtle handmade irregularities, quiet graphic design",
+                                    "description": "少ない色と形、広い余白で見せる、すっきりしたグラフィック表現。",
+                                    "family": "フラット・グラフィック"
                   },
                   {
-                        "label": "版画",
-                        "value": "hand-carved printmaking illustration, rough carved lines, irregular ink edges, simplified bold shapes, visible print texture, uneven ink coverage, limited colors"
+                                    "label": "雑誌・エディトリアル",
+                                    "value": "contemporary editorial illustration, conceptual simplified forms, expressive proportions, sophisticated limited palette, bold negative space, subtle texture, intelligent visual simplicity",
+                                    "description": "雑誌の特集ページのような、洗練された構成と大胆な余白の表現。",
+                                    "family": "フラット・グラフィック"
                   },
                   {
-                        "label": "木版画",
-                        "value": "traditional woodblock-inspired illustration, carved organic outlines, flattened perspective, limited natural colors, visible paper and ink texture, simplified forms, subtle printing imperfections"
+                                    "label": "ポップな手描き",
+                                    "value": "playful hand-drawn graphic illustration, bold irregular outlines, simplified chunky shapes, bright limited colors, imperfect proportions, energetic handmade strokes, subtle screen-print texture",
+                                    "description": "太めの線と明るい色で、元気で親しみやすく描く手描き表現。",
+                                    "family": "フラット・グラフィック"
                   },
                   {
-                        "label": "インク画・かすれ",
-                        "value": "expressive ink illustration, varied brush pressure, broken irregular lines, dry-brush texture, organic silhouettes, strong negative space, spontaneous human brushwork"
+                                    "label": "コンセプトアート",
+                                    "value": "cinematic concept art, detailed environment design",
+                                    "description": "映画やゲームの設定画のように、世界観や背景をしっかり見せる表現。",
+                                    "family": "世界観・表現"
                   },
                   {
-                        "label": "マーカー・スケッチ",
-                        "value": "hand-rendered marker illustration, visible marker strokes, overlapping translucent areas, slightly uneven fills, bold simplified shapes, loose outlines, natural paper texture"
+                                    "label": "シュルレアリスム",
+                                    "value": "surreal dreamlike visual, impossible imagery",
+                                    "description": "現実ではありえない組み合わせや、不思議な夢のような表現。",
+                                    "family": "世界観・表現"
                   },
                   {
-                        "label": "パステル・粉彩",
-                        "value": "soft pastel illustration, visible chalk texture, powdery blended colors, irregular edges, textured paper, gentle transitions, loose hand-drawn shapes"
+                                    "label": "ダークファンタジー",
+                                    "value": "dark fantasy art, gothic atmosphere, intricate detail",
+                                    "description": "暗く幻想的で、少し不穏な世界観を感じさせる表現。",
+                                    "family": "世界観・表現"
                   },
                   {
-                        "label": "切り絵・ペーパー",
-                        "value": "hand-cut paper collage illustration, layered paper shapes, slightly irregular cut edges, subtle paper fibers, flat colors, minimal shading, tactile craft aesthetic"
-                  },
-                  {
-                        "label": "紙コラージュ",
-                        "value": "mixed paper collage illustration, torn and hand-cut edges, layered colored paper textures, subtle layer shadows, imperfect handmade shapes, limited palette"
-                  },
-                  {
-                        "label": "一筆書き・線画",
-                        "value": "continuous-line drawing, loose flowing ink stroke, spontaneous hand movement, irregular curves, minimal details, expressive simplified forms, abundant negative space"
-                  },
-                  {
-                        "label": "ボールペン・ノート",
-                        "value": "ballpoint pen illustration, visible pressure variation, thin scratchy lines, repeated sketch strokes, subtle cross-hatching, imperfect contours, notebook paper texture"
+                                    "label": "サイバーパンク",
+                                    "value": "cyberpunk visual style, neon futuristic cityscape",
+                                    "description": "ネオンや未来都市など、近未来的で少し退廃的な雰囲気の表現。",
+                                    "family": "世界観・表現"
                   }
-            ]
+]
       },
       {
             "id": "lighting-direction",
@@ -3886,158 +4011,277 @@
             ]
       },
       {
-            "id": "color-palette",
-            "group": "visual-detail",
-            "modes": [
-                  "character",
-                  "landscape",
-                  "abstract",
-                  "all"
-            ],
-            "title": "色・カラーパレット",
-            "items": [
-                  {
-                        "label": "指定なし",
-                        "isNone": true
-                  },
-                  {
-                        "label": "青紫・夜色",
-                        "value": "deep blue and violet nocturnal palette"
-                  },
-                  {
-                        "label": "紺・群青",
-                        "value": "navy and ultramarine palette"
-                  },
-                  {
-                        "label": "赤をアクセント",
-                        "value": "restrained palette with a striking crimson accent"
-                  },
-                  {
-                        "label": "桜色・淡色",
-                        "value": "soft sakura pink and pale pastel palette"
-                  },
-                  {
-                        "label": "白・銀・雪色",
-                        "value": "white, silver and snowy pale palette"
-                  },
-                  {
-                        "label": "黒・紫・深紅",
-                        "value": "black, deep violet and crimson palette"
-                  },
-                  {
-                        "label": "暖色・夕焼け",
-                        "value": "warm amber orange and muted red palette"
-                  },
-                  {
-                        "label": "寒色・静寂",
-                        "value": "cool desaturated blue palette"
-                  },
-                  {
-                        "label": "低彩度・くすみ",
-                        "value": "muted low-saturation color palette"
-                  },
-                  {
-                        "label": "鮮やか・高彩度",
-                        "value": "vivid high-saturation color palette"
-                  },
-                  {
-                        "label": "モノクロ",
-                        "value": "monochrome black and white palette"
-                  },
-                  {
-                        "label": "補色・強い対比",
-                        "value": "strong complementary color contrast"
-                  },
-                  {
-                        "label": "パステル",
-                        "value": "soft pastel color palette"
-                  },
-                  {
-                        "label": "アースカラー",
-                        "value": "natural earth-tone color palette"
-                  },
-                  {
-                        "label": "ジュエルカラー",
-                        "value": "rich jewel-tone color palette"
-                  },
-                  {
-                        "label": "クリーム・ブラウン",
-                        "value": "warm cream, beige and brown palette"
-                  },
-                  {
-                        "label": "セピア・古写真",
-                        "value": "vintage sepia monochromatic palette"
-                  },
-                  {
-                        "label": "青×橙",
-                        "value": "cinematic blue and orange color palette"
-                  },
-                  {
-                        "label": "赤×黒",
-                        "value": "dramatic black and deep red palette"
-                  },
-                  {
-                        "label": "緑×金",
-                        "value": "deep green and antique gold palette"
-                  },
-                  {
-                        "label": "紫×金",
-                        "value": "deep violet and antique gold palette"
-                  },
-                  {
-                        "label": "水色×白",
-                        "value": "icy cyan and white palette"
-                  },
-                  {
-                        "label": "青緑×紫",
-                        "value": "teal and violet palette"
-                  },
-                  {
-                        "label": "青×赤・対立",
-                        "value": "cinematic blue and crimson palette, visual tension"
-                  },
-                  {
-                        "label": "紫×桃・幻想",
-                        "value": "dreamy violet and soft pink palette"
-                  },
-                  {
-                        "label": "緑×青・自然",
-                        "value": "emerald green and deep blue natural palette"
-                  },
-                  {
-                        "label": "橙×紫・夕暮れ",
-                        "value": "dusky orange and violet twilight palette"
-                  },
-                  {
-                        "label": "白×淡青・透明感",
-                        "value": "airy white and pale blue translucent palette"
-                  },
-                  {
-                        "label": "黒×金・荘厳",
-                        "value": "black and antique gold luxurious palette"
-                  },
-                  {
-                        "label": "深緑×茶・森",
-                        "value": "deep forest green and earthy brown palette"
-                  },
-                  {
-                        "label": "灰×紫・退廃",
-                        "value": "desaturated gray and muted violet decadent palette"
-                  },
-                  {
-                        "label": "赤×白・鮮烈",
-                        "value": "striking scarlet red and white palette"
-                  },
-                  {
-                        "label": "同系色・グラデーション",
-                        "value": "harmonious monochromatic gradient palette"
-                  },
-                  {
-                        "label": "くすみ暖色",
-                        "value": "muted warm terracotta and dusty rose palette"
-                  }
-            ]
-      },
+              "id": "color-palette",
+              "group": "visual-detail",
+              "modes": [
+                            "character",
+                            "landscape",
+                            "abstract",
+                            "all"
+              ],
+              "title": "色・カラーパレット",
+              "items": [
+                            {
+                                          "label": "指定なし",
+                                          "isNone": true
+                            },
+                            {
+                                          "label": "おまかせ",
+                                          "value": "balanced color direction chosen to suit the concept",
+                                          "isOmakase": true
+                            },
+                            {
+                                          "label": "赤",
+                                          "value": "red-centered palette",
+                                          "family": "赤"
+                            },
+                            {
+                                          "label": "深紅",
+                                          "value": "deep crimson palette",
+                                          "family": "赤"
+                            },
+                            {
+                                          "label": "赤をアクセント",
+                                          "value": "restrained palette with a striking crimson accent",
+                                          "family": "赤"
+                            },
+                            {
+                                          "label": "桃",
+                                          "value": "pink-centered palette",
+                                          "family": "桃"
+                            },
+                            {
+                                          "label": "桜色・淡色",
+                                          "value": "soft sakura pink and pale pastel palette",
+                                          "family": "桃"
+                            },
+                            {
+                                          "label": "橙",
+                                          "value": "orange-centered palette",
+                                          "family": "橙"
+                            },
+                            {
+                                          "label": "暖色・夕焼け",
+                                          "value": "warm amber orange and muted red palette",
+                                          "family": "橙"
+                            },
+                            {
+                                          "label": "黄",
+                                          "value": "yellow-centered palette",
+                                          "family": "黄"
+                            },
+                            {
+                                          "label": "淡黄・クリーム",
+                                          "value": "pale yellow and cream palette",
+                                          "family": "黄"
+                            },
+                            {
+                                          "label": "琥珀・アンバー",
+                                          "value": "amber and honey-gold palette",
+                                          "family": "黄"
+                            },
+                            {
+                                          "label": "山吹",
+                                          "value": "rich yamabuki yellow palette",
+                                          "family": "黄"
+                            },
+                            {
+                                          "label": "マスタード",
+                                          "value": "muted mustard yellow palette",
+                                          "family": "黄"
+                            },
+                            {
+                                          "label": "黄緑",
+                                          "value": "yellow-green palette",
+                                          "family": "黄緑"
+                            },
+                            {
+                                          "label": "緑",
+                                          "value": "green-centered palette",
+                                          "family": "緑"
+                            },
+                            {
+                                          "label": "アースカラー",
+                                          "value": "natural earth-tone color palette",
+                                          "family": "緑"
+                            },
+                            {
+                                          "label": "深緑×茶・森",
+                                          "value": "deep forest green and earthy brown palette",
+                                          "family": "緑"
+                            },
+                            {
+                                          "label": "緑×金",
+                                          "value": "deep green and antique gold palette",
+                                          "family": "緑"
+                            },
+                            {
+                                          "label": "青",
+                                          "value": "blue-centered palette",
+                                          "family": "青"
+                            },
+                            {
+                                          "label": "水色",
+                                          "value": "light cyan and pale blue palette",
+                                          "family": "青"
+                            },
+                            {
+                                          "label": "紺・群青",
+                                          "value": "navy and ultramarine palette",
+                                          "family": "青"
+                            },
+                            {
+                                          "label": "藍",
+                                          "value": "indigo-centered palette",
+                                          "family": "青"
+                            },
+                            {
+                                          "label": "寒色・静寂",
+                                          "value": "cool desaturated blue palette",
+                                          "family": "青"
+                            },
+                            {
+                                          "label": "水色×白・透明感",
+                                          "value": "airy white and pale blue translucent palette",
+                                          "family": "青"
+                            },
+                            {
+                                          "label": "紫",
+                                          "value": "purple-centered palette",
+                                          "family": "紫"
+                            },
+                            {
+                                          "label": "青紫・夜色",
+                                          "value": "deep blue and violet nocturnal palette",
+                                          "family": "紫"
+                            },
+                            {
+                                          "label": "紫×桃・幻想",
+                                          "value": "dreamy violet and soft pink palette",
+                                          "family": "紫"
+                            },
+                            {
+                                          "label": "紫×金",
+                                          "value": "deep violet and antique gold palette",
+                                          "family": "紫"
+                            },
+                            {
+                                          "label": "無彩色",
+                                          "value": "neutral grayscale palette",
+                                          "family": "無彩色"
+                            },
+                            {
+                                          "label": "白・銀・雪色",
+                                          "value": "white, silver and snowy pale palette",
+                                          "family": "無彩色"
+                            },
+                            {
+                                          "label": "モノクロ",
+                                          "value": "monochrome black and white palette",
+                                          "family": "無彩色"
+                            },
+                            {
+                                          "label": "セピア・古写真",
+                                          "value": "vintage sepia monochromatic palette",
+                                          "family": "無彩色"
+                            },
+                            {
+                                          "label": "黒・紫・深紅",
+                                          "value": "black, deep violet and crimson palette",
+                                          "family": "無彩色"
+                            },
+                            {
+                                          "label": "灰×紫・退廃",
+                                          "value": "desaturated gray and muted violet decadent palette",
+                                          "family": "無彩色"
+                            },
+                            {
+                                          "label": "黒×金・荘厳",
+                                          "value": "black and antique gold luxurious palette",
+                                          "family": "無彩色"
+                            },
+                            {
+                                          "label": "混色・コントラスト",
+                                          "value": "mixed color relationships and contrast palette",
+                                          "family": "混色・コントラスト"
+                            },
+                            {
+                                          "label": "補色・強い対比",
+                                          "value": "strong complementary color contrast",
+                                          "family": "混色・コントラスト"
+                            },
+                            {
+                                          "label": "青×橙",
+                                          "value": "cinematic blue and orange color palette",
+                                          "family": "混色・コントラスト"
+                            },
+                            {
+                                          "label": "赤×黒",
+                                          "value": "dramatic black and deep red palette",
+                                          "family": "混色・コントラスト"
+                            },
+                            {
+                                          "label": "青×赤・対立",
+                                          "value": "cinematic blue and crimson palette, visual tension",
+                                          "family": "混色・コントラスト"
+                            },
+                            {
+                                          "label": "青緑×紫",
+                                          "value": "teal and violet palette",
+                                          "family": "混色・コントラスト"
+                            },
+                            {
+                                          "label": "緑×青・自然",
+                                          "value": "emerald green and deep blue natural palette",
+                                          "family": "混色・コントラスト"
+                            },
+                            {
+                                          "label": "橙×紫・夕暮れ",
+                                          "value": "dusky orange and violet twilight palette",
+                                          "family": "混色・コントラスト"
+                            },
+                            {
+                                          "label": "赤×白・鮮烈",
+                                          "value": "striking scarlet red and white palette",
+                                          "family": "混色・コントラスト"
+                            },
+                            {
+                                          "label": "低彩度・くすみ",
+                                          "value": "muted low-saturation color palette",
+                                          "family": "低彩度・くすみ"
+                            },
+                            {
+                                          "label": "くすみ暖色",
+                                          "value": "muted warm terracotta and dusty rose palette",
+                                          "family": "低彩度・くすみ"
+                            },
+                            {
+                                          "label": "クリーム・ブラウン",
+                                          "value": "warm cream, beige and brown palette",
+                                          "family": "低彩度・くすみ"
+                            },
+                            {
+                                          "label": "パステル",
+                                          "value": "soft pastel color palette",
+                                          "family": "低彩度・くすみ"
+                            },
+                            {
+                                          "label": "鮮やか・高彩度",
+                                          "value": "vivid high-saturation color palette",
+                                          "family": "高彩度・鮮やか"
+                            },
+                            {
+                                          "label": "ジュエルカラー",
+                                          "value": "rich jewel-tone color palette",
+                                          "family": "高彩度・鮮やか"
+                            },
+                            {
+                                          "label": "同系色・グラデーション",
+                                          "value": "harmonious monochromatic gradient palette",
+                                          "family": "グラデーション"
+                            }
+              ]
+},
       {
             "id": "camera",
             "group": "composition-detail",
@@ -4404,7 +4648,7 @@
                   "landscape",
                   "all"
             ],
-            "title": "象徴・ビジュアルモチーフ",
+            "title": "象徴・モチーフ",
             "items": [
                   {
                         "label": "指定なし",
@@ -4794,7 +5038,7 @@
                   }
             ]
       }
-];;
+];
 
     // ===== 選択肢整理 v30 =====
     // 「同じ意味の別表現」「別カテゴリとの重複」「粒度が混在している項目」を整理。
@@ -4807,7 +5051,7 @@
         'character-accessory': ['マフラー'],
         'character-expression': ['決意'],
         'environment-time': ['明け方','午前','午後','夕方','宵','夜明け前'],
-        'landscape-nature': ['雪'],
+        'environment-nature': ['雪'],
         'abstract-concept': ['時間','世界の終わり'],
         'abstract-visual': ['糸','懐中時計','雨粒','白い鳥','黒い羽根']
       };
@@ -4816,6 +5060,29 @@
         const remove = new Set(removeLabels[cat.id] || []);
         cat.items = cat.items.filter(item => !remove.has(item.label));
       });
+
+      // 人物カテゴリ整理：人数・性別・外見・服装・仕草を役割ごとに分離。
+      const characterBasic = categoriesData.find(c => c.id === 'character');
+      if (characterBasic) {
+        // 人物タイプは従来の4つを維持。性別を独立カテゴリに分離しすぎない。
+        characterBasic.title = '人数・性別・構成・見せ方';
+      }
+      const ageCat = categoriesData.find(c => c.id === 'character-age');
+      if (ageCat) ageCat.title = '年齢';
+      const eyesCat = categoriesData.find(c => c.id === 'character-eyes');
+      if (eyesCat) eyesCat.title = '目の形・印象';
+      const irisCat = categoriesData.find(c => c.id === 'character-iris');
+      if (irisCat) irisCat.title = '瞳の色・質感';
+      const skinCat = categoriesData.find(c => c.id === 'character-skin');
+      if (skinCat) skinCat.title = '肌';
+      const bodyCat = categoriesData.find(c => c.id === 'character-body');
+      if (bodyCat) bodyCat.title = '体格・シルエット';
+      const outfitCat = categoriesData.find(c => c.id === 'outfit');
+      if (outfitCat) outfitCat.title = '服装';
+
+      // STEP2→STEP3整理：画風は「素材」ではなく「どう見せるか」なのでSTEP3へ移動。
+      const styleForStep3 = categoriesData.find(c => c.id === 'style');
+      if (styleForStep3) styleForStep3.group = 'composition-detail';
 
       // 髪色と髪型を分離。どちらも複数選択できる通常カテゴリとして扱う。
       const oldHair = categoriesData.find(c => c.id === 'hair');
@@ -4854,6 +5121,12 @@
         ];
         const existing=new Set(props.items.map(i=>i.label));
         extraProps.forEach(([label,value])=>{if(!existing.has(label)) props.items.push({label,value});});
+
+        // 「自由入力」は手に持つ物ではなく、STEP2の象徴・モチーフとして扱う。
+        const symbolCat = categoriesData.find(c => c.id === 'abstract-visual');
+        if (symbolCat && !symbolCat.items.some(i => i.freeInput)) {
+          symbolCat.items.push({label:'自由入力', value:'__FREE_MOTIF__', description:'描きたい象徴・モチーフを自由に入力', freeInput:true, placeholder:'例：古い鍵、濡れた手紙、割れた懐中時計'});
+        }
       }
 
       const skin = categoriesData.find(c => c.id === 'character-skin');
@@ -4879,7 +5152,7 @@
 
       // カテゴリ内も「汎用 → 具体 → 演出」の順に。
       const order = {
-        character: ['character','character-race','character-age','hair-color','hairstyle','character-eyes','character-iris','character-skin','character-body','outfit','character-expression','character-pose','character-gaze','character-hands','character-accessory','character-props'],
+        character: ['character','character-gender','character-race','character-age','hair-color','hairstyle','character-eyes','character-iris','character-skin','character-body','outfit','character-expression','character-pose','character-gaze','character-hands','character-accessory','character-props'],
         scene: ['landscape-modern','landscape-historical','landscape-fantasy','landscape-sf','landscape-steampunk','landscape-odd','landscape-postapoc','environment-place','environment-nature','environment-weather','environment-time','environment-detail'],
         visual: ['style','color-palette','lighting-direction','visual-effects','camera'],
         concept: ['abstract-emotion','abstract-concept','abstract-visual'],
@@ -4899,7 +5172,7 @@
 
       const nature = categoriesData.find(c => c.id === 'environment-nature');
       if (nature) {
-        const preferred = ['指定なし','桜','新緑','紅葉','落葉','花畑','花吹雪','海・水平線','湖','川・渓流','山','森','草原','雪原','砂漠','星空','星月夜','満月','日蝕・月蝕','オーロラ','雲海','水面'];
+        const preferred = ['指定なし','桜','紫陽花','藤','百合','向日葵','朝顔','金木犀','椿','新緑','紅葉','落葉','花畑','花吹雪','海・水平線','湖','川・渓流','山','森','草原','雪原','砂漠','星空','星月夜','満月','日蝕・月蝕','オーロラ','雲海','水面'];
         const by = new Map(nature.items.map(i => [i.label,i]));
         nature.items = preferred.filter(l => by.has(l)).map(l => by.get(l));
       }
@@ -4910,6 +5183,56 @@
         weather.items = preferred.filter(l => by.has(l)).map(l => by.get(l));
       }
 
+      // 世界・風景カテゴリ整理：
+      // 「世界観」と「具体的な場所」「自然・天候・時間」「背景演出」が混ざらないよう棚卸し。
+      const sceneCleanup = {
+        'landscape-fantasy': new Set(['森・深い森','湖・水辺','星空・天体','幻想的な花畑']),
+        'landscape-modern': new Set(['駅・ホーム','学校','図書館','喫茶店・カフェ','コンビニ','アパートの部屋','屋上','窓辺','商店街','繁華街・雨','駅前ロータリー','電車の車内','踏切のある住宅街','学校の教室','体育館','病院','図書室','古いアパート','団地','オフィス街','港町','田園・農村']),
+        'landscape-historical': new Set(['蒸気機関の街','産業革命風の都市']),
+      };
+      Object.entries(sceneCleanup).forEach(([catId, remove]) => {
+        const cat = categoriesData.find(c => c.id === catId);
+        if (cat) cat.items = cat.items.filter(i => !remove.has(i.label));
+      });
+
+      // 「舞台・場所」に重複していたタグを一度だけ残す。
+      const place = categoriesData.find(c => c.id === 'environment-place');
+      if (place) {
+        const seenPlace = new Set();
+        place.items = place.items.filter(i => {
+          if (seenPlace.has(i.label)) return false;
+          seenPlace.add(i.label);
+          return true;
+        });
+      }
+
+      // 環境ディテール内のほぼ同義の項目を整理。
+      const detail = categoriesData.find(c => c.id === 'environment-detail');
+      if (detail) {
+        const removeDetail = new Set(['奥行きのある背景','水面反射']);
+        detail.items = detail.items.filter(i => !removeDetail.has(i.label));
+      }
+
+      // 世界・風景の見出しも「何を選ぶ場所か」が分かる名前に統一。
+      const landscapeTitles = {
+        'landscape-modern':'世界・現代',
+        'landscape-fantasy':'世界・幻想',
+        'landscape-sf':'世界・SF',
+        'landscape-historical':'世界・歴史／和風',
+        'landscape-postapoc':'世界・終末／荒廃',
+        'landscape-odd':'世界・異形／怪異',
+        'landscape-steampunk':'世界・スチームパンク',
+        'environment-place':'舞台・場所',
+        'environment-nature':'自然・地形・天体',
+        'environment-weather':'天候',
+        'environment-time':'時間・季節',
+        'environment-detail':'背景ディテール'
+      };
+      Object.entries(landscapeTitles).forEach(([catId,title]) => {
+        const cat = categoriesData.find(c => c.id === catId);
+        if (cat) cat.title = title;
+      });
+
       const expression = categoriesData.find(c => c.id === 'character-expression');
       if (expression) {
         const preferred = ['指定なし','穏やかな微笑み','寂しげな微笑み','照れ・はにかみ','含み笑い','意味ありげな笑み','意地悪な笑み','ほくそ笑む','得意げ','挑発的','誘惑するような表情','歓喜・高揚','安堵','気まずさ','困惑・呆然','不安・戸惑い','怯え・恐怖','嫌悪','軽蔑','怒り','泣きそう','涙を流す','泣き笑い','憂い','疲労・消耗','諦め','虚無・生気がない','無表情','目を閉じる','視線を逸らす','誰かを見つめる','疑いの目','警戒','言葉を飲み込む'];
@@ -4919,6 +5242,7 @@
     })();
 
 const selectedTags = new Set();
+    let freeMotifText = '';
     // 旧バージョンの性別固定ペア選択が残っている場合は、汎用ペアへ移行。
     ['one woman and one man, pair of characters','two women, female pair of characters','two men, male pair of characters','two androgynous, gender-ambiguous characters'].forEach(v=>{
       if(selectedTags.has(v)){ selectedTags.delete(v); selectedTags.add(pairCharacterValue); }
@@ -5314,31 +5638,30 @@ const selectedTags = new Set();
 
     const categorySubgroups = {
       'character-detail': [
-        {id:'character-basic', label:'基本', desc:'人物の人数・見せ方', cats:['character']},
+        {id:'character-basic', label:'基本', desc:'人数・構成・見せ方', cats:['character']},
         {id:'character-appearance', label:'外見', desc:'種族・年齢・髪・目・肌・体格', cats:['character-race','character-age','hair-color','hairstyle','character-eyes','character-iris','character-skin','character-body']},
         {id:'character-clothing', label:'服装・小物', desc:'服装・アクセサリー・持ち物', cats:['outfit','character-accessory','character-props']},
         {id:'character-expression', label:'表情・仕草', desc:'表情・手元・ポーズ・視線', cats:['character-expression','character-hands','character-pose','character-gaze']}
       ],
       'scene-detail': [
-        {id:'scene-fantasy', label:'幻想', desc:'異世界・魔法・幻想の舞台', cats:['landscape-fantasy']},
-        {id:'scene-modern', label:'現代', desc:'都会・学校・日常の舞台', cats:['landscape-modern']},
-        {id:'scene-sf', label:'SF', desc:'近未来・宇宙・サイバーの舞台', cats:['landscape-sf']},
-        {id:'scene-history', label:'歴史・和風', desc:'時代もの・和風の街並み', cats:['landscape-historical']},
-        {id:'scene-postapoc', label:'終末・荒廃', desc:'崩壊した都市・廃墟・荒野', cats:['landscape-postapoc']},
-        {id:'scene-odd', label:'異形・怪異', desc:'怪異・異界・夢のような場所', cats:['landscape-odd']},
-        {id:'scene-steampunk', label:'スチームパンク', desc:'蒸気機関・歯車・工業都市', cats:['landscape-steampunk']},
-        {id:'scene-place', label:'舞台・場所', desc:'具体的な場所や建物', cats:['environment-place']},
-        {id:'scene-nature', label:'自然', desc:'植物・地形・水辺・空・天体など', cats:['environment-nature']},
+        {id:'scene-modern', label:'現代', desc:'現代の日常・都市・暮らしの世界', cats:['landscape-modern']},
+        {id:'scene-fantasy', label:'幻想', desc:'異世界・魔法・幻想の世界', cats:['landscape-fantasy']},
+        {id:'scene-sf', label:'SF', desc:'近未来・宇宙・サイバーの世界', cats:['landscape-sf']},
+        {id:'scene-history', label:'歴史・和風', desc:'時代もの・歴史・和風の世界', cats:['landscape-historical']},
+        {id:'scene-postapoc', label:'終末・荒廃', desc:'崩壊・廃墟・荒野の世界', cats:['landscape-postapoc']},
+        {id:'scene-odd', label:'異形・怪異', desc:'怪異・異界・夢のような世界', cats:['landscape-odd']},
+        {id:'scene-steampunk', label:'スチームパンク', desc:'蒸気機関・歯車・工業都市の世界', cats:['landscape-steampunk']},
+        {id:'scene-place', label:'舞台・場所', desc:'具体的な場所・建物・施設', cats:['environment-place']},
+        {id:'scene-nature', label:'自然・地形・天体', desc:'植物・地形・水辺・空・天体', cats:['environment-nature']},
         {id:'scene-weather', label:'天候', desc:'雨・雪・霧・風などの天候', cats:['environment-weather']},
         {id:'scene-time-season', label:'時間・季節', desc:'朝・昼・夜と四季・季節の移り変わり', cats:['environment-time']},
-        {id:'scene-background', label:'背景ディテール', desc:'生活感・反射・粒子・空気感などの細部', cats:['environment-detail']}
+        {id:'scene-background', label:'背景ディテール', desc:'生活感・奥行き・反射・粒子などの細部', cats:['environment-detail']}
       ],
       'visual-detail': [
-        {id:'visual-style', label:'画風・質感', desc:'絵のタッチや質感', cats:['style']},
         {id:'visual-color', label:'色・配色', desc:'色調・カラーコンセプト', cats:['color-palette']}
       ],
       'composition-detail': [
-        {id:'composition-all', label:'画面の見せ方', desc:'カメラ・光・演出・画面比率をまとめて調整', cats:['camera','lighting-direction','visual-effects','ratio']}
+        {id:'composition-all', label:'画面の見せ方', desc:'構図・視点・カメラ・光・演出・画面比率', cats:['camera','lighting-direction','visual-effects','ratio','style']}
       ],
       'concept-detail': [
         {id:'concept-emotion', label:'感情', desc:'人物や場面に込める感情', cats:['abstract-emotion']},
@@ -5353,9 +5676,9 @@ const selectedTags = new Set();
       const groupNames = {
         'character-detail':['人物を設定','人物を描く場合だけ、必要な項目を選ぶ'],
         'scene-detail':['世界・環境を設定','世界観・舞台・自然・天候・時間・背景を決める'],
-        'visual-detail':['画の雰囲気を設定','色・質感・画風を決める'],
+        'visual-detail':['色を設定','色調・配色を決める'],
         'composition-detail':['画面の見せ方を設定','構図・カメラ・光・演出・奥行きを決める'],
-        'concept-detail':['意味を設定','感情・心象や概念をビジュアル化する'],
+        'concept-detail':['意味を設定','感情・心象、概念・テーマ、象徴・モチーフを決める'],
         'output-detail':['出力を整える','サイズ・画面比率を設定']
       };
 
@@ -5445,11 +5768,34 @@ const selectedTags = new Set();
             tools.appendChild(count); tools.appendChild(hint); content.appendChild(tools);
             const tagBox=document.createElement('div'); tagBox.className='tag-container';
             const hasSelectionInCat=cat.items.some(item=>!item.isNone && (item.isSingleRatio ? selectedRatio===item.value : selectedTags.has(item.value)));
+            let lastStyleFamily = null;
             cat.items.forEach(item=>{
+              if(cat.id === 'style' && item.family && item.family !== lastStyleFamily){
+                const familyHead=document.createElement('div');
+                familyHead.className='style-family-heading';
+                familyHead.textContent=item.family;
+                tagBox.appendChild(familyHead);
+                lastStyleFamily=item.family;
+              }
+              if(item.freeInput){
+                const wrap=document.createElement('div');
+                wrap.className='free-input-wrap';
+                const input=document.createElement('input');
+                input.type='text'; input.className='free-motif-input';
+                input.placeholder=item.placeholder||'自由に入力';
+                input.value=freeMotifText;
+                input.setAttribute('aria-label','象徴・モチーフの自由入力');
+                input.addEventListener('input',()=>{ freeMotifText=input.value.trim(); updateOutput(); });
+                wrap.appendChild(input);
+                content.appendChild(wrap);
+                return;
+              }
               const btn=document.createElement('button'); btn.className='tag-btn';
               if(item.isNone){btn.classList.add('none-option'); if(!hasSelectionInCat) btn.classList.add('active');}
               else {if(item.isOmakase) btn.classList.add('omakase'); if(item.isSingleRatio?selectedRatio===item.value:selectedTags.has(item.value)) btn.classList.add('active');}
-              btn.textContent=item.label; btn.onclick=()=>{activePreset=''; renderPresets(); toggleTag(btn,item,cat);}; tagBox.appendChild(btn);
+              const labelEl=document.createElement('span'); labelEl.className='tag-label'; labelEl.textContent=item.label; btn.appendChild(labelEl);
+              if(item.description){ const descEl=document.createElement('span'); descEl.className='tag-description'; descEl.textContent=item.description; btn.appendChild(descEl); }
+              btn.onclick=()=>{activePreset=''; renderPresets(); toggleTag(btn,item,cat);}; tagBox.appendChild(btn);
             });
             content.appendChild(tagBox);
             const detailConfig=buildDetailConfig(cat); if(detailConfig) content.appendChild(detailConfig);
@@ -5553,12 +5899,24 @@ const selectedTags = new Set();
       sourceSel.addEventListener('change',()=>{
         st.reference=sourceSel.value==='reference';
         if(st.reference){
-          ['type','race','age','hairColor','hairStyle','eyes','iris','skin','body'].forEach(k=>st[k]='');
+          ['gender','type','race','age','hairStyle','eyes','iris','skin','body'].forEach(k=>st[k]='');
           st.hairDetail={mode:'',color1:'',color2:'',placement:''}; st.irisDetail={mode:'',color1:'',color2:'',direction:''};
         }
         updateOutput(); updateSummary(); buildUI();
       });
       sourceField.appendChild(sourceSel); grid.appendChild(sourceField);
+
+      const genderCat = getCategory('character-gender');
+      if (genderCat && !st.reference) {
+        const genderField=document.createElement('div'); genderField.className='detail-field';
+        const genderLabel=document.createElement('label'); genderLabel.textContent='性別・性別表現'; genderField.appendChild(genderLabel);
+        const genderSel=document.createElement('select');
+        const genderPh=document.createElement('option'); genderPh.value=''; genderPh.textContent='指定なし'; genderSel.appendChild(genderPh);
+        genderCat.items.filter(it=>!it.isNone && it.value).forEach(it=>{const o=document.createElement('option');o.value=it.value;o.textContent=it.label;genderSel.appendChild(o);});
+        genderSel.value=st.gender||'';
+        genderSel.addEventListener('change',()=>{st.gender=genderSel.value; updateOutput(); updateSummary(); buildUI();});
+        genderField.appendChild(genderSel); grid.appendChild(genderField);
+      }
 
       const selectField=(fieldLabel,key,catId,filterFn)=>{
         const cat=getCategory(catId); if(!cat) return null;
@@ -5663,7 +6021,7 @@ const selectedTags = new Set();
       if(!isPairMode()) return [];
       const parts=[];
       const personLabels={person1:'person 1',person2:'person 2'};
-      const fields=[['type','character type'],['race','species'],['age','age impression'],['hairColor','hair color'],['hairStyle','hairstyle'],['eyes','eye shape'],['iris','iris color'],['skin','skin'],['outfit','clothing'],['expression','facial expression'],['body','body type'],['hands','hands and gesture'],['accessory','accessories'],['props','props']];
+      const fields=[['gender','gender expression'],['race','species'],['age','age impression'],['hairColor','hair color'],['hairStyle','hairstyle'],['eyes','eye shape'],['iris','iris color'],['skin','skin'],['outfit','clothing'],['expression','facial expression'],['body','body type'],['hands','hands and gesture'],['accessory','accessories'],['props','props']];
       ['person1','person2'].forEach(pk=>{
         const st=pairState[pk];
         const vals=fields.filter(([k])=>st[k]).map(([k,l])=>`${l}: ${st[k]}`);
@@ -6092,6 +6450,7 @@ const selectedTags = new Set();
 
       activePreset = '';
       activeGenrePreset = '';
+      freeMotifText = '';
       // STEP 2に属する選択だけをクリア。STEP 3のカメラ・光・演出・比率は保持する。
       const step2Groups = new Set(['character-detail','scene-detail','visual-detail','concept-detail']);
       const step2Values = new Set();
@@ -6126,8 +6485,6 @@ const selectedTags = new Set();
       activePreset=""; activeGenrePreset=""; designMethod="free";
       document.getElementById('novel-title').value = '';
       document.getElementById('catchphrase').value = '';
-      document.getElementById('work-mood').value = '';
-      document.getElementById('work-motif').value = '';
       document.getElementById('work-avoid').value = '';
       const sceneText=document.getElementById('scene-text'); if(sceneText) sceneText.value='';
       const sceneExtractedEl=document.getElementById('scene-extracted'); if(sceneExtractedEl) sceneExtractedEl.hidden=true;
@@ -6185,8 +6542,6 @@ const selectedTags = new Set();
 
       const catchphraseText = document.getElementById('catchphrase').value.trim();
       const isCatchphraseEnabled = !noText && document.getElementById('include-catchphrase-check').checked;
-      const workMood = document.getElementById('work-mood').value.trim();
-      const workMotif = document.getElementById('work-motif').value.trim();
       const workAvoid = document.getElementById('work-avoid').value.trim();
       const outputPurpose = document.getElementById('output-purpose').value;
 
@@ -6223,14 +6578,6 @@ const selectedTags = new Set();
       }
       if (isCatchphraseEnabled && catchphraseText) {
         promptParts.push(`subtitle text "${catchphraseText}"`);
-      }
-
-      if (workMood) {
-        promptParts.push(`overall mood: ${workMood}`);
-      }
-
-      if (workMotif) {
-        promptParts.push(`important motifs: ${workMotif}`);
       }
 
       const tagsArray = Array.from(selectedTags);
@@ -6273,25 +6620,30 @@ const selectedTags = new Set();
       const groups={
         '人物':[],
         '世界・風景':[],
-        '感情・概念':[],
-        '画風・色':[],
+        '感情・心象':[],
+        '概念・テーマ':[],
+        '象徴・モチーフ':[],
+        '色・配色':[],
         '文字・タイポグラフィ':[],
         '画面設定':[]
       };
       const groupMap={
         'character-detail':'人物',
         'scene-detail':'世界・風景',
-        'concept-detail':'感情・概念',
-        'visual-detail':'画風・色'
+        'concept-detail':'感情・心象',
+        'visual-detail':'色・配色'
       };
       categoriesData.forEach(cat=>{
-        const bucket=groupMap[cat.group];
+        let bucket=groupMap[cat.group];
+        if(cat.id==='abstract-concept') bucket='概念・テーマ';
+        if(cat.id==='abstract-visual') bucket='象徴・モチーフ';
         if(!bucket) return;
         cat.items.forEach(item=>{
           if(item.isNone || !item.value || !selectedTags.has(item.value)) return;
           groups[bucket].push(item.label.replace(/^\[AI\]\s*/,''));
         });
       });
+      if(freeMotifText) groups['象徴・モチーフ'].push(`自由入力：${freeMotifText}`);
 
       // STEP1で設定する文字・タイポグラフィも、設計図に明示する。
       const textStyleCat=categoriesData.find(cat=>cat.id==='text-style');
@@ -6324,6 +6676,8 @@ const selectedTags = new Set();
       }
       const compNames={view:{'eye-level':'目線の高さ','low-angle':'見上げる','high-angle':'見下ろす','overhead':'真上から','close-up':'近接'},position:{left:'左寄り',center:'中央',right:'右寄り','off-center':'オフセンター'},space:{'title-safe':'文字用の余白','breathing-room':'広めの余白',tight:'画面いっぱい',none:'余白指定なし'},distance:{portrait:'ポートレート','medium-shot':'中距離','wide-shot':'広角','establishing':'場所を主役'}};
       Object.entries(compositionState).forEach(([k,v])=>{if(v&&compNames[k]?.[v]) groups['画面設定'].push(compNames[k][v]);});
+      const styleCatForBlueprint=categoriesData.find(cat=>cat.id==='style');
+      styleCatForBlueprint?.items.forEach(item=>{ if(!item.isNone && item.value && selectedTags.has(item.value)) groups['画面設定'].push(item.label.replace(/^\[AI\]\s*/,'')); });
       if(selectedRatio){
         const ratioCat=categoriesData.find(c=>c.id==='ratio');
         const ratioItem=ratioCat?.items.find(i=>i.value===selectedRatio);
@@ -6339,13 +6693,11 @@ const selectedTags = new Set();
       if(!sections) return;
       const groups=getBlueprintSelections();
       const title=document.getElementById('novel-title')?.value.trim()||'';
-      const mood=document.getElementById('work-mood')?.value.trim()||'';
-      const motif=document.getElementById('work-motif')?.value.trim()||'';
       const all=Object.values(groups).flat();
       const subject=groups['人物'][0]||groups['世界・風景'][0]||'まだ主役未設定';
       const scene=groups['世界・風景'].slice(0,2).join(' / ');
-      const feeling=mood||groups['感情・概念'].slice(0,2).join(' / ');
-      const motifText=motif||groups['画風・色'].slice(0,1).join(' / ');
+      const feeling=groups['感情・心象'].slice(0,2).join(' / ');
+      const motifText=groups['象徴・モチーフ']?.slice(0,2).join(' / ')||'';
       const sentence=[title?`「${title}」：`:'',`${subject}を中心に`,scene?`${scene}で`:'',feeling?`${feeling}の空気を描く。`:'一枚の画として組み立てる。',motifText?`モチーフ／印象：${motifText}`:''].join('').replace(/中心にで/g,'中心に').trim();
       if(impression) impression.textContent=all.length ? sentence : 'まだ設定がない。タグを選ぶと、ここに一枚の設計図ができていく。';
       sections.innerHTML=Object.entries(groups).map(([name,items])=>`<section class="blueprint-section"><div class="blueprint-section-title">${escapeHtml(name)}</div><div class="blueprint-items">${items.length?items.map(x=>`<span class="blueprint-chip">${escapeHtml(x)}</span>`).join(''):'<span class="blueprint-empty">未設定</span>'}</div></section>`).join('');
@@ -6358,8 +6710,6 @@ const selectedTags = new Set();
       if (!chips) return;
       const title = document.getElementById('novel-title').value.trim();
       const noText = document.getElementById('no-text-check').checked;
-      const mood = document.getElementById('work-mood').value.trim();
-      const motif = document.getElementById('work-motif').value.trim();
       const purpose = document.getElementById('output-purpose').selectedOptions[0]?.textContent || '';
       const modeNames = {character:'人物中心', landscape:'世界・風景中心', abstract:'感情・概念中心', all:'詳細設定'};
       const compNames = {view:{'eye-level':'目線の高さ','low-angle':'見上げる','high-angle':'見下ろす','overhead':'真上から','close-up':'近接'},position:{left:'左寄り',center:'中央',right:'右寄り','off-center':'オフセンター'},space:{'title-safe':'文字用の余白','breathing-room':'広めの余白',tight:'画面いっぱい',none:'余白指定なし'},distance:{portrait:'ポートレート','medium-shot':'中距離','wide-shot':'広角','establishing':'場所を主役'}};
@@ -6370,10 +6720,10 @@ const selectedTags = new Set();
       }));
       const methodNames={free:'自由設計',preset:'プリセット',omakase:'AIおまかせ','from-text':'本文から'};
       const sceneText=document.getElementById('scene-text')?.value.trim()||'';
-      const values = [modeNames[currentMode], methodNames[designMethod]||'', designMethod==='from-text'&&sceneText ? '本文から場面を抽出' : '', purpose, noText ? '画像内の文字なし' : '', title ? `作品：${title}` : '', mood ? `雰囲気：${mood}` : '', motif ? `モチーフ：${motif}` : '', ...compValues, ...selectedLabels.slice(0,12)].filter(Boolean);
+      const values = [modeNames[currentMode], methodNames[designMethod]||'', designMethod==='from-text'&&sceneText ? '本文から場面を抽出' : '', purpose, noText ? '画像内の文字なし' : '', title ? `作品：${title}` : '', ...compValues, ...selectedLabels.slice(0,12)].filter(Boolean);
       chips.innerHTML = values.length ? values.map(v => `<span class="summary-chip">${escapeHtml(v)}</span>`).join('') : '<span class="summary-empty">まだ設定がない。上から少しずつ決めてみよう。</span>';
 
-      const workFields = [title, mood, motif].filter(Boolean).length;
+      const workFields = [title, purpose, noText ? '文字なし' : ''].filter(Boolean).length;
       const workPct = Math.round(workFields / 3 * 100);
       const visualCount = selectedTags.size + (selectedRatio ? 1 : 0) + Object.values(compositionState).filter(Boolean).length;
       const visualPct = Math.min(100, Math.round(visualCount / 8 * 100));
@@ -6390,8 +6740,7 @@ const selectedTags = new Set();
     // コピー機能
     function copyText(elementId) {
       const text = document.getElementById(elementId).textContent;
-      const copyTextValue = text;
-      navigator.clipboard.writeText(copyTextValue).then(() => {
+      navigator.clipboard.writeText(text).then(() => {
         alert("クリップボードにコピーした");
       });
     }
@@ -6434,7 +6783,7 @@ const selectedTags = new Set();
     }
 
     // 入力およびチェックボックス状態の監視
-    ['novel-title', 'catchphrase', 'work-mood', 'work-motif', 'work-avoid', 'output-purpose', 'include-title-check', 'include-catchphrase-check', 'no-text-check', 'scene-text'].forEach(id => {
+    ['novel-title', 'catchphrase', 'work-avoid', 'output-purpose', 'include-title-check', 'include-catchphrase-check', 'no-text-check', 'scene-text'].forEach(id => {
       const el=document.getElementById(id);
       if(!el) return;
       el.addEventListener('input', updateOutput);
@@ -6464,14 +6813,6 @@ const selectedTags = new Set();
   if (typeof originalBuildUI !== 'function') return;
   let applyingPreset = false;
 
-  function selectedCategoryIds(){
-    const ids = [];
-    document.querySelectorAll('.category-section').forEach(section => {
-      const active = section.querySelector('.tag-btn.active:not([data-value="指定なし"])');
-      if (active) ids.push(section.id || section.dataset.category || '');
-    });
-    return ids.filter(Boolean);
-  }
 
   function collapseAll(){
     document.querySelectorAll('.category-section').forEach(section => section.classList.add('is-collapsed'));
