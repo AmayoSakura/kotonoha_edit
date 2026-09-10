@@ -5189,17 +5189,6 @@
         weather.items = preferred.filter(l => by.has(l)).map(l => by.get(l));
       }
 
-      // 世界・風景カテゴリ整理：
-      // 「世界観」と「具体的な場所」「自然・天候・時間」「背景演出」が混ざらないよう棚卸し。
-      const sceneCleanup = {
-        'landscape-fantasy': new Set(['森・深い森','湖・水辺','星空・天体','幻想的な花畑']),
-        'landscape-modern': new Set(['駅・ホーム','学校','図書館','喫茶店・カフェ','コンビニ','アパートの部屋','屋上','窓辺','商店街','繁華街・雨','駅前ロータリー','電車の車内','踏切のある住宅街','学校の教室','体育館','病院','図書室','古いアパート','団地','オフィス街','港町','田園・農村']),
-        'landscape-historical': new Set(['蒸気機関の街','産業革命風の都市']),
-      };
-      Object.entries(sceneCleanup).forEach(([catId, remove]) => {
-        const cat = categoriesData.find(c => c.id === catId);
-        if (cat) cat.items = cat.items.filter(i => !remove.has(i.label));
-      });
 
       // 「舞台・場所」に重複していたタグを一度だけ残す。
       const place = categoriesData.find(c => c.id === 'environment-place');
