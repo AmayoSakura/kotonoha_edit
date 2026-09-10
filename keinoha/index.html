@@ -692,8 +692,9 @@
     .category-subgroup-title span { font-size: .68rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .category-subgroup-btn { flex: 0 0 auto; border: 1px solid var(--card-border); background: transparent; color: var(--text-muted); border-radius: 3px; padding: 5px 10px; font-size: .64rem; cursor: pointer; }
     .category-subgroup-btn:hover { border-color: var(--accent); color: var(--text-main); }
-    .category-subgroup-content { padding: 4px 14px 12px; }
     .category-subgroup.is-collapsed .category-subgroup-content { display: none; }
+    .category-subgroup .section.is-collapsed .category-content,
+    .section.is-collapsed .category-content { display: none; }
     .category-subgroup .section { margin: 12px 0; border: none; box-shadow: none; padding: 12px 0 0; }
 
     .scene-subgroup-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
@@ -5360,6 +5361,8 @@ const selectedTags = new Set();
     function openCategoriesForCurrentPreset(){
       // プリセット適用時は、実際に値が入ったカテゴリだけ開く。
       collapsedCategories.clear();
+      collapsedSubgroups.clear();
+      const activeCatIds = new Set();
       categoriesData.forEach(cat=>{
         if(!cat.group) return;
         if(!cat.modes.includes(currentMode) && currentMode !== 'all' && !(currentMode === 'character' && cat.group === 'scene-detail')) return;
@@ -5370,7 +5373,18 @@ const selectedTags = new Set();
           if(item.isNone) return false;
           return item.isSingleRatio ? selectedRatio===item.value : selectedTags.has(item.value);
         });
-        if(!hasSelection) collapsedCategories.add(cat.id);
+        if(!hasSelection) {
+          collapsedCategories.add(cat.id);
+        } else {
+          activeCatIds.add(cat.id);
+        }
+      });
+      // 選択中のカテゴリがないサブグループは閉じる
+      Object.values(categorySubgroups).forEach(subs => {
+        subs.forEach(sub => {
+          const hasAny = sub.cats.some(id => activeCatIds.has(id));
+          if(!hasAny) collapsedSubgroups.add(sub.id);
+        });
       });
     }
 
@@ -5553,13 +5567,17 @@ const selectedTags = new Set();
 
     function seedCategoryCollapse(){
       if(categoryCollapseSeeded) return;
-      // v37: 初期状態はすべて閉じる。先頭カテゴリだけ開く処理は廃止。
+      // 初期状態はすべて閉じる
       categoriesData.forEach(cat=>{
         if(!cat.group) return;
         if(!cat.modes.includes(currentMode) && currentMode !== 'all') return;
         if(isPairMode() && pairHiddenCategories.has(cat.id)) return;
         if(isReferenceMode() && referenceHiddenCategories.has(cat.id)) return;
         collapsedCategories.add(cat.id);
+      });
+      // サブグループもすべて閉じる
+      Object.values(categorySubgroups).forEach(subs => {
+        subs.forEach(sub => collapsedSubgroups.add(sub.id));
       });
       categoryCollapseSeeded = true;
     }
@@ -6805,51 +6823,6 @@ const selectedTags = new Set();
     updateSummary();
   </script>
 
-<script>
-(function(){
-  // v36 UI behavior: start with all categories collapsed.
-  // Presets open only categories that actually contain selected values.
-  const originalBuildUI = window.buildUI;
-  if (typeof originalBuildUI !== 'function') return;
-  let applyingPreset = false;
-
-
-  function collapseAll(){
-    document.querySelectorAll('.category-section').forEach(section => section.classList.add('is-collapsed'));
-  }
-
-  function openSelected(){
-    document.querySelectorAll('.category-section').forEach(section => {
-      const active = section.querySelector('.tag-btn.active:not([data-value="指定なし"])');
-      section.classList.toggle('is-collapsed', !active);
-    });
-  }
-
-  // Patch common preset/apply actions by observing DOM changes. This avoids
-  // changing the underlying prompt data model.
-  const observer = new MutationObserver(() => {
-    if (!applyingPreset) return;
-    openSelected();
-    applyingPreset = false;
-  });
-  observer.observe(document.body, {subtree:true, childList:true, attributes:true, attributeFilter:['class']});
-
-  window.buildUI = function(){
-    const result = originalBuildUI.apply(this, arguments);
-    if (!applyingPreset) setTimeout(collapseAll, 0);
-    return result;
-  };
-
-  // Expose a tiny helper for preset handlers if needed.
-  window.__promptStudioV36 = {
-    markPresetApply(){ applyingPreset = true; },
-    collapseAll,
-    openSelected
-  };
-
-  setTimeout(collapseAll, 0);
-})();
-</script>
 
 <script>
 window.addEventListener('DOMContentLoaded', function(){ setTimeout(function(){ if(typeof runOptionAudit==='function') runOptionAudit(); }, 0); });
