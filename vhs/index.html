@@ -56,8 +56,8 @@
       --panel: #ede2cd;
       --panel-input: #f8f1e3;
       --shadow: rgba(44, 36, 32, 0.18);
-      --card-grad-a: #45283a;
-      --card-grad-b: #5c3548;
+      --card-grad-a: #ffffff;
+      --card-grad-b: #ffffff;
       --card-text-shadow: rgba(0, 0, 0, 0.55);
     }
 
@@ -292,6 +292,8 @@
       white-space: pre-wrap;
       max-width: 90%;
       word-break: break-word;
+      text-align: left;
+      box-sizing: border-box;
       transition: border-color 0.15s;
       color: #ffffff;
     }
@@ -302,7 +304,7 @@
 
     .drag-item.selected {
       border-color: var(--sakura);
-      background: rgba(232, 166, 180, 0.1);
+      background: transparent;
     }
 
     /* ==== フォントクラス（20種） ==== */
@@ -328,8 +330,9 @@
     .font-hand-zen { font-family: 'Zen Kurenaido', sans-serif; }
     .font-hachimaru { font-family: 'Hachi Maru Pop', cursive; }
 
+    /* テキストの影は各テキスト要素の「縁取り・影」で個別に管理 */
     .has-shadow .drag-item {
-      filter: drop-shadow(0px 2px 10px var(--card-text-shadow));
+      filter: none;
     }
 
     /* 配置ガイド線（要素移動中のみ表示） */
@@ -524,6 +527,75 @@
       font-family: 'Shippori Mincho', serif;
       font-style: normal;
       color: var(--plum-deep);
+    }
+
+    .text-align-buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+
+    .text-align-btn,
+    .text-bold-btn,
+    .text-width-auto-btn {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--text);
+      border-radius: 6px;
+      cursor: pointer;
+      font: inherit;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+
+    .text-align-btn,
+    .text-bold-btn {
+      background: var(--panel-input);
+      color: var(--ink-soft);
+      padding: 7px 0;
+      font-size: 0.66rem;
+      font-weight: 700;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.2;
+    }
+
+    .text-align-btn.active,
+    .text-bold-btn.active {
+      border-color: var(--sakura);
+      background: rgba(232, 166, 180, 0.14);
+      color: var(--sakura);
+    }
+
+    .text-bold-btn {
+      font-weight: 700;
+    }
+
+    .text-toggle {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: var(--panel-input);
+      color: var(--ink-soft);
+      padding: 8px 10px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+
+    .text-toggle.active {
+      border-color: var(--sakura);
+      background: rgba(232, 166, 180, 0.14);
+      color: var(--sakura);
+    }
+
+    .text-width-auto-btn {
+      margin-top: 7px;
+      width: 100%;
+      padding: 6px 10px;
+      font-size: 12px;
     }
 
     /* フォント選択ドロップダウン（見た目プレビュー式） */
@@ -942,8 +1014,8 @@
       }
 
       .viewport {
-        flex: 0 0 38vh;
-        height: 38vh;
+        flex: 0 0 42vh;
+        height: 42vh;
         padding: 10px;
         position: relative;
       }
@@ -1024,7 +1096,31 @@
         flex: none;
         overflow: visible;
         min-height: auto;
-        padding-bottom: 8px;
+        padding: 10px 14px 8px;
+        gap: 10px;
+      }
+
+      /* スマホ：文字タブは、よく使う設定を上へ。詳細設定は下へ。 */
+      #tab-text { gap: 11px; }
+      #tab-text > .form-group,
+      #tab-text > .form-row { margin: 0; }
+      #tab-text > .form-group:nth-child(1) { order: 1; }
+      #tab-text > .form-group:nth-child(2) { order: 2; }
+      #tab-text > .form-group:nth-child(3) { order: 3; }
+      #tab-text > .form-group:nth-child(4) { order: 4; }
+      #tab-text > .form-group:nth-child(5) { order: 5; }
+      #tab-text > .form-group:nth-child(6) { order: 6; }
+      #tab-text > .form-row:nth-child(12) { order: 7; }
+      #tab-text > .form-group:nth-child(11) { order: 8; }
+      #tab-text > .form-group:nth-child(7) { order: 9; }
+      #tab-text > .form-row:nth-child(8) { order: 10; }
+      #tab-text > .form-group:nth-child(9) { order: 11; }
+      #tab-text > .form-group:nth-child(10) { order: 12; }
+
+      /* 指で押しやすい最低サイズ */
+      .tab-btn, .mode-btn, .elem-btn, .align-btn,
+      .action-btn, .btn-add-text, .btn-reset-width, .direction-btn {
+        min-height: 40px;
       }
 
       /* スマホ：書き出しフッターは固定ではなく、スクロールメニューの末尾の一部として配置 */
@@ -1190,6 +1286,90 @@
                 <button type="button" class="font-option font-hachimaru" data-font="font-hachimaru">はちまるぽっぷ</button>
               </div>
             </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">文字揃え・太字</label>
+            <div class="text-align-buttons" role="group" aria-label="文字揃え・太字">
+              <button type="button" class="text-align-btn active" data-align="left">左</button>
+              <button type="button" class="text-align-btn" data-align="center">中央</button>
+              <button type="button" class="text-align-btn" data-align="right">右</button>
+              <button type="button" id="btn-text-bold" class="text-bold-btn" aria-pressed="false">太字</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="label-row">
+              <label class="form-label">テキスト幅</label>
+              <span id="text-width-val" class="range-value">自動</span>
+            </div>
+            <div class="range-group">
+              <input type="range" id="input-text-width" min="120" max="1000" value="420">
+            </div>
+            <button type="button" id="btn-text-width-auto" class="text-width-auto-btn">幅を自動に戻す</button>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <div class="label-row">
+                <label class="form-label">行間</label>
+                <span id="line-height-val" class="range-value">1.4</span>
+              </div>
+              <div class="range-group">
+                <input type="range" id="input-line-height" min="0.8" max="2.5" step="0.1" value="1.4">
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="label-row">
+                <label class="form-label">字間</label>
+                <span id="letter-spacing-val" class="range-value">0px</span>
+              </div>
+              <div class="range-group">
+                <input type="range" id="input-letter-spacing" min="-2" max="20" step="0.5" value="0">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">縁取り・影</label>
+            <div class="form-row">
+              <div class="form-group">
+                <div class="label-row">
+                  <label class="form-label">縁取り</label>
+                  <span id="text-stroke-val" class="range-value">0px</span>
+                </div>
+                <div class="range-group">
+                  <input type="range" id="input-text-stroke" min="0" max="8" step="0.5" value="0">
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="label-row">
+                  <label class="form-label">影</label>
+                  <span id="text-shadow-val" class="range-value">0px</span>
+                </div>
+                <div class="range-group">
+                  <input type="range" id="input-text-shadow" min="0" max="20" value="0">
+                </div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">縁取り色</label>
+                <input type="color" id="input-text-stroke-color" value="#2c2420">
+              </div>
+              <div class="form-group">
+                <label class="form-label">影の濃さ</label>
+                <div class="range-group">
+                  <input type="range" id="input-text-shadow-opacity" min="0" max="100" value="55">
+                  <span id="text-shadow-opacity-val" class="range-value">55%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">文字方向</label>
+            <button type="button" id="btn-text-vertical" class="text-toggle" aria-pressed="false">横書き</button>
           </div>
 
           <div class="form-group">
@@ -1463,6 +1643,23 @@
     const inputTextColor = document.getElementById('input-text-color');
     const inputRotate = document.getElementById('input-rotate');
     const inputSize = document.getElementById('input-size');
+    const inputTextWidth = document.getElementById('input-text-width');
+    const textWidthVal = document.getElementById('text-width-val');
+    const btnTextWidthAuto = document.getElementById('btn-text-width-auto');
+    const btnTextBold = document.getElementById('btn-text-bold');
+    const textAlignBtns = document.querySelectorAll('.text-align-btn');
+    const inputLineHeight = document.getElementById('input-line-height');
+    const lineHeightVal = document.getElementById('line-height-val');
+    const inputLetterSpacing = document.getElementById('input-letter-spacing');
+    const letterSpacingVal = document.getElementById('letter-spacing-val');
+    const inputTextStroke = document.getElementById('input-text-stroke');
+    const textStrokeVal = document.getElementById('text-stroke-val');
+    const inputTextStrokeColor = document.getElementById('input-text-stroke-color');
+    const inputTextShadow = document.getElementById('input-text-shadow');
+    const textShadowVal = document.getElementById('text-shadow-val');
+    const inputTextShadowOpacity = document.getElementById('input-text-shadow-opacity');
+    const textShadowOpacityVal = document.getElementById('text-shadow-opacity-val');
+    const btnTextVertical = document.getElementById('btn-text-vertical');
     const selectFont = document.getElementById('select-font');
     const rotateVal = document.getElementById('rotate-val');
     const sizeVal = document.getElementById('size-val');
@@ -1502,6 +1699,9 @@
         font: currentFontClass,
         color: rgbToHex(window.getComputedStyle(item).color),
         opacity: 100,
+        weight: parseInt(window.getComputedStyle(item).fontWeight, 10) || 400,
+        align: window.getComputedStyle(item).textAlign || 'left',
+        width: item.style.width || '',
         label: item.dataset.label || item.id
       };
     });
@@ -1628,6 +1828,26 @@
       inputSize.value = currentSize;
       sizeVal.textContent = `${currentSize}px`;
 
+      const state = itemStates[activeItem.id];
+      const currentWeight = Number(state.weight || window.getComputedStyle(activeItem).fontWeight || 400);
+      btnTextBold.classList.toggle('active', currentWeight >= 600);
+      btnTextBold.setAttribute('aria-pressed', currentWeight >= 600 ? 'true' : 'false');
+
+      const currentAlign = state.align || window.getComputedStyle(activeItem).textAlign || 'left';
+      textAlignBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.align === currentAlign));
+
+      if (state.width) {
+        const currentWidth = Math.round(parseFloat(state.width));
+        inputTextWidth.value = Math.max(120, Math.min(1000, currentWidth));
+        textWidthVal.textContent = `${currentWidth}px`;
+      } else {
+        const autoWidth = Math.round(activeItem.getBoundingClientRect().width);
+        inputTextWidth.value = Math.max(120, Math.min(1000, autoWidth));
+        textWidthVal.textContent = '自動';
+      }
+
+      updateTextEffectControls();
+
       selectFont.value = itemStates[activeItem.id].font;
       updateFontDropdownDisplay(itemStates[activeItem.id].font);
     }
@@ -1702,6 +1922,16 @@
         font: 'font-sans',
         color: '#ffffff',
         opacity: 100,
+        weight: 700,
+        align: 'left',
+        width: '',
+        lineHeight: 1.4,
+        letterSpacing: 0,
+        strokeWidth: 0,
+        strokeColor: '#2c2420',
+        shadowBlur: 0,
+        shadowOpacity: 55,
+        vertical: false,
         label: makeItemLabel('新しいテキスト')
       };
 
@@ -1804,6 +2034,135 @@
         itemStates[activeItem.id].font = fontClass;
       }
       updateFontDropdownDisplay(fontClass);
+    });
+
+    textAlignBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (!activeItem) return;
+        const align = btn.dataset.align;
+        activeItem.style.textAlign = align;
+        itemStates[activeItem.id].align = align;
+        textAlignBtns.forEach(b => b.classList.toggle('active', b === btn));
+      });
+    });
+
+    btnTextBold.addEventListener('click', () => {
+      if (!activeItem) return;
+      const currentWeight = Number(itemStates[activeItem.id].weight || window.getComputedStyle(activeItem).fontWeight || 400);
+      const nextWeight = currentWeight >= 600 ? 400 : 700;
+      activeItem.style.fontWeight = nextWeight;
+      itemStates[activeItem.id].weight = nextWeight;
+      btnTextBold.classList.toggle('active', nextWeight >= 600);
+      btnTextBold.setAttribute('aria-pressed', nextWeight >= 600 ? 'true' : 'false');
+    });
+
+    inputTextWidth.addEventListener('input', (e) => {
+      if (!activeItem) return;
+      const width = Number(e.target.value);
+      activeItem.style.width = `${width}px`;
+      itemStates[activeItem.id].width = `${width}px`;
+      textWidthVal.textContent = `${width}px`;
+    });
+
+    btnTextWidthAuto.addEventListener('click', () => {
+      if (!activeItem) return;
+      activeItem.style.width = '';
+      itemStates[activeItem.id].width = '';
+      const autoWidth = Math.round(activeItem.getBoundingClientRect().width);
+      inputTextWidth.value = Math.max(120, Math.min(1000, autoWidth));
+      textWidthVal.textContent = '自動';
+    });
+
+    function applyTextEffects(item) {
+      const state = itemStates[item.id];
+      if (!state) return;
+      const strokeWidth = Number(state.strokeWidth || 0);
+      const strokeColor = state.strokeColor || '#2c2420';
+      const shadowBlur = Number(state.shadowBlur || 0);
+      const shadowOpacity = Number(state.shadowOpacity !== undefined ? state.shadowOpacity : 55);
+      item.style.webkitTextStroke = strokeWidth > 0 ? `${strokeWidth}px ${strokeColor}` : '0 transparent';
+      item.style.textShadow = shadowBlur > 0 ? `0 2px ${shadowBlur}px ${HEXtoRGBA('#000000', shadowOpacity / 100)}` : 'none';
+      item.style.lineHeight = state.lineHeight || 1.4;
+      item.style.letterSpacing = `${Number(state.letterSpacing || 0)}px`;
+      item.style.writingMode = state.vertical ? 'vertical-rl' : 'horizontal-tb';
+      item.style.textOrientation = state.vertical ? 'mixed' : 'mixed';
+    }
+
+    function updateTextEffectControls() {
+      if (!activeItem) return;
+      const state = itemStates[activeItem.id];
+      const lineHeight = Number(state.lineHeight || 1.4);
+      const letterSpacing = Number(state.letterSpacing || 0);
+      const strokeWidth = Number(state.strokeWidth || 0);
+      const shadowBlur = Number(state.shadowBlur || 0);
+      const shadowOpacity = Number(state.shadowOpacity !== undefined ? state.shadowOpacity : 55);
+      inputLineHeight.value = lineHeight;
+      lineHeightVal.textContent = lineHeight.toFixed(1);
+      inputLetterSpacing.value = letterSpacing;
+      letterSpacingVal.textContent = `${letterSpacing}px`;
+      inputTextStroke.value = strokeWidth;
+      textStrokeVal.textContent = `${strokeWidth}px`;
+      inputTextStrokeColor.value = state.strokeColor || '#2c2420';
+      inputTextShadow.value = shadowBlur;
+      textShadowVal.textContent = `${shadowBlur}px`;
+      inputTextShadowOpacity.value = shadowOpacity;
+      textShadowOpacityVal.textContent = `${shadowOpacity}%`;
+      btnTextVertical.classList.toggle('active', !!state.vertical);
+      btnTextVertical.textContent = state.vertical ? '縦書き' : '横書き';
+      btnTextVertical.setAttribute('aria-pressed', state.vertical ? 'true' : 'false');
+    }
+
+    inputLineHeight.addEventListener('input', (e) => {
+      if (!activeItem) return;
+      const value = Number(e.target.value);
+      itemStates[activeItem.id].lineHeight = value;
+      lineHeightVal.textContent = value.toFixed(1);
+      applyTextEffects(activeItem);
+    });
+
+    inputLetterSpacing.addEventListener('input', (e) => {
+      if (!activeItem) return;
+      const value = Number(e.target.value);
+      itemStates[activeItem.id].letterSpacing = value;
+      letterSpacingVal.textContent = `${value}px`;
+      applyTextEffects(activeItem);
+    });
+
+    inputTextStroke.addEventListener('input', (e) => {
+      if (!activeItem) return;
+      const value = Number(e.target.value);
+      itemStates[activeItem.id].strokeWidth = value;
+      textStrokeVal.textContent = `${value}px`;
+      applyTextEffects(activeItem);
+    });
+
+    inputTextStrokeColor.addEventListener('input', (e) => {
+      if (!activeItem) return;
+      itemStates[activeItem.id].strokeColor = e.target.value;
+      applyTextEffects(activeItem);
+    });
+
+    inputTextShadow.addEventListener('input', (e) => {
+      if (!activeItem) return;
+      const value = Number(e.target.value);
+      itemStates[activeItem.id].shadowBlur = value;
+      textShadowVal.textContent = `${value}px`;
+      applyTextEffects(activeItem);
+    });
+
+    inputTextShadowOpacity.addEventListener('input', (e) => {
+      if (!activeItem) return;
+      const value = Number(e.target.value);
+      itemStates[activeItem.id].shadowOpacity = value;
+      textShadowOpacityVal.textContent = `${value}%`;
+      applyTextEffects(activeItem);
+    });
+
+    btnTextVertical.addEventListener('click', () => {
+      if (!activeItem) return;
+      itemStates[activeItem.id].vertical = !itemStates[activeItem.id].vertical;
+      applyTextEffects(activeItem);
+      updateTextEffectControls();
     });
 
     // ==================== フォントドロップダウン（見た目プレビュー式） ====================
@@ -2215,6 +2574,15 @@
           left: item.style.left,
           fontSize: item.style.fontSize,
           fontWeight: item.style.fontWeight,
+          textAlign: item.style.textAlign || itemStates[item.id]?.align || 'left',
+          width: item.style.width || itemStates[item.id]?.width || '',
+          lineHeight: itemStates[item.id]?.lineHeight || 1.4,
+          letterSpacing: itemStates[item.id]?.letterSpacing || 0,
+          strokeWidth: itemStates[item.id]?.strokeWidth || 0,
+          strokeColor: itemStates[item.id]?.strokeColor || '#2c2420',
+          shadowBlur: itemStates[item.id]?.shadowBlur || 0,
+          shadowOpacity: itemStates[item.id]?.shadowOpacity !== undefined ? itemStates[item.id].shadowOpacity : 55,
+          vertical: !!itemStates[item.id]?.vertical,
           color: item.style.color,
           hexColor: itemStates[item.id] ? itemStates[item.id].color : '#ffffff',
           opacity: itemStates[item.id] && itemStates[item.id].opacity !== undefined ? itemStates[item.id].opacity : 100,
@@ -2264,8 +2632,14 @@
           el.style.top = itemData.top;
           el.style.left = itemData.left;
           el.style.fontSize = itemData.fontSize;
-          el.style.fontWeight = itemData.fontWeight;
+          el.style.fontWeight = itemData.fontWeight || '400';
+          el.style.textAlign = itemData.textAlign || 'left';
+          el.style.width = itemData.width || '';
           el.style.color = itemData.color;
+          el.style.lineHeight = itemData.lineHeight || 1.4;
+          el.style.letterSpacing = `${Number(itemData.letterSpacing || 0)}px`;
+          el.style.writingMode = itemData.vertical ? 'vertical-rl' : 'horizontal-tb';
+          el.style.textOrientation = 'mixed';
           if (itemData.rotate) el.style.transform = `rotate(${itemData.rotate}deg)`;
 
           cardPreview.insertBefore(el, guideLines);
@@ -2275,8 +2649,19 @@
             font: itemData.fontClass,
             color: itemData.hexColor || rgbToHex(itemData.color),
             opacity: itemData.opacity !== undefined ? itemData.opacity : 100,
+            weight: Number(itemData.fontWeight) || 400,
+            align: itemData.textAlign || 'left',
+            width: itemData.width || '',
+            lineHeight: Number(itemData.lineHeight || 1.4),
+            letterSpacing: Number(itemData.letterSpacing || 0),
+            strokeWidth: Number(itemData.strokeWidth || 0),
+            strokeColor: itemData.strokeColor || '#2c2420',
+            shadowBlur: Number(itemData.shadowBlur || 0),
+            shadowOpacity: itemData.shadowOpacity !== undefined ? Number(itemData.shadowOpacity) : 55,
+            vertical: !!itemData.vertical,
             label: itemData.label
           };
+          applyTextEffects(el);
           attachDragHandlers(el);
         });
 
