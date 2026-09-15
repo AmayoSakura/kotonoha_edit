@@ -5054,8 +5054,9 @@
       const outfitCat = categoriesData.find((c) => c.id === "outfit");
       if (outfitCat) outfitCat.title = "服装";
 
-      const styleForStep3 = categoriesData.find((c) => c.id === "style");
-      if (styleForStep3) styleForStep3.group = "composition-detail";
+      // 画風はSTEP3に表示するが、状態管理上の所属は visual-detail のまま保持する。
+      // group 自体を書き換えると、STEP2のクリア処理・設計図・カテゴリ判定と
+      // STEP3の表示ロジックが食い違い、選択値がプロンプトへ反映されない原因になる。
 
       const oldHair = categoriesData.find((c) => c.id === "hair");
       if (oldHair) {
@@ -6527,6 +6528,7 @@
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = "tag-btn";
+        if (item.value) btn.dataset.tagValue = item.value;
         if (item.isNone) {
           btn.classList.add("none-option");
           if (!hasSelection) btn.classList.add("active");
@@ -6732,7 +6734,7 @@
         const groupCats = categoriesData.filter(
           (cat) =>
             cat.id !== "text-style" &&
-            cat.group === groupId &&
+            (cat.group === groupId || (groupId === "composition-detail" && cat.id === "style")) &&
             (cat.modes.includes(currentMode) ||
               currentMode === "all" ||
               (currentMode === "character" && cat.group === "scene-detail")) &&
@@ -6944,7 +6946,9 @@
                 return;
               }
               const btn = document.createElement("button");
+              btn.type = "button";
               btn.className = "tag-btn";
+              if (item.value) btn.dataset.tagValue = item.value;
               if (item.isNone) {
                 btn.classList.add("none-option");
                 btn.dataset.noneForCat = cat.id;
@@ -8316,6 +8320,29 @@
     }
 
     // ── プロンプト生成（出力結果の組み立て） ──
+    // 全カテゴリの value を走査し、selectedTags に存在する選択値を確実に回収する。
+    // 画風だけでなく、人物・背景・色・意味など通常タグにも同じ保証をかける。
+    function collectSelectedCategoryTags() {
+      const result = [];
+      const seen = new Set();
+      categoriesData.forEach((cat) => {
+        cat.items.forEach((item) => {
+          if (!item.isNone && item.value && selectedTags.has(item.value) && !seen.has(item.value)) {
+            seen.add(item.value);
+            result.push(item.value);
+          }
+        });
+      });
+      // プリセットや本文抽出など、categoriesData にない値も従来どおり保持する。
+      selectedTags.forEach((value) => {
+        if (!seen.has(value)) {
+          seen.add(value);
+          result.push(value);
+        }
+      });
+      return result;
+    }
+
     function updateOutput() {
       const titleText = document.getElementById("novel-title").value.trim();
       const noText = document.getElementById("no-text-check").checked;
@@ -8395,7 +8422,8 @@
         promptParts.push(`subtitle text "${catchphraseText}"`);
       }
 
-      const tagsArray = Array.from(selectedTags);
+      const tagsArray = collectSelectedCategoryTags();
+
       const filteredTags = noText
         ? tagsArray.filter(
             (tag) =>
@@ -8407,6 +8435,13 @@
       if (filteredTags.length > 0) {
         promptParts.push(...filteredTags);
       }
+
+      // 象徴・モチーフの自由入力は selectedTags ではなく独立した状態で保持しているため、
+      // タグ一覧とは別に最終プロンプトへ追加する。
+      if (freeMotifText) {
+        promptParts.push(`motif: ${freeMotifText}`);
+      }
+
       promptParts.push(...getDetailPromptParts());
       promptParts.push(...getPairPromptParts());
 
