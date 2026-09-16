@@ -9627,12 +9627,24 @@
 
       const tagsArray = [];
       const seenTags = new Set();
-      getSelectedCategoryItems().forEach(({ item }) => {
+      const selectedItems = getSelectedCategoryItems();
+      selectedItems.forEach(({ item }) => {
         if (!seenTags.has(item.value)) {
           seenTags.add(item.value);
           tagsArray.push(item.value);
         }
       });
+
+      // 画風は専用カテゴリとして最終プロンプトへ明示的に含める。
+      // UI上で選択状態になっていても、他のカテゴリ処理に巻き込まれて欠落しないようにする。
+      const styleCategory = getCategory("style");
+      styleCategory?.items.forEach((item) => {
+        if (isItemSelected(item) && !seenTags.has(item.value)) {
+          seenTags.add(item.value);
+          tagsArray.push(item.value);
+        }
+      });
+
       selectedTags.forEach((value) => {
         if (!seenTags.has(value)) {
           seenTags.add(value);
