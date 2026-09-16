@@ -6858,16 +6858,17 @@
 
     // ── タグ選択・比率のグローバル状態 ──
     const selectedTags = new Set();
+    const selectedStyleTags = new Set();
 
     let freeMotifText = "";
 
     let selectedRatio = "";
 
-    function isItemSelected(item) {
+    function isItemSelected(item, category) {
       if (!item || item.isNone || !item.value) return false;
-      return item.isSingleRatio
-        ? selectedRatio === item.value
-        : selectedTags.has(item.value);
+      if (item.isSingleRatio) return selectedRatio === item.value;
+      if (category?.id === "style") return selectedStyleTags.has(item.value);
+      return selectedTags.has(item.value);
     }
 
     // ── テーマ切り替え ──
@@ -7372,6 +7373,7 @@
         activePreset = "";
         activeGenrePreset = "";
         selectedTags.clear();
+        selectedStyleTags.clear();
         resetCompositionState();
         selectedTags.add(omakaseRuntimeValue);
         const status = document.getElementById("preset-status");
@@ -7409,6 +7411,7 @@
 
     function rebuildPresetSelection() {
       selectedTags.clear();
+      selectedStyleTags.clear();
       const gp = genrePresets.find((x) => x.id === activeGenrePreset);
       const pp = presets.find((x) => x.id === activePreset);
       if (gp) gp.tags.forEach((v) => selectedTags.add(v));
@@ -7779,7 +7782,7 @@
         main.appendChild(meta);
         const check = document.createElement("span");
         check.className = "tag-search-result-check";
-        const selected = isItemSelected(item);
+        const selected = isItemSelected(item, cat);
         check.textContent = selected ? "✓ 選択中" : "選択";
         btn.appendChild(main);
         btn.appendChild(check);
@@ -8335,7 +8338,7 @@
                 if (!hasSelectionInCat) btn.classList.add("active");
               } else {
                 if (item.isOmakase) btn.classList.add("omakase");
-                if (isItemSelected(item)) btn.classList.add("active");
+                if (isItemSelected(item, cat)) btn.classList.add("active");
               }
               const labelEl = document.createElement("span");
               labelEl.className = "tag-label";
@@ -9454,6 +9457,8 @@
           if (it.value) {
             if (it.isSingleRatio) {
               if (selectedRatio === it.value) selectedRatio = "";
+            } else if (category.id === "style") {
+              selectedStyleTags.delete(it.value);
             } else {
               selectedTags.delete(it.value);
             }
@@ -9463,10 +9468,11 @@
       } else if (item.isSingleRatio) {
         selectedRatio = selectedRatio === item.value ? "" : item.value;
       } else {
-        if (selectedTags.has(item.value)) {
-          selectedTags.delete(item.value);
+        const targetTags = category.id === "style" ? selectedStyleTags : selectedTags;
+        if (targetTags.has(item.value)) {
+          targetTags.delete(item.value);
         } else {
-          selectedTags.add(item.value);
+          targetTags.add(item.value);
           if (pairCharacterValues.has(item.value)) {
             deleteSelectedValues(referenceCharacterValues);
             clearGlobalCharacterSelections();
@@ -9537,6 +9543,7 @@
       document.getElementById("include-title-check").checked = true;
       document.getElementById("include-catchphrase-check").checked = true;
       selectedTags.clear();
+      selectedStyleTags.clear();
       selectedRatio = "";
       collapsedCategories.clear();
       collapsedSubgroups.clear();
@@ -9565,7 +9572,7 @@
       const result = [];
       categoriesData.forEach((cat) => {
         cat.items.forEach((item) => {
-          if (!item.isNone && item.value && selectedTags.has(item.value)) {
+          if (!item.isNone && item.value && isItemSelected(item, cat)) {
             result.push({ cat, item });
           }
         });
@@ -9639,7 +9646,7 @@
       // UI上で選択状態になっていても、他のカテゴリ処理に巻き込まれて欠落しないようにする。
       const styleCategory = getCategory("style");
       styleCategory?.items.forEach((item) => {
-        if (isItemSelected(item) && !seenTags.has(item.value)) {
+        if (item.value && selectedStyleTags.has(item.value) && !seenTags.has(item.value)) {
           seenTags.add(item.value);
           tagsArray.push(item.value);
         }
@@ -9908,6 +9915,7 @@
       const workPct = Math.round((workFields / 3) * 100);
       const visualCount =
         selectedTags.size +
+        selectedStyleTags.size +
         (selectedRatio ? 1 : 0) +
         Object.values(compositionState).filter(Boolean).length;
       const visualPct = Math.min(100, Math.round((visualCount / 8) * 100));
