@@ -6858,17 +6858,16 @@
 
     // ── タグ選択・比率のグローバル状態 ──
     const selectedTags = new Set();
-    const selectedStyleTags = new Set();
 
     let freeMotifText = "";
 
     let selectedRatio = "";
 
-    function isItemSelected(item, category) {
+    function isItemSelected(item) {
       if (!item || item.isNone || !item.value) return false;
-      if (item.isSingleRatio) return selectedRatio === item.value;
-      if (category?.id === "style") return selectedStyleTags.has(item.value);
-      return selectedTags.has(item.value);
+      return item.isSingleRatio
+        ? selectedRatio === item.value
+        : selectedTags.has(item.value);
     }
 
     // ── テーマ切り替え ──
@@ -7373,7 +7372,6 @@
         activePreset = "";
         activeGenrePreset = "";
         selectedTags.clear();
-        selectedStyleTags.clear();
         resetCompositionState();
         selectedTags.add(omakaseRuntimeValue);
         const status = document.getElementById("preset-status");
@@ -7411,7 +7409,6 @@
 
     function rebuildPresetSelection() {
       selectedTags.clear();
-      selectedStyleTags.clear();
       const gp = genrePresets.find((x) => x.id === activeGenrePreset);
       const pp = presets.find((x) => x.id === activePreset);
       if (gp) gp.tags.forEach((v) => selectedTags.add(v));
@@ -8213,7 +8210,7 @@
             const title = document.createElement("div");
             title.className = "section-title";
             title.textContent = cat.title;
-            const selectedItems = cat.items.filter(isItemSelected);
+            const selectedItems = cat.items.filter((item) => isItemSelected(item));
             if (selectedItems.length) {
               const summary = document.createElement("span");
               summary.className = "category-selection-summary";
@@ -9457,8 +9454,6 @@
           if (it.value) {
             if (it.isSingleRatio) {
               if (selectedRatio === it.value) selectedRatio = "";
-            } else if (category.id === "style") {
-              selectedStyleTags.delete(it.value);
             } else {
               selectedTags.delete(it.value);
             }
@@ -9468,7 +9463,7 @@
       } else if (item.isSingleRatio) {
         selectedRatio = selectedRatio === item.value ? "" : item.value;
       } else {
-        const targetTags = category.id === "style" ? selectedStyleTags : selectedTags;
+        const targetTags = selectedTags;
         if (targetTags.has(item.value)) {
           targetTags.delete(item.value);
         } else {
@@ -9543,7 +9538,6 @@
       document.getElementById("include-title-check").checked = true;
       document.getElementById("include-catchphrase-check").checked = true;
       selectedTags.clear();
-      selectedStyleTags.clear();
       selectedRatio = "";
       collapsedCategories.clear();
       collapsedSubgroups.clear();
@@ -9634,26 +9628,11 @@
 
       const tagsArray = [];
       const seenTags = new Set();
-      const selectedItems = getSelectedCategoryItems();
-      selectedItems.forEach(({ item }) => {
-        if (!seenTags.has(item.value)) {
-          seenTags.add(item.value);
-          tagsArray.push(item.value);
-        }
-      });
 
-      // 画風は専用カテゴリとして最終プロンプトへ明示的に含める。
-      // UI上で選択状態になっていても、他のカテゴリ処理に巻き込まれて欠落しないようにする。
-      const styleCategory = getCategory("style");
-      styleCategory?.items.forEach((item) => {
-        if (item.value && selectedStyleTags.has(item.value) && !seenTags.has(item.value)) {
-          seenTags.add(item.value);
-          tagsArray.push(item.value);
-        }
-      });
-
+      // すべての通常タグと画風を同じstateから直接出力へ渡す。
+      // 比率は後段で1回だけ付与するので、ここではタグ列から除外する。
       selectedTags.forEach((value) => {
-        if (!seenTags.has(value)) {
+        if (value && !/^--ar\s+/i.test(value) && !seenTags.has(value)) {
           seenTags.add(value);
           tagsArray.push(value);
         }
@@ -9662,7 +9641,7 @@
       const filteredTags = noText
         ? tagsArray.filter(
           (tag) =>
-            !/typography|text|lettering|title layout|title logo|text logo|calligraphy/i.test(
+            !/(?:typography|\btext\b|lettering|title layout|title logo|text logo|calligraphy)/i.test(
               tag,
             ),
         )
@@ -9915,7 +9894,6 @@
       const workPct = Math.round((workFields / 3) * 100);
       const visualCount =
         selectedTags.size +
-        selectedStyleTags.size +
         (selectedRatio ? 1 : 0) +
         Object.values(compositionState).filter(Boolean).length;
       const visualPct = Math.min(100, Math.round((visualCount / 8) * 100));
