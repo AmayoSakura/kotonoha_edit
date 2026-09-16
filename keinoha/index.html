@@ -9574,19 +9574,23 @@
       return result;
     }
 
-    function updateOutput() {
+    function buildPromptJson() {
       const titleText = document.getElementById("novel-title").value.trim();
       const noText = document.getElementById("no-text-check").checked;
       const isTitleEnabled =
         !noText && document.getElementById("include-title-check").checked;
-
       const catchphraseText = document.getElementById("catchphrase").value.trim();
       const isCatchphraseEnabled =
         !noText && document.getElementById("include-catchphrase-check").checked;
       const workAvoid = document.getElementById("work-avoid").value.trim();
       const outputPurpose = document.getElementById("output-purpose").value;
+      const sceneText = document.getElementById("scene-text")?.value.trim() || "";
 
-      let promptParts = ["masterpiece, best quality", outputPurpose];
+      const result = {
+        quality: ["masterpiece", "best quality"],
+      };
+
+      if (outputPurpose) result.purpose = outputPurpose;
 
       const characterCategory = getCategory("character");
       const hasExplicitCharacter = !!(
@@ -9596,78 +9600,137 @@
         )
       );
       const hasPairCharacter = !!(getPairPromptParts().length > 0);
-      const shouldExcludePeople = !hasExplicitCharacter && !hasPairCharacter;
-      if (shouldExcludePeople) {
-        promptParts.push("no people, no humans, no characters, no person");
+      if (!hasExplicitCharacter && !hasPairCharacter) {
+        result.character = {
+          exclusion: ["no people", "no humans", "no characters", "no person"],
+        };
       }
+
+      const groups = {
+        character: {
+          base: [],
+          appearance: [],
+          expression: [],
+          pose: [],
+          detail: [],
+        },
+        world: [],
+        emotion: [],
+        concept: [],
+        motif: [],
+        color: [],
+        style: [],
+        lighting: [],
+        effects: [],
+        camera: [],
+        text_style: [],
+      };
+
+      const groupMap = {
+        character: ["character", "base"],
+        "character-race": ["character", "base"],
+        "character-age": ["character", "base"],
+        "hair-color": ["character", "appearance"],
+        hairstyle: ["character", "appearance"],
+        "character-eyes": ["character", "appearance"],
+        "character-iris": ["character", "appearance"],
+        "character-skin": ["character", "appearance"],
+        "character-body": ["character", "appearance"],
+        outfit: ["character", "appearance"],
+        "character-expression": ["character", "expression"],
+        "character-pose": ["character", "pose"],
+        "character-gaze": ["character", "pose"],
+        "character-hands": ["character", "pose"],
+        "character-accessory": ["character", "detail"],
+        "character-props": ["character", "detail"],
+        "landscape-modern": "world",
+        "landscape-historical": "world",
+        "landscape-fantasy": "world",
+        "landscape-sf": "world",
+        "landscape-steampunk": "world",
+        "landscape-odd": "world",
+        "landscape-postapoc": "world",
+        "environment-place": "world",
+        "environment-nature": "world",
+        "environment-weather": "world",
+        "environment-time": "world",
+        "environment-detail": "world",
+        "abstract-emotion": "emotion",
+        "abstract-concept": "concept",
+        "abstract-visual": "concept",
+        "color-palette": "color",
+        style: "style",
+        "lighting-direction": "lighting",
+        "visual-effects": "effects",
+        camera: "camera",
+        "text-style": "text_style",
+      };
+
+      categoriesData.forEach((cat) => {
+        const target = groupMap[cat.id];
+        if (!target) return;
+        const [key, subkey] = Array.isArray(target) ? target : [target, null];
+        cat.items.forEach((item) => {
+          if (!item.isNone && item.value && selectedTags.has(item.value)) {
+            const value = item.value;
+            const bucket = subkey ? groups[key][subkey] : groups[key];
+            if (!bucket.includes(value)) bucket.push(value);
+          }
+        });
+      });
+
+      Object.entries(groups).forEach(([key, values]) => {
+        if (key === "character") {
+          const hasCharacterValues = Object.values(values).some((items) => items.length);
+          if (hasCharacterValues) result.character = values;
+          return;
+        }
+        if (values.length) result[key] = values;
+      });
 
       if (noText) {
-        promptParts.push(
-          "no text, no typography, no letters, no words, no logo, no watermark",
-        );
+        result.text = {
+          include: false,
+          exclusion: ["no text", "no typography", "no letters", "no words", "no logo", "no watermark"],
+        };
+      } else {
+        result.text = { include: true };
+        if (isTitleEnabled && titleText) result.text.title = titleText;
+        if (isCatchphraseEnabled && catchphraseText) result.text.subtitle = catchphraseText;
       }
 
-      Object.entries(compositionState).forEach(([key, val]) => {
-        if (val) promptParts.push(compositionOptions[key]?.[val]?.prompt);
-      });
-
-      const sceneText = document.getElementById("scene-text")?.value.trim() || "";
       if (designMethod === "from-text" && sceneText) {
-        promptParts.push("faithful visual interpretation of a novel scene");
-        promptParts.push(
-          `scene context: ${sceneText.replace(/\s+/g, " ").slice(0, 1200)}`,
-        );
+        result.scene_context = sceneText.slice(0, 1200);
       }
 
-      if (isTitleEnabled && titleText) {
-        promptParts.push(`title text "${titleText}"`);
-      }
-      if (isCatchphraseEnabled && catchphraseText) {
-        promptParts.push(`subtitle text "${catchphraseText}"`);
-      }
+      if (freeMotifText) result.motif_input = freeMotifText;
 
-      const tagsArray = [];
-      const seenTags = new Set();
-
-      // すべての通常タグと画風を同じstateから直接出力へ渡す。
-      // 比率は後段で1回だけ付与するので、ここではタグ列から除外する。
-      selectedTags.forEach((value) => {
-        if (value && !/^--ar\s+/i.test(value) && !seenTags.has(value)) {
-          seenTags.add(value);
-          tagsArray.push(value);
+      const detailParts = getDetailPromptParts();
+      if (detailParts.length) {
+        if (!result.character || Array.isArray(result.character)) {
+          result.character = { base: [], appearance: [], expression: [], pose: [], detail: [] };
         }
-      });
-
-      const filteredTags = noText
-        ? tagsArray.filter(
-          (tag) =>
-            !/(?:typography|\btext\b|lettering|title layout|title logo|text logo|calligraphy)/i.test(
-              tag,
-            ),
-        )
-        : tagsArray;
-      if (filteredTags.length > 0) {
-        promptParts.push(...filteredTags);
+        result.character.detail.push(...detailParts.filter((value) => !result.character.detail.includes(value)));
       }
 
-      // 象徴・モチーフの自由入力は selectedTags ではなく独立した状態で保持しているため、
-      // タグ一覧とは別に最終プロンプトへ追加する。
-      if (freeMotifText) {
-        promptParts.push(`motif: ${freeMotifText}`);
+      if (result.character) {
+        Object.keys(result.character).forEach((key) => {
+          if (!result.character[key].length) delete result.character[key];
+        });
+        if (!Object.keys(result.character).length) delete result.character;
       }
 
-      promptParts.push(...getDetailPromptParts());
-      promptParts.push(...getPairPromptParts());
+      const pairParts = getPairPromptParts();
+      if (pairParts.length) result.pair = pairParts;
 
-      if (workAvoid) {
-        promptParts.push(`avoid: ${workAvoid}`);
-      }
+      if (workAvoid) result.avoid = workAvoid;
+      if (selectedRatio) result.aspect_ratio = selectedRatio.replace(/^--ar\s+/i, "");
 
-      let finalPrompt = promptParts.join(", ");
-      if (selectedRatio) {
-        finalPrompt += ` ${selectedRatio}`;
-      }
+      return result;
+    }
 
+    function updateOutput() {
+      const finalPrompt = JSON.stringify(buildPromptJson(), null, 2);
       document.getElementById("output-prompt").textContent = finalPrompt;
       const referenceNote = document.getElementById("reference-copy-note");
       if (referenceNote)
@@ -9915,11 +9978,44 @@
       );
     }
 
-    function copyText(elementId) {
-      const text = document.getElementById(elementId).textContent;
-      navigator.clipboard.writeText(text).then(() => {
-        alert("クリップボードにコピーした");
-      });
+    async function copyText(elementId) {
+      const target = document.getElementById(elementId);
+      if (!target) return;
+      const text = target.textContent || "";
+      if (!text) return;
+
+      // スマホやローカルHTMLでは Clipboard API が使えない場合があるため、
+      // まず標準APIを試し、失敗したら textarea 経由でフォールバックする。
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+          alert("クリップボードにコピーした");
+          return;
+        }
+      } catch (error) {
+        // フォールバックへ
+      }
+
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.left = "-9999px";
+      textarea.style.top = "0";
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      textarea.setSelectionRange(0, textarea.value.length);
+
+      let copied = false;
+      try {
+        copied = document.execCommand("copy");
+      } catch (error) {
+        copied = false;
+      }
+      textarea.remove();
+
+      alert(copied ? "クリップボードにコピーした" : "コピーできなかった。JSONを長押ししてコピーしてね");
     }
 
     // ── 文字なしモード同期 ──
