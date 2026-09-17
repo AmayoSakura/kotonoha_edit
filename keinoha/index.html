@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 
 <html data-theme="sepia" lang="ja">
+
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>景ノ葉Crafter // 小説を一枚の絵にする</title>
-<link href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%226%22%20fill%3D%22%232a2117%22/%3E%3Crect%20x%3D%223%22%20y%3D%223%22%20width%3D%2226%22%20height%3D%2226%22%20fill%3D%22%235a2e22%22/%3E%3Crect%20x%3D%223%22%20y%3D%223%22%20width%3D%226%22%20height%3D%2226%22%20fill%3D%22%232a2117%22/%3E%3Crect%20x%3D%2223%22%20y%3D%223%22%20width%3D%226%22%20height%3D%2226%22%20fill%3D%22%232a2117%22/%3E%3Crect%20x%3D%229%22%20y%3D%227%22%20width%3D%2214%22%20height%3D%2218%22%20fill%3D%22%23e8c99a%22/%3E%3Cpath%20d%3D%22M9%2023%20L%2015%2012%20L%2019%2018%20L%2022%2013%20L%2023%2015%20L%2023%2025%20L%209%2025%20Z%22%20fill%3D%22%237a3b2e%22/%3E%3C/svg%3E" rel="icon" type="image/svg+xml"/>
-<link href="https://fonts.googleapis.com" rel="preconnect"/>
-<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho&amp;display=swap" rel="stylesheet"/>
-<style>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>景ノ葉Crafter // 小説を一枚の絵にする</title>
+  <link
+    href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%226%22%20fill%3D%22%232a2117%22/%3E%3Crect%20x%3D%223%22%20y%3D%223%22%20width%3D%2226%22%20height%3D%2226%22%20fill%3D%22%235a2e22%22/%3E%3Crect%20x%3D%223%22%20y%3D%223%22%20width%3D%226%22%20height%3D%2226%22%20fill%3D%22%232a2117%22/%3E%3Crect%20x%3D%2223%22%20y%3D%223%22%20width%3D%226%22%20height%3D%2226%22%20fill%3D%22%232a2117%22/%3E%3Crect%20x%3D%229%22%20y%3D%227%22%20width%3D%2214%22%20height%3D%2218%22%20fill%3D%22%23e8c99a%22/%3E%3Cpath%20d%3D%22M9%2023%20L%2015%2012%20L%2019%2018%20L%2022%2013%20L%2023%2015%20L%2023%2025%20L%209%2025%20Z%22%20fill%3D%22%237a3b2e%22/%3E%3C/svg%3E"
+    rel="icon" type="image/svg+xml" />
+  <link href="https://fonts.googleapis.com" rel="preconnect" />
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+  <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho&amp;display=swap" rel="stylesheet" />
+  <style>
     /* ========================================================
        目次:
         1. テーマ変数（light / sepia / dark）
@@ -429,7 +432,7 @@
       }
     }
 
-@media (max-width: 720px) {
+    @media (max-width: 720px) {
       .step-screen {
         padding-right: 16px;
       }
@@ -2498,609 +2501,723 @@
         padding-bottom: calc(min(72vh, 560px) + 30px);
       }
     }
-  
+
     /* Tablet: use the same single-column/mobile interaction model as phones. */
     @media (max-width: 1024px) {
       .app-shell {
         display: block !important;
         grid-template-columns: none !important;
       }
-      .left-column, .sidebar, .design-flow, .right-column, .blueprint-column {
+
+      .left-column,
+      .sidebar,
+      .design-flow,
+      .right-column,
+      .blueprint-column {
         width: auto !important;
         max-width: none !important;
       }
-      .right-column, .blueprint-column {
+
+      .right-column,
+      .blueprint-column {
         display: block;
       }
+
       .blueprint-float {
         position: fixed !important;
       }
     }
-</style>
-<style>
-/* ===== REAL 3-COLUMN DESKTOP LAYOUT ===== */
-* { box-sizing: border-box; }
-@media (min-width: 901px) {
-  html, body { width:100%; min-width:0; max-width:none; margin:0; padding:0; }
-  body {
-    display:block !important;
-    overflow-x:hidden;
-    max-width:none !important;
-  }
-  .app-shell {
-    width:100%;
-    min-height:100vh;
-    display:grid;
-    grid-template-columns:244px minmax(0,1fr) 320px;
-    align-items:start;
-  }
-  .layout-left {
-    grid-column:1;
-    width:244px;
-    min-width:244px;
-    min-height:100vh;
-    position:sticky;
-    top:0;
-    align-self:start;
-    border-right:1px solid var(--rule);
-    overflow:hidden;
-  }
-  .layout-left > .header {
-    position:relative !important;
-    top:auto !important;
-    left:auto !important;
-    width:100% !important;
-    margin:0 !important;
-    padding:30px 20px 20px !important;
-    border-right:0 !important;
-    border-bottom:1px solid var(--rule) !important;
-  }
-  .layout-left > .tool-tabs {
-    position:relative !important;
-    top:auto !important;
-    left:auto !important;
-    width:100% !important;
-    margin:0 !important;
-    padding:18px 0 24px !important;
-    border:0 !important;
-    overflow:visible !important;
-    box-shadow:none !important;
-  }
-  .layout-main {
-    grid-column:2;
-    width:100%;
-    min-width:0;
-    padding:0 18px 40px;
-    overflow:hidden;
-  }
-  .layout-main > .step-screen {
-    width:100% !important;
-    min-width:0 !important;
-    max-width:none !important;
-    margin:0 !important;
-    padding:0 !important;
-    transform:none !important;
-  }
-  .layout-main > .step-screen:not(.active) { display:none !important; }
-  .layout-main > .step-screen.active { display:block !important; }
-  .layout-right {
-    grid-column:3;
-    width:320px;
-    min-width:320px;
-    min-height:100vh;
-    padding:98px 16px 24px 0;
-    overflow:visible;
-  }
-  .layout-right > .blueprint-float {
-    /* 右カラムの幅は3列目で確保したまま、設計図本体だけをビューポートに固定。
-       ページを縦スクロールしても常に同じ位置に表示する。 */
-    position:fixed !important;
-    top:98px !important;
-    right:16px !important;
-    left:auto !important;
-    width:304px !important;
-    max-width:304px !important;
-    height:auto !important;
-    max-height:calc(100vh - 122px) !important;
-    margin:0 !important;
-    display:block !important;
-    visibility:visible !important;
-    transform:none !important;
-    z-index:40 !important;
-    overflow:auto !important;
-  }
-  .layout-right > .blueprint-float.is-closed { display:block !important; visibility:hidden !important; pointer-events:none !important; }
-  .blueprint-trigger, .blueprint-backdrop { display:none !important; }
-}
-@media (max-width:900px) {
-  .app-shell { display:block; width:100%; min-height:0; }
-  .layout-left,.layout-main,.layout-right { width:100%; min-width:0; max-width:none; }
-  .layout-left { min-height:0; position:static; border-right:0; }
-  .layout-right { min-height:0; padding:0; display:contents; }
-  .layout-main { overflow:visible; }
-}
+  </style>
+  <style>
+    /* ===== REAL 3-COLUMN DESKTOP LAYOUT ===== */
+    * {
+      box-sizing: border-box;
+    }
 
-/* =========================================================
+    @media (min-width: 901px) {
+
+      html,
+      body {
+        width: 100%;
+        min-width: 0;
+        max-width: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        display: block !important;
+        overflow-x: hidden;
+        max-width: none !important;
+      }
+
+      .app-shell {
+        width: 100%;
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: 244px minmax(0, 1fr) 320px;
+        align-items: start;
+      }
+
+      .layout-left {
+        grid-column: 1;
+        width: 244px;
+        min-width: 244px;
+        min-height: 100vh;
+        position: sticky;
+        top: 0;
+        align-self: start;
+        border-right: 1px solid var(--rule);
+        overflow: hidden;
+      }
+
+      .layout-left>.header {
+        position: relative !important;
+        top: auto !important;
+        left: auto !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 30px 20px 20px !important;
+        border-right: 0 !important;
+        border-bottom: 1px solid var(--rule) !important;
+      }
+
+      .layout-left>.tool-tabs {
+        position: relative !important;
+        top: auto !important;
+        left: auto !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 18px 0 24px !important;
+        border: 0 !important;
+        overflow: visible !important;
+        box-shadow: none !important;
+      }
+
+      .layout-main {
+        grid-column: 2;
+        width: 100%;
+        min-width: 0;
+        padding: 0 18px 40px;
+        overflow: hidden;
+      }
+
+      .layout-main>.step-screen {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        transform: none !important;
+      }
+
+      .layout-main>.step-screen:not(.active) {
+        display: none !important;
+      }
+
+      .layout-main>.step-screen.active {
+        display: block !important;
+      }
+
+      .layout-right {
+        grid-column: 3;
+        width: 320px;
+        min-width: 320px;
+        min-height: 100vh;
+        padding: 98px 16px 24px 0;
+        overflow: visible;
+      }
+
+      .layout-right>.blueprint-float {
+        /* 右カラムの幅は3列目で確保したまま、設計図本体だけをビューポートに固定。
+       ページを縦スクロールしても常に同じ位置に表示する。 */
+        position: fixed !important;
+        top: 98px !important;
+        right: 16px !important;
+        left: auto !important;
+        width: 304px !important;
+        max-width: 304px !important;
+        height: auto !important;
+        max-height: calc(100vh - 122px) !important;
+        margin: 0 !important;
+        display: block !important;
+        visibility: visible !important;
+        transform: none !important;
+        z-index: 40 !important;
+        overflow: auto !important;
+      }
+
+      .layout-right>.blueprint-float.is-closed {
+        display: block !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+      }
+
+      .blueprint-trigger,
+      .blueprint-backdrop {
+        display: none !important;
+      }
+    }
+
+    @media (max-width:900px) {
+      .app-shell {
+        display: block;
+        width: 100%;
+        min-height: 0;
+      }
+
+      .layout-left,
+      .layout-main,
+      .layout-right {
+        width: 100%;
+        min-width: 0;
+        max-width: none;
+      }
+
+      .layout-left {
+        min-height: 0;
+        position: static;
+        border-right: 0;
+      }
+
+      .layout-right {
+        min-height: 0;
+        padding: 0;
+        display: contents;
+      }
+
+      .layout-main {
+        overflow: visible;
+      }
+    }
+
+    /* =========================================================
    FINAL RESPONSIVE OVERRIDE
    <=1024px intentionally follows the phone/mobile layout.
    Desktop 3-column layout remains 1025px and above.
    ========================================================= */
-@media (max-width: 1024px) {
-  html, body {
-    width: 100%;
-    min-width: 0;
-    max-width: 1240px;
-    margin: 0 auto;
-    padding: 0;
-  }
+    @media (max-width: 1024px) {
 
-  body {
-    display: block !important;
-    position: relative !important;
-    overflow-x: hidden !important;
-  }
+      html,
+      body {
+        width: 100%;
+        min-width: 0;
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 0;
+      }
 
-  /* Collapse the desktop grid into the same vertical flow as phones. */
-  .app-shell {
-    display: block !important;
-    width: 100% !important;
-    min-height: 0 !important;
-    margin: 0 !important;
-  }
+      body {
+        display: block !important;
+        position: relative !important;
+        overflow-x: hidden !important;
+      }
 
-  .layout-left,
-  .layout-main,
-  .layout-right {
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: none !important;
-  }
+      /* Collapse the desktop grid into the same vertical flow as phones. */
+      .app-shell {
+        display: block !important;
+        width: 100% !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+      }
 
-  .layout-left {
-    min-height: 0 !important;
-    position: static !important;
-    border-right: 0 !important;
-    overflow: visible !important;
-  }
+      .layout-left,
+      .layout-main,
+      .layout-right {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+      }
 
-  .layout-left > .header {
-    position: static !important;
-    left: auto !important;
-    top: auto !important;
-    width: 100% !important;
-    height: auto !important;
-    margin: 0 !important;
-    padding: 20px 18px 16px !important;
-    border-right: none !important;
-    border-bottom: 1px solid var(--rule) !important;
-  }
+      .layout-left {
+        min-height: 0 !important;
+        position: static !important;
+        border-right: 0 !important;
+        overflow: visible !important;
+      }
 
-  .layout-left > .tool-tabs {
-    position: static !important;
-    left: auto !important;
-    top: auto !important;
-    width: 100% !important;
-    height: auto !important;
-    margin: 0 !important;
-    padding: 4px 0 !important;
-    border-right: none !important;
-    border-bottom: 1px solid var(--rule) !important;
-    border-top: 0 !important;
-    overflow: visible !important;
-    box-shadow: none !important;
-  }
+      .layout-left>.header {
+        position: static !important;
+        left: auto !important;
+        top: auto !important;
+        width: 100% !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 20px 18px 16px !important;
+        border-right: none !important;
+        border-bottom: 1px solid var(--rule) !important;
+      }
 
-  .layout-left > .tool-tabs::before {
-    content: none !important;
-    display: none !important;
-  }
+      .layout-left>.tool-tabs {
+        position: static !important;
+        left: auto !important;
+        top: auto !important;
+        width: 100% !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 4px 0 !important;
+        border-right: none !important;
+        border-bottom: 1px solid var(--rule) !important;
+        border-top: 0 !important;
+        overflow: visible !important;
+        box-shadow: none !important;
+      }
 
-  .step-tabs {
-    flex-direction: column !important;
-  }
+      .layout-left>.tool-tabs::before {
+        content: none !important;
+        display: none !important;
+      }
 
-  .step-tab {
-    border-left: 2px solid transparent !important;
-    border-radius: 0 !important;
-    padding: 10px 14px !important;
-    width: 100% !important;
-  }
+      .step-tabs {
+        flex-direction: column !important;
+      }
 
-  .step-tab.active {
-    border-left-color: var(--accent) !important;
-  }
+      .step-tab {
+        border-left: 2px solid transparent !important;
+        border-radius: 0 !important;
+        padding: 10px 14px !important;
+        width: 100% !important;
+      }
 
-  .layout-main {
-    overflow: visible !important;
-    padding: 0 !important;
-  }
+      .step-tab.active {
+        border-left-color: var(--accent) !important;
+      }
 
-  .layout-main > .step-screen {
-    display: none;
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: none !important;
-    margin: 0 !important;
-    padding: 18px 16px 40px !important;
-    transform: none !important;
-  }
+      .layout-main {
+        overflow: visible !important;
+        padding: 0 !important;
+      }
 
-  .layout-main > .step-screen.active {
-    display: block !important;
-  }
+      .layout-main>.step-screen {
+        display: none;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 18px 16px 40px !important;
+        transform: none !important;
+      }
 
-  .layout-right {
-    min-height: 0 !important;
-    padding: 0 !important;
-    display: contents !important;
-  }
+      .layout-main>.step-screen.active {
+        display: block !important;
+      }
 
-  /* Mobile/tablet blueprint: bottom sheet opened by the trigger. */
-  .blueprint-trigger {
-    display: flex !important;
-    position: fixed !important;
-    z-index: 41 !important;
-    left: 10px !important;
-    right: 10px !important;
-    bottom: 10px !important;
-    min-height: 42px !important;
-  }
+      .layout-right {
+        min-height: 0 !important;
+        padding: 0 !important;
+        display: contents !important;
+      }
 
-  .blueprint-backdrop {
-    display: none;
-    position: fixed !important;
-    z-index: 39 !important;
-    inset: 0 !important;
-  }
+      /* Mobile/tablet blueprint: bottom sheet opened by the trigger. */
+      .blueprint-trigger {
+        display: flex !important;
+        position: fixed !important;
+        z-index: 41 !important;
+        left: 10px !important;
+        right: 10px !important;
+        bottom: 10px !important;
+        min-height: 42px !important;
+      }
 
-  .blueprint-backdrop.is-visible {
-    display: block !important;
-  }
+      .blueprint-backdrop {
+        display: none;
+        position: fixed !important;
+        z-index: 39 !important;
+        inset: 0 !important;
+      }
 
-  .blueprint-float,
-  .layout-right > .blueprint-float {
-    position: fixed !important;
-    z-index: 40 !important;
-    left: 10px !important;
-    right: 10px !important;
-    top: auto !important;
-    bottom: 10px !important;
-    width: auto !important;
-    max-width: none !important;
-    height: auto !important;
-    max-height: min(72vh, 560px) !important;
-    margin: 0 !important;
-    border-radius: 14px !important;
-    transform: translateY(calc(100% + 20px)) !important;
-    transition: transform 0.2s ease !important;
-    overflow: auto !important;
-    visibility: visible !important;
-    display: block !important;
-  }
+      .blueprint-backdrop.is-visible {
+        display: block !important;
+      }
 
-  .blueprint-float.is-visible {
-    transform: translateY(0) !important;
-  }
+      .blueprint-float,
+      .layout-right>.blueprint-float {
+        position: fixed !important;
+        z-index: 40 !important;
+        left: 10px !important;
+        right: 10px !important;
+        top: auto !important;
+        bottom: 10px !important;
+        width: auto !important;
+        max-width: none !important;
+        height: auto !important;
+        max-height: min(72vh, 560px) !important;
+        margin: 0 !important;
+        border-radius: 14px !important;
+        transform: translateY(calc(100% + 20px)) !important;
+        transition: transform 0.2s ease !important;
+        overflow: auto !important;
+        visibility: visible !important;
+        display: block !important;
+      }
 
-  .blueprint-float.is-closed {
-    display: block !important;
-    visibility: visible !important;
-    pointer-events: none !important;
-  }
+      .blueprint-float.is-visible {
+        transform: translateY(0) !important;
+      }
 
-  .blueprint-float .blueprint-close {
-    font-size: 1.1rem !important;
-  }
+      .blueprint-float.is-closed {
+        display: block !important;
+        visibility: visible !important;
+        pointer-events: none !important;
+      }
 
-  body.blueprint-open .step-screen {
-    padding-right: 16px !important;
-    padding-bottom: calc(min(72vh, 560px) + 30px) !important;
-  }
+      .blueprint-float .blueprint-close {
+        font-size: 1.1rem !important;
+      }
 
-  /* The following three small rules are the tablet equivalents of the phone rules. */
-  .tag-container:has(.tag-description) {
-    grid-template-columns: 1fr;
-  }
+      body.blueprint-open .step-screen {
+        padding-right: 16px !important;
+        padding-bottom: calc(min(72vh, 560px) + 30px) !important;
+      }
 
-  .tag-btn:has(.tag-description) {
-    min-height: 0;
-  }
+      /* The following three small rules are the tablet equivalents of the phone rules. */
+      .tag-container:has(.tag-description) {
+        grid-template-columns: 1fr;
+      }
 
-  .composition-detail-section .category-section-head {
-    gap: 7px;
-  }
+      .tag-btn:has(.tag-description) {
+        min-height: 0;
+      }
 
-  .composition-detail-section .category-selection-preview {
-    max-width: 38%;
-  }
-}
-</style></head>
+      .composition-detail-section .category-section-head {
+        gap: 7px;
+      }
+
+      .composition-detail-section .category-selection-preview {
+        max-width: 38%;
+      }
+    }
+  </style>
+</head>
+
 <body>
-<button aria-controls="visual-blueprint" aria-expanded="false" class="blueprint-trigger" id="blueprint-trigger" onclick="toggleBlueprint(true)" type="button">
-<span class="blueprint-trigger-main">設計図</span>
-<span class="blueprint-trigger-meta" id="blueprint-trigger-meta">まだ設定なし</span>
-</button><div class="blueprint-backdrop" id="blueprint-backdrop" onclick="toggleBlueprint(false)"></div><div class="app-shell"><aside aria-label="ブランドと制作ステップ" class="layout-left"><header class="header">
-<div>
-<h1>景ノ葉Crafter <span>小説ビジュアル設計</span></h1>
-<div class="header-subtitle">小説の一場面を、<br/>一枚の画にする。</div>
-</div>
-<div class="theme-switcher">
-<button class="theme-btn" data-theme-val="dark" onclick="setTheme('dark')">Dark</button>
-<button class="theme-btn" data-theme-val="light" onclick="setTheme('light')">Light</button>
-<button class="theme-btn active" data-theme-val="sepia" onclick="setTheme('sepia')">Sepia</button>
-</div>
-</header><nav aria-label="制作ステップ" class="section tool-tabs" style="padding:0;overflow:hidden;margin-bottom:14px">
-<div class="step-tabs">
-<button class="step-tab active" data-step="1" onclick="showStep(1)" type="button"><span>STEP
-          01</span><strong>作品情報</strong><small>何を描くか</small></button>
-<button class="step-tab" data-step="2" onclick="showStep(2)" type="button"><span>STEP
-          02</span><strong>ビジュアル設計</strong><small>どう描くか</small></button>
-<button class="step-tab" data-step="3" onclick="showStep(3)" type="button"><span>STEP
-          03</span><strong>画面設定</strong><small>どう見せるか</small></button>
-<button class="step-tab" data-step="4" onclick="showStep(4)" type="button"><span>STEP
-          04</span><strong>プロンプト</strong><small>形にする</small></button>
-</div>
-</nav></aside><main class="layout-main" id="main-content"><section class="step-screen active" data-step-screen="1">
-<!-- 作品情報 -->
-<div class="section">
-<div class="step-label">STEP 1 / WORK BRIEF</div>
-<div class="section-title">作品について</div>
-<div class="form-grid">
-<div class="form-group">
-<div class="form-header">
-<label for="novel-title">作品タイトル</label>
-<label class="checkbox-label">
-<input checked="" id="include-title-check" type="checkbox"/>
-              画像内に含める
-            </label>
-</div>
-<input id="novel-title" placeholder="例：無能と呼ばれた魔導師の逆転劇" type="text"/>
-</div>
-<div class="form-group">
-<div class="form-header">
-<label for="catchphrase">キャッチコピー</label>
-<label class="checkbox-label">
-<input checked="" id="include-catchphrase-check" type="checkbox"/>
-              画像内に含める
-            </label>
-</div>
-<input id="catchphrase" placeholder="例：世界が滅んだ後も、その街は静かに呼吸していた。" type="text"/>
-</div>
-<div class="form-group text-control-group">
-<label>画像内の文字</label>
-<label class="checkbox-label no-text-toggle">
-<input id="no-text-check" type="checkbox"/>
-            画像内に一切文字を使わない
-          </label>
-<div class="helper-note">ONにするとタイトル・キャッチコピー・タイポグラフィ指定を使わず、純粋なビジュアルとして生成する。</div>
-</div>
-<div class="form-group">
-<label for="work-avoid">避けたい表現 <span class="optional-label">任意</span></label>
-<input id="work-avoid" placeholder="例：過度な流血、ホラー表現、文字の多用" type="text"/>
-</div>
-<div class="form-group">
-<label for="output-purpose">制作目的</label>
-<select id="output-purpose">
-<option value="novel promotion image, visually striking composition">小説の宣伝画像</option>
-<option value="book cover composition, strong title-safe layout">小説表紙</option>
-<option value="web novel header image, wide composition">Web小説ヘッダー</option>
-<option value="social media promotional graphic, eye-catching composition">SNS宣伝・告知画像</option>
-<option value="illustration for a novel scene, story-focused composition">作中イメージ・挿絵</option>
-<option value="novel posting site promotional image, clear subject and readable composition">投稿サイト用ビジュアル
-            </option>
-<option value="OGP social preview image, balanced composition for link sharing">OGP</option>
-<option value="website or profile header image, wide balanced composition">Webサイト・プロフィール用ヘッダー</option>
-<option value="character introduction visual, character-focused composition">キャラクター紹介</option>
-<option value="scene introduction visual, story-focused composition">シーン紹介</option>
-<option value="worldbuilding showcase, atmospheric environment-focused composition">世界観紹介</option>
-<option value="announcement graphic, clear focal point and promotional composition">告知・お知らせ</option>
-<option value="consistent series key visual, unified visual identity across the series">シリーズ共通ビジュアル</option>
-</select>
-</div>
-</div>
-<div class="work-text-style-section" id="work-text-style">
-<div class="subsection-title"><strong>文字・タイポグラフィ</strong><span>画像内に文字を入れる場合だけ設定</span></div>
-<div class="helper-note work-text-note">タイトルやキャッチコピーの見せ方を決める。</div>
-<div class="category-tools work-text-tools">
-<span class="category-count" id="work-text-count">26個の選択肢</span>
-<span class="category-hint" id="work-text-hint">複数選択OK</span>
-</div>
-<div class="tag-container" id="work-text-tags"></div>
-</div>
-<div class="helper-note">全部埋めなくてOK。分かるところだけ入れて、あとはタグで決めよう。</div>
-</div>
-<div class="step-nav"><span class="step-nav-note">STEP 1 / 4</span><button class="next" onclick="showStep(2)" type="button">次へ：ビジュアル設計 →</button></div>
-</section><section class="step-screen" data-step-screen="2">
-<div class="tag-search-panel" id="tag-search-panel">
-<div class="tag-search-head"><strong>タグを探す</strong><span>「雨」「表情」などで、カテゴリをまたいで検索できる。</span></div>
-<div class="tag-search-row">
-<input autocomplete="off" class="tag-search-input" id="tag-search-input" placeholder="タグを検索…" spellcheck="false" type="search"/>
-<button class="tag-search-clear" id="tag-search-clear" type="button">クリア</button>
-</div>
-<div class="tag-search-results" hidden="" id="tag-search-results"></div>
-</div>
-<div class="section">
-<div class="step-label">STEP 2 / VISUAL DESIGN</div>
-<div class="section-title">画像タイプ</div>
-<div class="mode-card-grid">
-<button class="mode-card active" data-mode="character" onclick="switchMode('character', event)"><strong>人物</strong><small>キャラクターを主役にした一枚</small></button>
-<button class="mode-card" data-mode="landscape" onclick="switchMode('landscape', event)"><strong>世界・風景</strong><small>舞台や空気感を見せる一枚</small></button>
-<button class="mode-card" data-mode="abstract" onclick="switchMode('abstract', event)"><strong>感情・概念</strong><small>物語のテーマをビジュアル化</small></button>
-<button class="mode-card" data-mode="all" onclick="switchMode('all', event)"><strong>詳細設定</strong><small>全部の項目を自分で細かく決める</small></button>
-</div>
-<div class="workflow-note">STEP 2は「何を描くか／何を意味させるか／どんな色にするか」を決める場所。迷ったら必要なカテゴリだけ選べばOK。</div>
-</div>
-<div class="section" style="padding-bottom:4px">
-<div class="step-label">STEP 2 / VISUAL DESIGN</div>
-<div class="section-title">画像の作り方</div>
-<p class="section-lead">ここからの設定は任意。作り方を選んだあと、必要な項目だけ決めていく。</p>
-<div class="design-method-grid">
-<button class="design-method active" data-method="free" onclick="setDesignMethod('free')" type="button">
-<span class="method-kicker">FREE DESIGN</span>
-<strong>自由に選ぶ</strong>
-<small>必要な項目だけ、自分で組み立てる</small>
-</button>
-<button class="design-method" data-method="preset" onclick="setDesignMethod('preset')" type="button">
-<span class="method-kicker">PRESETS</span>
-<strong>プリセットから選ぶ</strong>
-<small>ジャンルや雰囲気をベースに一気に作る</small>
-</button>
-<button class="design-method" data-method="omakase" onclick="setDesignMethod('omakase')" type="button">
-<span class="method-kicker">AI ASSIST</span>
-<strong>AIにおまかせ</strong>
-<small>作品情報から方向性をまとめる</small>
-</button>
-<button class="design-method" data-method="from-text" onclick="setDesignMethod('from-text')" type="button">
-<span class="method-kicker">FROM TEXT</span>
-<strong>本文から作る</strong>
-<small>小説の一場面を貼って、画の要素を拾う</small>
-</button>
-</div>
-<div class="scene-source section" hidden="" id="scene-source">
-<div class="step-label">FROM TEXT / SCENE EXTRACTION</div>
-<div class="section-title">小説本文から一場面をつくる</div>
-<p class="section-lead">画像にしたい場面を、そのまま貼ってOK。本文から人物・場所・時間・天候・小物などの手がかりを拾い、ビジュアル設計に反映する。</p>
-<textarea id="scene-text" placeholder="例：
+  <button aria-controls="visual-blueprint" aria-expanded="false" class="blueprint-trigger" id="blueprint-trigger"
+    onclick="toggleBlueprint(true)" type="button">
+    <span class="blueprint-trigger-main">設計図</span>
+    <span class="blueprint-trigger-meta" id="blueprint-trigger-meta">まだ設定なし</span>
+  </button>
+  <div class="blueprint-backdrop" id="blueprint-backdrop" onclick="toggleBlueprint(false)"></div>
+  <div class="app-shell">
+    <aside aria-label="ブランドと制作ステップ" class="layout-left">
+      <header class="header">
+        <div>
+          <h1>景ノ葉Crafter <span>小説ビジュアル設計</span></h1>
+          <div class="header-subtitle">小説の一場面を、<br />一枚の画にする。</div>
+        </div>
+        <div class="theme-switcher">
+          <button class="theme-btn" data-theme-val="dark" onclick="setTheme('dark')">Dark</button>
+          <button class="theme-btn" data-theme-val="light" onclick="setTheme('light')">Light</button>
+          <button class="theme-btn active" data-theme-val="sepia" onclick="setTheme('sepia')">Sepia</button>
+        </div>
+      </header>
+      <nav aria-label="制作ステップ" class="section tool-tabs" style="padding:0;overflow:hidden;margin-bottom:14px">
+        <div class="step-tabs">
+          <button class="step-tab active" data-step="1" onclick="showStep(1)" type="button"><span>STEP
+              01</span><strong>作品情報</strong><small>何を描くか</small></button>
+          <button class="step-tab" data-step="2" onclick="showStep(2)" type="button"><span>STEP
+              02</span><strong>ビジュアル設計</strong><small>どう描くか</small></button>
+          <button class="step-tab" data-step="3" onclick="showStep(3)" type="button"><span>STEP
+              03</span><strong>画面設定</strong><small>どう見せるか</small></button>
+          <button class="step-tab" data-step="4" onclick="showStep(4)" type="button"><span>STEP
+              04</span><strong>プロンプト</strong><small>形にする</small></button>
+        </div>
+      </nav>
+    </aside>
+    <main class="layout-main" id="main-content">
+      <section class="step-screen active" data-step-screen="1">
+        <!-- 作品情報 -->
+        <div class="section">
+          <div class="step-label">STEP 1 / WORK BRIEF</div>
+          <div class="section-title">作品について</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <div class="form-header">
+                <label for="novel-title">作品タイトル</label>
+                <label class="checkbox-label">
+                  <input checked="" id="include-title-check" type="checkbox" />
+                  画像内に含める
+                </label>
+              </div>
+              <input id="novel-title" placeholder="例：無能と呼ばれた魔導師の逆転劇" type="text" />
+            </div>
+            <div class="form-group">
+              <div class="form-header">
+                <label for="catchphrase">キャッチコピー</label>
+                <label class="checkbox-label">
+                  <input checked="" id="include-catchphrase-check" type="checkbox" />
+                  画像内に含める
+                </label>
+              </div>
+              <input id="catchphrase" placeholder="例：世界が滅んだ後も、その街は静かに呼吸していた。" type="text" />
+            </div>
+            <div class="form-group text-control-group">
+              <label>画像内の文字</label>
+              <label class="checkbox-label no-text-toggle">
+                <input id="no-text-check" type="checkbox" />
+                画像内に一切文字を使わない
+              </label>
+              <div class="helper-note">ONにするとタイトル・キャッチコピー・タイポグラフィ指定を使わず、純粋なビジュアルとして生成する。</div>
+            </div>
+            <div class="form-group">
+              <label for="work-avoid">避けたい表現 <span class="optional-label">任意</span></label>
+              <input id="work-avoid" placeholder="例：過度な流血、ホラー表現、文字の多用" type="text" />
+            </div>
+            <div class="form-group">
+              <label for="output-purpose">制作目的</label>
+              <select id="output-purpose">
+                <option value="novel promotion image, visually striking composition">小説の宣伝画像</option>
+                <option value="book cover composition, strong title-safe layout">小説表紙</option>
+                <option value="web novel header image, wide composition">Web小説ヘッダー</option>
+                <option value="social media promotional graphic, eye-catching composition">SNS宣伝・告知画像</option>
+                <option value="illustration for a novel scene, story-focused composition">作中イメージ・挿絵</option>
+                <option value="novel posting site promotional image, clear subject and readable composition">投稿サイト用ビジュアル
+                </option>
+                <option value="OGP social preview image, balanced composition for link sharing">OGP</option>
+                <option value="website or profile header image, wide balanced composition">Webサイト・プロフィール用ヘッダー</option>
+                <option value="character introduction visual, character-focused composition">キャラクター紹介</option>
+                <option value="scene introduction visual, story-focused composition">シーン紹介</option>
+                <option value="worldbuilding showcase, atmospheric environment-focused composition">世界観紹介</option>
+                <option value="announcement graphic, clear focal point and promotional composition">告知・お知らせ</option>
+                <option value="consistent series key visual, unified visual identity across the series">シリーズ共通ビジュアル
+                </option>
+              </select>
+            </div>
+          </div>
+          <div class="work-text-style-section" id="work-text-style">
+            <div class="subsection-title"><strong>文字・タイポグラフィ</strong><span>画像内に文字を入れる場合だけ設定</span></div>
+            <div class="helper-note work-text-note">タイトルやキャッチコピーの見せ方を決める。</div>
+            <div class="category-tools work-text-tools">
+              <span class="category-count" id="work-text-count">26個の選択肢</span>
+              <span class="category-hint" id="work-text-hint">複数選択OK</span>
+            </div>
+            <div class="tag-container" id="work-text-tags"></div>
+          </div>
+          <div class="helper-note">全部埋めなくてOK。分かるところだけ入れて、あとはタグで決めよう。</div>
+        </div>
+        <div class="step-nav"><span class="step-nav-note">STEP 1 / 4</span><button class="next" onclick="showStep(2)"
+            type="button">次へ：ビジュアル設計 →</button></div>
+      </section>
+      <section class="step-screen" data-step-screen="2">
+        <div class="tag-search-panel" id="tag-search-panel">
+          <div class="tag-search-head"><strong>タグを探す</strong><span>「雨」「表情」などで、カテゴリをまたいで検索できる。</span></div>
+          <div class="tag-search-row">
+            <input autocomplete="off" class="tag-search-input" id="tag-search-input" placeholder="タグを検索…"
+              spellcheck="false" type="search" />
+            <button class="tag-search-clear" id="tag-search-clear" type="button">クリア</button>
+          </div>
+          <div class="tag-search-results" hidden="" id="tag-search-results"></div>
+        </div>
+        <div class="section">
+          <div class="step-label">STEP 2 / VISUAL DESIGN</div>
+          <div class="section-title">画像タイプ</div>
+          <div class="mode-card-grid">
+            <button class="mode-card active" data-mode="character"
+              onclick="switchMode('character', event)"><strong>人物</strong><small>キャラクターを主役にした一枚</small></button>
+            <button class="mode-card" data-mode="landscape"
+              onclick="switchMode('landscape', event)"><strong>世界・風景</strong><small>舞台や空気感を見せる一枚</small></button>
+            <button class="mode-card" data-mode="abstract"
+              onclick="switchMode('abstract', event)"><strong>感情・概念</strong><small>物語のテーマをビジュアル化</small></button>
+            <button class="mode-card" data-mode="all"
+              onclick="switchMode('all', event)"><strong>詳細設定</strong><small>全部の項目を自分で細かく決める</small></button>
+          </div>
+          <div class="workflow-note">STEP 2は「何を描くか／何を意味させるか／どんな色にするか」を決める場所。迷ったら必要なカテゴリだけ選べばOK。</div>
+        </div>
+        <div class="section" style="padding-bottom:4px">
+          <div class="step-label">STEP 2 / VISUAL DESIGN</div>
+          <div class="section-title">画像の作り方</div>
+          <p class="section-lead">ここからの設定は任意。作り方を選んだあと、必要な項目だけ決めていく。</p>
+          <div class="design-method-grid">
+            <button class="design-method active" data-method="free" onclick="setDesignMethod('free')" type="button">
+              <span class="method-kicker">FREE DESIGN</span>
+              <strong>自由に選ぶ</strong>
+              <small>必要な項目だけ、自分で組み立てる</small>
+            </button>
+            <button class="design-method" data-method="preset" onclick="setDesignMethod('preset')" type="button">
+              <span class="method-kicker">PRESETS</span>
+              <strong>プリセットから選ぶ</strong>
+              <small>ジャンルや雰囲気をベースに一気に作る</small>
+            </button>
+            <button class="design-method" data-method="omakase" onclick="setDesignMethod('omakase')" type="button">
+              <span class="method-kicker">AI ASSIST</span>
+              <strong>AIにおまかせ</strong>
+              <small>作品情報から方向性をまとめる</small>
+            </button>
+            <button class="design-method" data-method="from-text" onclick="setDesignMethod('from-text')" type="button">
+              <span class="method-kicker">FROM TEXT</span>
+              <strong>本文から作る</strong>
+              <small>小説の一場面を貼って、画の要素を拾う</small>
+            </button>
+          </div>
+          <div class="scene-source section" hidden="" id="scene-source">
+            <div class="step-label">FROM TEXT / SCENE EXTRACTION</div>
+            <div class="section-title">小説本文から一場面をつくる</div>
+            <p class="section-lead">画像にしたい場面を、そのまま貼ってOK。本文から人物・場所・時間・天候・小物などの手がかりを拾い、ビジュアル設計に反映する。</p>
+            <textarea id="scene-text" placeholder="例：
 雨はもう三時間も降り続いていた。駅前のベンチには誰もいない。
 彼女は傘を閉じ、濡れた髪を払った。そして、誰もいないはずのホームの向こうを見つめた。"></textarea>
-<div class="scene-source-actions">
-<button class="scene-analyze" onclick="analyzeSceneText()" type="button">本文から画の要素を抽出</button>
-<span class="scene-source-note">抽出後も自由に修正できる。本文にない部分は勝手に固定しない。</span>
-</div>
-<div class="scene-extracted" hidden="" id="scene-extracted">
-<div class="scene-extracted-title">抽出した手がかり</div>
-<div id="scene-extracted-chips"></div>
-</div>
-</div>
-</div>
-<div class="section preset-section" hidden="" id="preset-area">
-<div class="step-label">PRESET LIBRARY</div>
-<div class="section-title">まず方向性をひとつ選ぶ</div>
-<div class="result-description">プリセットは出発点。選んだあと、下の項目を自由に変更できる。</div>
-<div class="preset-subsection">
-<div class="subsection-title"><strong>小説ジャンル</strong><span>作品の文脈から選ぶ</span></div>
-<div class="preset-grid" id="genre-preset-grid"></div>
-</div>
-<div class="preset-subsection">
-<div class="subsection-title"><strong>ビジュアルの雰囲気</strong><span>一枚の空気感から選ぶ</span></div>
-<div class="preset-grid" id="preset-grid"></div>
-</div>
-<div class="preset-status" id="preset-status">まだプリセットは選択されていない。</div>
-</div>
-<div aria-label="STEP 2の進め方" class="workflow-guide" id="workflow-guide">
-<div class="workflow-guide-head">
-<strong>STEP 2の進め方</strong>
-<span>必要なところだけ、好きな順番で設定。全部埋めなくてOK。</span>
-</div>
-<div class="workflow-guide-grid">
-<button class="workflow-guide-btn" data-guide-group="character-detail" type="button">
-<span class="guide-no">01</span><strong>人物</strong><small>誰を描く？ 外見・服装・表情など</small><span class="guide-status">必要なところから</span>
-</button>
-<button class="workflow-guide-btn" data-guide-group="scene-detail" type="button">
-<span class="guide-no">02</span><strong>世界・風景</strong><small>どこ・いつ・どんな環境？</small><span class="guide-status">必要なら設定</span>
-</button>
-<button class="workflow-guide-btn" data-guide-group="visual-detail" type="button">
-<span class="guide-no">03</span><strong>色・配色</strong><small>どんな色で見せる？</small><span class="guide-status">色の方向性</span>
-</button>
-<button class="workflow-guide-btn" data-guide-group="concept-detail" type="button">
-<span class="guide-no">04</span><strong>感情・心象・概念</strong><small>何を感じさせる？</small><span class="guide-status">意味・テーマ</span>
-</button>
-<button class="workflow-guide-btn" data-guide-group="concept-detail" type="button">
-<span class="guide-no">05</span><strong>象徴・モチーフ</strong><small>何を象徴として置く？ 自由入力も可</small><span class="guide-status">意味を持つ要素</span>
-</button>
-<button class="workflow-guide-btn workflow-guide-next" data-next-step="3" type="button">
-<span class="guide-no">06</span><strong>画面設定へ</strong><small>構図・視点・カメラ・光・演出・画風</small><span class="guide-status">STEP 3で見せ方を決める</span>
-</button>
-</div>
-</div>
-<div class="category-global-tools" id="category-global-tools">
-<span>項目を整理して表示</span>
-<button onclick="setAllCategoriesCollapsed(false)" type="button">すべて開く</button>
-<button onclick="setAllCategoriesCollapsed(true)" type="button">すべて閉じる</button>
-<button class="category-clear-btn" onclick="clearStep2Selections()" type="button">選択肢をクリア</button>
-</div>
-<div class="section-lead workflow-note" style="margin:10px 0 14px">STEP
-      2は「何を描くか／何を意味させるか／どんな色にするか」を決める場所。人物、世界・風景、感情・心象、概念・テーマ、象徴・モチーフ、色・配色をここで整える。画風や構図・カメラ・光・演出はSTEP 3で決める。</div>
-<div id="dynamic-categories"></div>
-<div class="step-nav"><span class="step-nav-note">STEP 2 / 4</span><button class="next" onclick="showStep(3)" type="button">次へ：画面設定 →</button></div>
-</section><section class="step-screen" data-step-screen="3">
-<div class="section composition-section">
-<div class="step-label">STEP 3 / COMPOSITION</div>
-<div class="section-title">画面を組み立てる</div>
-<p class="section-lead">STEP 2で決めた素材を、どんな一枚として見せるか設定する。構図・視点・カメラ・光・演出・画面比率など、絵の「見せ方」をここで決める。</p>
-<div class="composition-grid">
-<div class="section composition-control-card">
-<div class="category-section-head">
-<div class="section-title">視点</div><span class="composition-control-note">どこから見る？</span>
-</div>
-<div class="choice-row" data-comp="view"><button data-v="eye-level">目線の高さ</button><button data-v="low-angle">見上げる</button><button data-v="high-angle">見下ろす</button><button data-v="overhead">真上から</button><button data-v="close-up">ぐっと近く</button></div>
-</div>
-<div class="section composition-control-card">
-<div class="category-section-head">
-<div class="section-title">主役の位置</div><span class="composition-control-note">どこに置く？</span>
-</div>
-<div class="choice-row" data-comp="position"><button data-v="left">左寄り</button><button data-v="center">中央</button><button data-v="right">右寄り</button><button data-v="off-center">あえて外す</button>
-</div>
-</div>
-<div class="section composition-control-card">
-<div class="category-section-head">
-<div class="section-title">画面の余白</div><span class="composition-control-note">詰める？ 空ける？</span>
-</div>
-<div class="choice-row" data-comp="space"><button data-v="breathing-room">広めに余白</button><button data-v="tight">画面いっぱい</button><button data-v="none">余白は気にしない</button></div>
-</div>
-<div class="section composition-control-card">
-<div class="category-section-head">
-<div class="section-title">カメラの距離</div><span class="composition-control-note">どこまで映す？</span>
-</div>
-<div class="choice-row" data-comp="distance"><button data-v="portrait">ポートレート</button><button data-v="medium-shot">中距離</button><button data-v="wide-shot">広い風景</button><button data-v="establishing">場所を主役にする</button></div>
-</div>
-</div>
-<div class="composition-detail-inline" id="composition-detail-categories"></div>
-</div>
-<div class="section">
-<div class="step-label">STEP 3 / LIVE SUMMARY</div>
-<div class="section-title">現在の設定</div>
-<div class="design-summary">
-<div class="summary-card">
-<h3>Direction</h3>
-<div class="summary-list" id="summary-chips"></div>
-</div>
-<div class="summary-card">
-<h3>Design progress</h3>
-<div class="progress-mini">
-<div class="progress-row"><span>作品情報</span><span id="progress-work">0%</span></div>
-<div class="progress-bar"><span id="progress-work-bar"></span></div>
-<div class="progress-row"><span>ビジュアル</span><span id="progress-visual">0%</span></div>
-<div class="progress-bar"><span id="progress-visual-bar"></span></div>
-</div>
-</div>
-</div>
-</div>
-<div class="step-nav"><span class="step-nav-note">STEP 3 / 4</span><button class="next" onclick="showStep(4)" type="button">次へ：プロンプト →</button></div>
-</section><section class="step-screen" data-step-screen="4">
-<div class="section result-section">
-<div class="step-label">STEP 4 / PROMPT</div>
-<div class="section-title result-section-title">プロンプト出力</div>
-<div class="result-description">選んだ条件と作品情報を、画像生成AIに渡しやすい形へまとめる。</div>
-<div class="result-box">
-<div class="action-btns">
-<button class="btn-action btn-reset" onclick="resetAll()">RESET</button>
-<button class="btn-action btn-copy" onclick="copyText('output-prompt')">COPY</button>
-</div>
-<div id="output-prompt"></div>
-<div class="reference-copy-note" hidden="" id="reference-copy-note">
-          参考画像を使う場合は、コピーしたプロンプトを参考画像と一緒に画像生成AIへ渡す。画像はこのスタジオにアップロード不要。</div>
-</div>
-</div>
-<div class="step-nav"><button onclick="showStep(3)" type="button">← 画面設定へ戻る</button><span class="step-nav-note">STEP
-        4 / 4</span></div>
-</section></main><aside aria-label="ビジュアル設計図" class="layout-right"><aside aria-label="ビジュアル設計図" class="blueprint-float" id="visual-blueprint">
-<div class="blueprint-head">
-<div><strong>VISUAL BLUEPRINT</strong><span>　現在の一枚</span></div><button aria-label="閉じる" class="blueprint-close" onclick="toggleBlueprint(false)" type="button">×</button>
-</div>
-<div class="blueprint-impression" id="blueprint-impression">まだ設定がない。タグを選ぶと、ここに一枚の設計図ができていく。</div>
-<div id="blueprint-sections"></div>
-</aside></aside></div><script>
+            <div class="scene-source-actions">
+              <button class="scene-analyze" onclick="analyzeSceneText()" type="button">本文から画の要素を抽出</button>
+              <span class="scene-source-note">抽出後も自由に修正できる。本文にない部分は勝手に固定しない。</span>
+            </div>
+            <div class="scene-extracted" hidden="" id="scene-extracted">
+              <div class="scene-extracted-title">抽出した手がかり</div>
+              <div id="scene-extracted-chips"></div>
+            </div>
+          </div>
+        </div>
+        <div class="section preset-section" hidden="" id="preset-area">
+          <div class="step-label">PRESET LIBRARY</div>
+          <div class="section-title">まず方向性をひとつ選ぶ</div>
+          <div class="result-description">プリセットは出発点。選んだあと、下の項目を自由に変更できる。</div>
+          <div class="preset-subsection">
+            <div class="subsection-title"><strong>小説ジャンル</strong><span>作品の文脈から選ぶ</span></div>
+            <div class="preset-grid" id="genre-preset-grid"></div>
+          </div>
+          <div class="preset-subsection">
+            <div class="subsection-title"><strong>ビジュアルの雰囲気</strong><span>一枚の空気感から選ぶ</span></div>
+            <div class="preset-grid" id="preset-grid"></div>
+          </div>
+          <div class="preset-status" id="preset-status">まだプリセットは選択されていない。</div>
+        </div>
+        <div aria-label="STEP 2の進め方" class="workflow-guide" id="workflow-guide">
+          <div class="workflow-guide-head">
+            <strong>STEP 2の進め方</strong>
+            <span>必要なところだけ、好きな順番で設定。全部埋めなくてOK。</span>
+          </div>
+          <div class="workflow-guide-grid">
+            <button class="workflow-guide-btn" data-guide-group="character-detail" type="button">
+              <span class="guide-no">01</span><strong>人物</strong><small>誰を描く？ 外見・服装・表情など</small><span
+                class="guide-status">必要なところから</span>
+            </button>
+            <button class="workflow-guide-btn" data-guide-group="scene-detail" type="button">
+              <span class="guide-no">02</span><strong>世界・風景</strong><small>どこ・いつ・どんな環境？</small><span
+                class="guide-status">必要なら設定</span>
+            </button>
+            <button class="workflow-guide-btn" data-guide-group="visual-detail" type="button">
+              <span class="guide-no">03</span><strong>色・配色</strong><small>どんな色で見せる？</small><span
+                class="guide-status">色の方向性</span>
+            </button>
+            <button class="workflow-guide-btn" data-guide-group="concept-detail" type="button">
+              <span class="guide-no">04</span><strong>感情・心象・概念</strong><small>何を感じさせる？</small><span
+                class="guide-status">意味・テーマ</span>
+            </button>
+            <button class="workflow-guide-btn" data-guide-group="concept-detail" type="button">
+              <span class="guide-no">05</span><strong>象徴・モチーフ</strong><small>何を象徴として置く？ 自由入力も可</small><span
+                class="guide-status">意味を持つ要素</span>
+            </button>
+            <button class="workflow-guide-btn workflow-guide-next" data-next-step="3" type="button">
+              <span class="guide-no">06</span><strong>画面設定へ</strong><small>構図・視点・カメラ・光・演出・画風</small><span
+                class="guide-status">STEP 3で見せ方を決める</span>
+            </button>
+          </div>
+        </div>
+        <div class="category-global-tools" id="category-global-tools">
+          <span>項目を整理して表示</span>
+          <button onclick="setAllCategoriesCollapsed(false)" type="button">すべて開く</button>
+          <button onclick="setAllCategoriesCollapsed(true)" type="button">すべて閉じる</button>
+          <button class="category-clear-btn" onclick="clearStep2Selections()" type="button">選択肢をクリア</button>
+        </div>
+        <div class="section-lead workflow-note" style="margin:10px 0 14px">STEP
+          2は「何を描くか／何を意味させるか／どんな色にするか」を決める場所。人物、世界・風景、感情・心象、概念・テーマ、象徴・モチーフ、色・配色をここで整える。画風や構図・カメラ・光・演出はSTEP 3で決める。</div>
+        <div id="dynamic-categories"></div>
+        <div class="step-nav"><span class="step-nav-note">STEP 2 / 4</span><button class="next" onclick="showStep(3)"
+            type="button">次へ：画面設定 →</button></div>
+      </section>
+      <section class="step-screen" data-step-screen="3">
+        <div class="section composition-section">
+          <div class="step-label">STEP 3 / COMPOSITION</div>
+          <div class="section-title">画面を組み立てる</div>
+          <p class="section-lead">STEP 2で決めた素材を、どんな一枚として見せるか設定する。構図・視点・カメラ・光・演出・画面比率など、絵の「見せ方」をここで決める。</p>
+          <div class="composition-grid">
+            <div class="section composition-control-card">
+              <div class="category-section-head">
+                <div class="section-title">視点</div><span class="composition-control-note">どこから見る？</span>
+              </div>
+              <div class="choice-row" data-comp="view"><button data-v="eye-level">目線の高さ</button><button
+                  data-v="low-angle">見上げる</button><button data-v="high-angle">見下ろす</button><button
+                  data-v="overhead">真上から</button><button data-v="close-up">ぐっと近く</button></div>
+            </div>
+            <div class="section composition-control-card">
+              <div class="category-section-head">
+                <div class="section-title">主役の位置</div><span class="composition-control-note">どこに置く？</span>
+              </div>
+              <div class="choice-row" data-comp="position"><button data-v="left">左寄り</button><button
+                  data-v="center">中央</button><button data-v="right">右寄り</button><button
+                  data-v="off-center">あえて外す</button>
+              </div>
+            </div>
+            <div class="section composition-control-card">
+              <div class="category-section-head">
+                <div class="section-title">画面の余白</div><span class="composition-control-note">詰める？ 空ける？</span>
+              </div>
+              <div class="choice-row" data-comp="space"><button data-v="breathing-room">広めに余白</button><button
+                  data-v="tight">画面いっぱい</button><button data-v="none">余白は気にしない</button></div>
+            </div>
+            <div class="section composition-control-card">
+              <div class="category-section-head">
+                <div class="section-title">カメラの距離</div><span class="composition-control-note">どこまで映す？</span>
+              </div>
+              <div class="choice-row" data-comp="distance"><button data-v="portrait">ポートレート</button><button
+                  data-v="medium-shot">中距離</button><button data-v="wide-shot">広い風景</button><button
+                  data-v="establishing">場所を主役にする</button></div>
+            </div>
+          </div>
+          <div class="composition-detail-inline" id="composition-detail-categories"></div>
+        </div>
+        <div class="section">
+          <div class="step-label">STEP 3 / LIVE SUMMARY</div>
+          <div class="section-title">現在の設定</div>
+          <div class="design-summary">
+            <div class="summary-card">
+              <h3>Direction</h3>
+              <div class="summary-list" id="summary-chips"></div>
+            </div>
+            <div class="summary-card">
+              <h3>Design progress</h3>
+              <div class="progress-mini">
+                <div class="progress-row"><span>作品情報</span><span id="progress-work">0%</span></div>
+                <div class="progress-bar"><span id="progress-work-bar"></span></div>
+                <div class="progress-row"><span>ビジュアル</span><span id="progress-visual">0%</span></div>
+                <div class="progress-bar"><span id="progress-visual-bar"></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="step-nav"><span class="step-nav-note">STEP 3 / 4</span><button class="next" onclick="showStep(4)"
+            type="button">次へ：プロンプト →</button></div>
+      </section>
+      <section class="step-screen" data-step-screen="4">
+        <div class="section result-section">
+          <div class="step-label">STEP 4 / PROMPT</div>
+          <div class="section-title result-section-title">プロンプト出力</div>
+          <div class="result-description">選んだ条件と作品情報を、画像生成AIに渡しやすい形へまとめる。</div>
+          <div class="result-box">
+            <div class="action-btns">
+              <button class="btn-action btn-reset" onclick="resetAll()">RESET</button>
+              <button class="btn-action btn-copy" onclick="copyText('output-prompt')">COPY</button>
+            </div>
+            <div id="output-prompt"></div>
+            <div class="reference-copy-note" hidden="" id="reference-copy-note">
+              参考画像を使う場合は、コピーしたプロンプトを参考画像と一緒に画像生成AIへ渡す。画像はこのスタジオにアップロード不要。</div>
+          </div>
+        </div>
+        <div class="step-nav"><button onclick="showStep(3)" type="button">← 画面設定へ戻る</button><span
+            class="step-nav-note">STEP
+            4 / 4</span></div>
+      </section>
+    </main>
+    <aside aria-label="ビジュアル設計図" class="layout-right">
+      <aside aria-label="ビジュアル設計図" class="blueprint-float" id="visual-blueprint">
+        <div class="blueprint-head">
+          <div><strong>VISUAL BLUEPRINT</strong><span>　現在の一枚</span></div><button aria-label="閉じる"
+            class="blueprint-close" onclick="toggleBlueprint(false)" type="button">×</button>
+        </div>
+        <div class="blueprint-impression" id="blueprint-impression">まだ設定がない。タグを選ぶと、ここに一枚の設計図ができていく。</div>
+        <div id="blueprint-sections"></div>
+      </aside>
+    </aside>
+  </div>
+  <script>
     /* ==== JS構成（並べ替え版・お試し）====
        目次:
         1. 画面ステップ切り替え
@@ -3497,44 +3614,20 @@
             "value": "blonde hair"
           },
           {
-            "label": "白髪",
-            "value": "white hair"
-          },
-          {
-            "label": "銀髪",
-            "value": "silver hair"
-          },
-          {
-            "label": "灰色",
-            "value": "gray hair"
-          },
-          {
-            "label": "赤髪",
-            "value": "red hair"
-          },
-          {
-            "label": "橙髪",
-            "value": "orange hair"
+            "label": "プラチナブロンド",
+            "value": "platinum blonde hair"
           },
           {
             "label": "黄色の髪",
             "value": "yellow hair"
           },
           {
-            "label": "緑髪",
-            "value": "green hair"
+            "label": "赤髪",
+            "value": "red hair"
           },
           {
-            "label": "青髪",
-            "value": "blue hair"
-          },
-          {
-            "label": "水色の髪",
-            "value": "light blue hair"
-          },
-          {
-            "label": "紫髪",
-            "value": "purple hair"
+            "label": "ワインレッド・深紅",
+            "value": "burgundy hair"
           },
           {
             "label": "桃色の髪",
@@ -3545,8 +3638,68 @@
             "value": "sakura pink hair"
           },
           {
+            "label": "橙髪",
+            "value": "orange hair"
+          },
+          {
+            "label": "緑髪",
+            "value": "green hair"
+          },
+          {
+            "label": "深緑の髪",
+            "value": "dark green hair"
+          },
+          {
             "label": "青緑の髪",
             "value": "teal hair"
+          },
+          {
+            "label": "水色の髪",
+            "value": "light blue hair"
+          },
+          {
+            "label": "青髪",
+            "value": "blue hair"
+          },
+          {
+            "label": "藍色の髪",
+            "value": "indigo hair"
+          },
+          {
+            "label": "濃紺の髪",
+            "value": "navy hair"
+          },
+          {
+            "label": "薄紫・ラベンダー",
+            "value": "soft lavender hair"
+          },
+          {
+            "label": "すみれ色",
+            "value": "violet hair"
+          },
+          {
+            "label": "紫髪",
+            "value": "purple hair"
+          },
+          {
+            "label": "紫紺",
+            "value": "deep plum hair"
+          },
+          {
+            "label": "アッシュグレー",
+            "value": "ash gray hair"
+          },
+          {
+            "label": "灰色",
+            "value": "gray hair"
+          },
+          {
+            "label": "銀髪",
+            "value": "silver hair"
+          },
+          {
+            "label": "白髪",
+            "value": "white hair"
           },
           {
             "label": "二色の髪",
@@ -3559,6 +3712,14 @@
           {
             "label": "メッシュ・差し色",
             "value": "hair with colored streaks or highlights"
+          },
+          {
+            "label": "インナーカラー",
+            "value": "hair with inner hidden highlights"
+          },
+          {
+            "label": "グラデーションヘアー",
+            "value": "gradient colored hair"
           }
         ]
       },
@@ -3598,6 +3759,14 @@
           {
             "label": "スーパーロング",
             "value": "very long hair"
+          },
+          {
+            "label": "ウルフカット",
+            "value": "wolf cut hairstyle"
+          },
+          {
+            "label": "姫カット",
+            "value": "hime cut hairstyle"
           },
           {
             "label": "ストレート",
@@ -3640,6 +3809,10 @@
             "value": "low ponytail"
           },
           {
+            "label": "サイドテール",
+            "value": "side ponytail"
+          },
+          {
             "label": "ツインテール",
             "value": "twin tails hairstyle"
           },
@@ -3648,8 +3821,16 @@
             "value": "half-up hairstyle"
           },
           {
+            "label": "サイドアップ",
+            "value": "side-up hairstyle"
+          },
+          {
             "label": "お団子",
             "value": "hair in a bun"
+          },
+          {
+            "label": "ツインお団子",
+            "value": "double bun hairstyle"
           },
           {
             "label": "編み込み",
@@ -3664,12 +3845,16 @@
             "value": "twin braids"
           },
           {
-            "label": "サイドテール",
-            "value": "side ponytail"
+            "label": "サイド三つ編み",
+            "value": "side-braided hair"
           },
           {
             "label": "前髪ぱっつん",
             "value": "blunt straight bangs"
+          },
+          {
+            "label": "シースルーバング",
+            "value": "see-through bangs"
           },
           {
             "label": "長い前髪",
@@ -3678,6 +3863,10 @@
           {
             "label": "斜め前髪",
             "value": "side-swept bangs"
+          },
+          {
+            "label": "センター分け",
+            "value": "curtain bangs, center-parted hair"
           },
           {
             "label": "前髪なし",
@@ -3690,6 +3879,10 @@
           {
             "label": "オールバック",
             "value": "slicked-back hair"
+          },
+          {
+            "label": "あほ毛",
+            "value": "ahoge, single standing hair strand"
           },
           {
             "label": "無造作ヘア",
@@ -3790,8 +3983,20 @@
             "value": "luminous golden irises"
           },
           {
+            "label": "ヘーゼル",
+            "value": "hazel irises"
+          },
+          {
             "label": "赤",
             "value": "crimson red irises"
+          },
+          {
+            "label": "深紅",
+            "value": "Burgundy irises"
+          },
+          {
+            "label": "桃・桜",
+            "value": "soft pink irises"
           },
           {
             "label": "橙",
@@ -3806,6 +4011,14 @@
             "value": "emerald green irises"
           },
           {
+            "label": "深緑",
+            "value": "forest green irises"
+          },
+          {
+            "label": "オリーブ",
+            "value": "muted olive green irises"
+          },
+          {
             "label": "青",
             "value": "clear blue irises"
           },
@@ -3814,16 +4027,36 @@
             "value": "pale cyan irises"
           },
           {
+            "label": "藍",
+            "value": "indigo irises"
+          },
+          {
+            "label": "濃紺",
+            "value": "navy irises"
+          },
+          {
             "label": "紫",
             "value": "violet purple irises"
           },
           {
-            "label": "桃・桜",
-            "value": "soft pink irises"
+            "label": "紫紺（濃い紫）",
+            "value": "deep plum irises"
+          },
+          {
+            "label": "薄紫・ラベンダー",
+            "value": "soft lavender irises"
+          },
+          {
+            "label": "すみれ色",
+            "value": "striking violet irises"
           },
           {
             "label": "灰・銀",
             "value": "silver gray irises"
+          },
+          {
+            "label": "虹色・オパール",
+            "value": "iridescent opal irises"
           },
           {
             "label": "左右で違う色",
@@ -3861,16 +4094,56 @@
             "value": "pale translucent skin"
           },
           {
+            "label": "青白い肌",
+            "value": "pallid pale skin"
+          },
+          {
+            "label": "不健康・病的な顔色",
+            "value": "unhealthy complexion, sickly pale skin"
+          },
+          {
+            "label": "土気色の肌",
+            "value": "sallow skin tone"
+          },
+          {
             "label": "自然な肌色",
             "value": "natural skin tone"
+          },
+          {
+            "label": "血色の良い肌",
+            "value": "healthy ruddy complexion, rosy skin"
           },
           {
             "label": "小麦色の肌",
             "value": "sun-kissed warm skin"
           },
           {
+            "label": "日焼け肌・タンドスキン",
+            "value": "tanned skin"
+          },
+          {
             "label": "褐色の肌",
             "value": "deep warm brown skin tone"
+          },
+          {
+            "label": "黒褐色・ダークスキン",
+            "value": "dark brown skin tone"
+          },
+          {
+            "label": "陶器のような肌",
+            "value": "smooth porcelain-like skin"
+          },
+          {
+            "label": "柔らかな肌質",
+            "value": "soft natural skin texture"
+          },
+          {
+            "label": "ツヤ肌・潤い",
+            "value": "dewy glowing skin"
+          },
+          {
+            "label": "マット・乾燥肌",
+            "value": "matte dry skin texture"
           },
           {
             "label": "そばかす",
@@ -3885,12 +4158,12 @@
             "value": "visible subtle scar"
           },
           {
-            "label": "柔らかな肌質",
-            "value": "soft natural skin texture"
+            "label": "目の下のクマ",
+            "value": "dark circles under eyes"
           },
           {
-            "label": "陶器のような肌",
-            "value": "smooth porcelain-like skin"
+            "label": "日焼けあと",
+            "value": "tan lines"
           }
         ]
       },
@@ -3908,6 +4181,10 @@
             "isNone": true
           },
           {
+            "label": "やせ細った・病的な細身",
+            "value": "emaciated skin-and-bones build"
+          },
+          {
             "label": "華奢",
             "value": "slender delicate build"
           },
@@ -3916,28 +4193,44 @@
             "value": "small petite build"
           },
           {
-            "label": "標準的な体格",
-            "value": "natural average body proportions"
+            "label": "細身",
+            "value": "slim lean build"
           },
           {
-            "label": "長身",
+            "label": "長身・モデル体型",
             "value": "tall slender build"
           },
           {
-            "label": "細身",
-            "value": "slim lean build"
+            "label": "標準的な体格",
+            "value": "natural average body proportions"
           },
           {
             "label": "健康的な体格",
             "value": "healthy athletic build"
           },
           {
+            "label": "引き締まった体",
+            "value": "toned fit physique"
+          },
+          {
             "label": "筋肉質",
             "value": "muscular athletic build"
           },
           {
+            "label": "がっしり・大柄",
+            "value": "broad-shouldered burly build"
+          },
+          {
             "label": "柔らかな体つき",
             "value": "soft natural body shape"
+          },
+          {
+            "label": "ぽっちゃり・ふくよか",
+            "value": "plump curvy body shape"
+          },
+          {
+            "label": "メリハリのある体型（グラマラス）",
+            "value": "voluptuous hourglass silhouette"
           },
           {
             "label": "シルエット重視",
@@ -3971,8 +4264,16 @@
             "value": "Japanese sailor-style school uniform"
           },
           {
+            "label": "学ラン",
+            "value": "Japanese school gakuran uniform"
+          },
+          {
             "label": "私服・カジュアル",
             "value": "casual contemporary clothing"
+          },
+          {
+            "label": "Tシャツ",
+            "value": "simple casual t-shirt"
           },
           {
             "label": "シャツ・ブラウス",
@@ -3987,12 +4288,12 @@
             "value": "casual hoodie outfit"
           },
           {
-            "label": "Tシャツ",
-            "value": "simple casual t-shirt"
-          },
-          {
             "label": "デニム・ジーンズ",
             "value": "casual denim jeans outfit"
+          },
+          {
+            "label": "レザージャケット・ライダース",
+            "value": "cool leather jacket"
           },
           {
             "label": "コート・冬服",
@@ -4019,12 +4320,16 @@
             "value": "long flowing skirt"
           },
           {
-            "label": "スーツ",
-            "value": "formal suit"
-          },
-          {
             "label": "シャツ＋スラックス",
             "value": "shirt with tailored trousers"
+          },
+          {
+            "label": "ベスト付きシャツ",
+            "value": "button-up shirt with a tailored vest"
+          },
+          {
+            "label": "スーツ",
+            "value": "formal suit"
           },
           {
             "label": "ドレス・正装",
@@ -4043,12 +4348,24 @@
             "value": "Japanese yukata summer kimono"
           },
           {
+            "label": "袴",
+            "value": "traditional Japanese hakama"
+          },
+          {
+            "label": "和洋折衷",
+            "value": "Japanese-Western fusion fashion"
+          },
+          {
             "label": "ファンタジー衣装",
             "value": "fantasy adventurer clothing"
           },
           {
             "label": "ローブ・マント",
             "value": "fantasy robe and flowing cloak"
+          },
+          {
+            "label": "甲冑・アーマー",
+            "value": "fantasy knight armor"
           },
           {
             "label": "王族・貴族風",
@@ -4063,8 +4380,8 @@
             "value": "elegant lolita fashion"
           },
           {
-            "label": "和洋折衷",
-            "value": "Japanese-Western fusion fashion"
+            "label": "修道服・聖職者",
+            "value": "religious clergy vestments or nun habit"
           },
           {
             "label": "SF・未来服",
@@ -4077,6 +4394,14 @@
           {
             "label": "軍装・ミリタリー",
             "value": "stylized military-inspired clothing"
+          },
+          {
+            "label": "白衣・医療服",
+            "value": "white lab coat"
+          },
+          {
+            "label": "メイド服",
+            "value": "classic maid outfit"
           },
           {
             "label": "作業着・ワークウェア",
@@ -4110,6 +4435,10 @@
             "isNone": true
           },
           {
+            "label": "満面の笑み",
+            "value": "beaming happy smile"
+          },
+          {
             "label": "穏やかな微笑み",
             "value": "gentle subtle smile"
           },
@@ -4122,6 +4451,10 @@
             "value": "shy bashful expression"
           },
           {
+            "label": "ウインク",
+            "value": "playful winking expression"
+          },
+          {
             "label": "含み笑い",
             "value": "subtle knowing smirk, amused expression"
           },
@@ -4130,16 +4463,16 @@
             "value": "knowing enigmatic smile"
           },
           {
+            "label": "得意げ",
+            "value": "smug self-satisfied expression"
+          },
+          {
             "label": "意地悪な笑み",
             "value": "wicked mischievous grin"
           },
           {
             "label": "ほくそ笑む",
             "value": "quietly gloating expression, sinister pleased smile"
-          },
-          {
-            "label": "得意げ",
-            "value": "smug self-satisfied expression"
           },
           {
             "label": "挑発的",
@@ -4158,12 +4491,28 @@
             "value": "relieved softened expression"
           },
           {
+            "label": "無表情",
+            "value": "emotionless expression"
+          },
+          {
+            "label": "キリッとした・真剣",
+            "value": "serious determined expression"
+          },
+          {
+            "label": "ポーカーフェイス",
+            "value": "poker-faced calm expression"
+          },
+          {
             "label": "気まずさ",
             "value": "awkward embarrassed expression"
           },
           {
             "label": "困惑・呆然",
             "value": "bewildered stunned expression"
+          },
+          {
+            "label": "不機嫌・むすっとした顔",
+            "value": "pouting sulky expression"
           },
           {
             "label": "不安・戸惑い",
@@ -4174,16 +4523,8 @@
             "value": "frightened fearful expression"
           },
           {
-            "label": "嫌悪",
-            "value": "disgusted expression"
-          },
-          {
-            "label": "軽蔑",
-            "value": "contemptuous expression"
-          },
-          {
-            "label": "怒り",
-            "value": "angry expression"
+            "label": "憂い",
+            "value": "melancholic wistful expression"
           },
           {
             "label": "泣きそう",
@@ -4198,10 +4539,6 @@
             "value": "tearful bittersweet smile, laughing through tears"
           },
           {
-            "label": "憂い",
-            "value": "melancholic wistful expression"
-          },
-          {
             "label": "疲労・消耗",
             "value": "exhausted weary expression"
           },
@@ -4214,8 +4551,28 @@
             "value": "vacant hollow expression, emotionally numb"
           },
           {
-            "label": "無表情",
-            "value": "emotionless expression"
+            "label": "嫌悪",
+            "value": "disgusted expression"
+          },
+          {
+            "label": "軽蔑",
+            "value": "contemptuous expression"
+          },
+          {
+            "label": "怒り",
+            "value": "angry expression"
+          },
+          {
+            "label": "激怒・叫び",
+            "value": "furious shouting expression"
+          },
+          {
+            "label": "狂気・高笑い",
+            "value": "maniacal insane grin"
+          },
+          {
+            "label": "舌出し",
+            "value": "playfully sticking out tongue"
           },
           {
             "label": "目を閉じる",
@@ -4265,6 +4622,22 @@
             "value": "sitting quietly"
           },
           {
+            "label": "膝を抱えて座る",
+            "value": "sitting with knees hugged to chest"
+          },
+          {
+            "label": "しゃがむ・膝をつく",
+            "value": "crouching down on one knee"
+          },
+          {
+            "label": "壁にもたれる",
+            "value": "leaning wearily against a wall"
+          },
+          {
+            "label": "横たわる・寝そべる",
+            "value": "lying down resting"
+          },
+          {
             "label": "歩く",
             "value": "walking through the scene"
           },
@@ -4285,8 +4658,28 @@
             "value": "looking downward"
           },
           {
+            "label": "横顔・横を向く",
+            "value": "profile view, looking to the side"
+          },
+          {
+            "label": "腕組み",
+            "value": "crossing arms"
+          },
+          {
+            "label": "手をポケットに入れる",
+            "value": "hands in pockets"
+          },
+          {
             "label": "手を伸ばす",
             "value": "reaching out with one hand"
+          },
+          {
+            "label": "胸に手を当てる",
+            "value": "holding hand to chest"
+          },
+          {
+            "label": "頭を抱える・悩む",
+            "value": "holding head in hands, distressed pose"
           },
           {
             "label": "何かを読む",
@@ -4301,20 +4694,20 @@
             "value": "standing beside a window"
           },
           {
-            "label": "二人が向き合う",
-            "value": "two characters facing each other"
-          },
-          {
-            "label": "背中合わせ",
-            "value": "two characters standing back to back"
-          },
-          {
             "label": "何かに触れる",
             "value": "reaching toward and touching an environmental object"
           },
           {
             "label": "風を受ける",
             "value": "standing in the wind with clothing and hair flowing"
+          },
+          {
+            "label": "二人が向き合う",
+            "value": "two characters facing each other"
+          },
+          {
+            "label": "背中合わせ",
+            "value": "two characters standing back to back"
           }
         ]
       },
@@ -4340,6 +4733,10 @@
             "value": "gaze directed away from the camera"
           },
           {
+            "label": "正面顔・まっすぐ前を見る",
+            "value": "front view, looking straight ahead"
+          },
+          {
             "label": "横を見る",
             "value": "looking toward the side"
           },
@@ -4352,20 +4749,44 @@
             "value": "gazing downward"
           },
           {
-            "label": "相手を見る",
-            "value": "looking directly at another character"
+            "label": "目線を伏せる",
+            "value": "lowered gaze, introspective mood"
+          },
+          {
+            "label": "上目遣い",
+            "value": "looking up at the viewer, upturned gaze"
+          },
+          {
+            "label": "見下ろす視線",
+            "value": "looking down at the viewer, cold downcast gaze"
+          },
+          {
+            "label": "流し目",
+            "value": "glancing sideways, sidelong glance"
           },
           {
             "label": "遠くを見る",
             "value": "gazing into the distant scenery"
           },
           {
+            "label": "ぼんやりと眺める",
+            "value": "staring blankly into space, absentminded gaze"
+          },
+          {
             "label": "何かを見つめる",
             "value": "intently observing an unseen object or event"
           },
           {
-            "label": "目線を伏せる",
-            "value": "lowered gaze, introspective mood"
+            "label": "目を閉じる",
+            "value": "eyes closed peacefully"
+          },
+          {
+            "label": "振り返りざまの視線",
+            "value": "glancing back over the shoulder at the viewer"
+          },
+          {
+            "label": "相手を見る",
+            "value": "looking directly at another character"
           },
           {
             "label": "視線が交わらない",
@@ -4407,6 +4828,46 @@
             "value": "hand near the mouth"
           },
           {
+            "label": "顎に手を当てる",
+            "value": "hand on chin, thinking pose"
+          },
+          {
+            "label": "手で顔を覆う",
+            "value": "covering face with hands"
+          },
+          {
+            "label": "メガネのフチに手をかける",
+            "value": "adjusting glasses with fingers"
+          },
+          {
+            "label": "ピースサイン",
+            "value": "making a peace sign"
+          },
+          {
+            "label": "指差し",
+            "value": "pointing with one finger"
+          },
+          {
+            "label": "頬杖をつく",
+            "value": "resting chin on hand, leaning on hand"
+          },
+          {
+            "label": "両手で頬杖",
+            "value": "resting face in both hands, cupping cheek in hands"
+          },
+          {
+            "label": "口元に人差し指",
+            "value": "shushing gesture with index finger on lips"
+          },
+          {
+            "label": "指を組む",
+            "value": "interlocked fingers"
+          },
+          {
+            "label": "拳を握る",
+            "value": "hands clenched into fists"
+          },
+          {
             "label": "手を伸ばし合う",
             "value": "two hands reaching toward each other"
           },
@@ -4415,12 +4876,12 @@
             "value": "fingertips gently touching"
           },
           {
-            "label": "手を握る",
-            "value": "hands clasped together"
+            "label": "手を繋ぐ・握る",
+            "value": "holding hands together, hands clasped together"
           },
           {
-            "label": "拳を握る",
-            "value": "hands clenched into fists"
+            "label": "手首を掴む",
+            "value": "grabbing the wrist"
           },
           {
             "label": "何かをつまむ",
@@ -4454,48 +4915,168 @@
             "value": "glasses"
           },
           {
+            "label": "丸眼鏡",
+            "value": "round framed glasses"
+          },
+          {
+            "label": "黒縁メガネ",
+            "value": "thick black-framed glasses"
+          },
+          {
+            "label": "モノクル・単眼鏡",
+            "value": "classic monocle"
+          },
+          {
             "label": "サングラス",
-            "value": "sunglasses"
+            "value": "stylish sunglasses"
+          },
+          {
+            "label": "眼帯",
+            "value": "eyepatch"
+          },
+          {
+            "label": "医療用マスク",
+            "value": "face mask"
+          },
+          {
+            "label": "ヴェール・面布",
+            "value": "sheer face veil"
           },
           {
             "label": "イヤリング・ピアス",
             "value": "earrings or piercings"
           },
           {
+            "label": "イヤーカフ",
+            "value": "stylish ear cuff"
+          },
+          {
+            "label": "イヤホン・ヘッドホン",
+            "value": "headphones around neck or over ears"
+          },
+          {
             "label": "ネックレス",
-            "value": "necklace"
+            "value": "pendant necklace"
+          },
+          {
+            "label": "ロザリオ・十字架",
+            "value": "rosary cross necklace"
           },
           {
             "label": "チョーカー",
-            "value": "choker"
+            "value": "choker necklace"
+          },
+          {
+            "label": "ネクタイ・ループタイ",
+            "value": "necktie or bolo tie"
+          },
+          {
+            "label": "マフラー・ストール",
+            "value": "cozy scarf"
           },
           {
             "label": "指輪",
-            "value": "ring"
+            "value": "rings on fingers"
+          },
+          {
+            "label": "アーマーリング",
+            "value": "gothic full-finger armor ring"
           },
           {
             "label": "腕時計",
             "value": "wristwatch"
           },
           {
-            "label": "ヘアピン・髪飾り",
-            "value": "decorative hairpin or hair ornament"
+            "label": "ブレスレット・バングル",
+            "value": "bracelet or bangle"
           },
           {
-            "label": "リボン",
-            "value": "ribbon accessory"
+            "label": "数珠・念珠",
+            "value": "traditional prayer beads bracelet"
+          },
+          {
+            "label": "手袋",
+            "value": "sleek gloves"
+          },
+          {
+            "label": "レースの手袋",
+            "value": "delicate lace gloves"
           },
           {
             "label": "帽子",
             "value": "stylish hat"
           },
           {
-            "label": "手袋",
-            "value": "gloves"
+            "label": "ベレー帽",
+            "value": "beret"
           },
           {
-            "label": "イヤホン・ヘッドホン",
-            "value": "earphones or headphones"
+            "label": "ニット帽",
+            "value": "cozy beanie hat"
+          },
+          {
+            "label": "キャップ",
+            "value": "casual baseball cap"
+          },
+          {
+            "label": "フード",
+            "value": "hood pulled over head"
+          },
+          {
+            "label": "ヘアピン・髪飾り",
+            "value": "decorative hairpin or hair ornament"
+          },
+          {
+            "label": "かんざし",
+            "value": "traditional Japanese kanzashi hair stick"
+          },
+          {
+            "label": "リボン",
+            "value": "ribbon accessory"
+          },
+          {
+            "label": "カチューシャ・ヘアバンド",
+            "value": "headband or hairband"
+          },
+          {
+            "label": "ヘッドドレス",
+            "value": "gothic lolita headdress"
+          },
+          {
+            "label": "王冠・ティアラ",
+            "value": "tiara or small crown"
+          },
+          {
+            "label": "花飾り・コサージュ",
+            "value": "flower hair accessory"
+          },
+          {
+            "label": "ベルト・ボディハーネス",
+            "value": "decorative belt or body harness"
+          },
+          {
+            "label": "ガーターリング・レッグハーネス",
+            "value": "garter ring or leg harness"
+          },
+          {
+            "label": "包帯・絆創膏",
+            "value": "bandages or adhesive bandages"
+          },
+          {
+            "label": "タトゥー・ペイント",
+            "value": "subtle facial or body tattoo"
+          },
+          {
+            "label": "つけ耳・ケモミミ",
+            "value": "animal ears headband"
+          },
+          {
+            "label": "角（ツノ）",
+            "value": "demonic or fantasy horns"
+          },
+          {
+            "label": "狐のお面・仮面",
+            "value": "Japanese kitsune mask or decorative mask"
           }
         ]
       },
@@ -4649,88 +5230,92 @@
             "value": "modern urban street"
           },
           {
+            "label": "オフィス街",
+            "value": "modern office district"
+          },
+          {
             "label": "繁華街",
-            "value": "busy downtown at night"
+            "value": "downtown street"
+          },
+          {
+            "label": "商店街",
+            "value": "Japanese shopping street"
           },
           {
             "label": "住宅街",
             "value": "quiet residential neighborhood"
           },
           {
+            "label": "踏切のある住宅街",
+            "value": "residential neighborhood with a railway crossing"
+          },
+          {
             "label": "路地裏",
-            "value": "narrow atmospheric back alley"
+            "value": "narrow back alley"
           },
           {
-            "label": "駅・ホーム",
-            "value": "train station platform"
+            "label": "歩道橋",
+            "value": "pedestrian overpass"
           },
           {
-            "label": "学校",
-            "value": "Japanese school campus"
+            "label": "高架下・ガード下",
+            "value": "area under a railway viaduct"
           },
           {
-            "label": "図書館",
-            "value": "quiet library interior"
+            "label": "地下道・地下通路",
+            "value": "underground pedestrian passage"
           },
           {
-            "label": "喫茶店・カフェ",
-            "value": "cozy cafe interior"
+            "label": "公園",
+            "value": "urban park with benches"
           },
           {
-            "label": "コンビニ",
-            "value": "convenience store at night"
-          },
-          {
-            "label": "アパートの部屋",
-            "value": "small lived-in apartment room"
+            "label": "河川敷・土手",
+            "value": "grassy riverbank"
           },
           {
             "label": "屋上",
             "value": "urban rooftop"
           },
           {
-            "label": "窓辺",
-            "value": "quiet room beside a window"
-          },
-          {
-            "label": "海辺の町",
-            "value": "small seaside town"
-          },
-          {
-            "label": "商店街",
-            "value": "nostalgic Japanese shopping street"
-          },
-          {
-            "label": "繁華街・雨",
-            "value": "rain-soaked downtown street"
-          },
-          {
             "label": "駅前ロータリー",
-            "value": "quiet urban station plaza"
+            "value": "station plaza"
+          },
+          {
+            "label": "駅・ホーム",
+            "value": "train station platform"
           },
           {
             "label": "電車の車内",
-            "value": "quiet Japanese train interior"
+            "value": "train interior"
           },
           {
-            "label": "踏切のある住宅街",
-            "value": "residential neighborhood with a railway crossing"
+            "label": "学校",
+            "value": "Japanese school campus"
           },
           {
             "label": "学校の教室",
-            "value": "quiet Japanese classroom interior"
-          },
-          {
-            "label": "体育館",
-            "value": "empty Japanese school gymnasium"
-          },
-          {
-            "label": "病院",
-            "value": "quiet modern hospital corridor"
+            "value": "Japanese classroom interior"
           },
           {
             "label": "図書室",
-            "value": "sunlit school library room"
+            "value": "school library room"
+          },
+          {
+            "label": "体育館",
+            "value": "school gymnasium"
+          },
+          {
+            "label": "病院の廊下",
+            "value": "hospital corridor"
+          },
+          {
+            "label": "図書館",
+            "value": "public library interior"
+          },
+          {
+            "label": "アパートの部屋",
+            "value": "small apartment room"
           },
           {
             "label": "古いアパート",
@@ -4738,19 +5323,35 @@
           },
           {
             "label": "団地",
-            "value": "quiet postwar Japanese housing complex"
+            "value": "Japanese housing complex"
           },
           {
-            "label": "オフィス街",
-            "value": "modern office district between tall buildings"
+            "label": "窓辺",
+            "value": "room beside a window"
           },
           {
-            "label": "港町",
-            "value": "quiet contemporary harbor town"
+            "label": "喫茶店・カフェ",
+            "value": "cozy cafe interior"
+          },
+          {
+            "label": "コンビニ",
+            "value": "convenience store"
+          },
+          {
+            "label": "コインランドリー",
+            "value": "laundromat"
+          },
+          {
+            "label": "海辺の町",
+            "value": "seaside town"
+          },
+          {
+            "label": "港",
+            "value": "harbor town"
           },
           {
             "label": "田園・農村",
-            "value": "peaceful rural Japanese countryside"
+            "value": "rural Japanese countryside"
           }
         ]
       },
@@ -4769,6 +5370,14 @@
             "isNone": true
           },
           {
+            "label": "古都",
+            "value": "historic Japanese capital with traditional architecture"
+          },
+          {
+            "label": "城下町",
+            "value": "traditional Japanese castle town"
+          },
+          {
             "label": "江戸の町",
             "value": "Edo-period Japanese townscape"
           },
@@ -4777,7 +5386,7 @@
             "value": "Meiji or Taisho era Japanese streetscape"
           },
           {
-            "label": "昭和レトロ",
+            "label": "昭和レトロの街",
             "value": "nostalgic mid-century Japanese streetscape"
           },
           {
@@ -4785,28 +5394,48 @@
             "value": "historic Japanese port town"
           },
           {
-            "label": "城下町",
-            "value": "traditional Japanese castle town"
-          },
-          {
-            "label": "古都",
-            "value": "historic Japanese capital with traditional architecture"
-          },
-          {
             "label": "農村の集落",
             "value": "traditional rural Japanese village"
           },
           {
-            "label": "古い洋館の街",
-            "value": "historic European-inspired town with old Western architecture"
+            "label": "遊郭・花街",
+            "value": "traditional red-light district with Japanese lanterns"
           },
           {
-            "label": "蒸気機関の街",
-            "value": "steampunk city powered by brass machinery and steam"
+            "label": "神社・鳥居",
+            "value": "traditional Shinto shrine with red torii gates"
+          },
+          {
+            "label": "武家屋敷・日本庭園",
+            "value": "traditional samurai residence and Japanese garden"
+          },
+          {
+            "label": "和室・畳部屋",
+            "value": "traditional Japanese tatami room"
+          },
+          {
+            "label": "竹林の小道",
+            "value": "path through a dense bamboo forest"
+          },
+          {
+            "label": "中世ヨーロッパの街",
+            "value": "medieval European town"
+          },
+          {
+            "label": "古い洋館・洋風街並み",
+            "value": "historic town with Western-style architecture"
+          },
+          {
+            "label": "ヴィクトリア朝の街",
+            "value": "Victorian era streetscape"
           },
           {
             "label": "産業革命風の都市",
             "value": "industrial-era city with factories and smokestacks"
+          },
+          {
+            "label": "蒸気機関の街（スチームパンク）",
+            "value": "steampunk city powered by brass machinery and steam"
           }
         ]
       },
@@ -4824,76 +5453,88 @@
             "isNone": true
           },
           {
-            "label": "異世界の街",
-            "value": "fantasy city"
-          },
-          {
-            "label": "古城・廃城",
-            "value": "ancient castle ruins"
+            "label": "王都・城下町",
+            "value": "grand fantasy capital city"
           },
           {
             "label": "魔法都市",
-            "value": "magical city with fantastical architecture"
-          },
-          {
-            "label": "森・深い森",
-            "value": "mysterious deep forest"
-          },
-          {
-            "label": "湖・水辺",
-            "value": "quiet fantasy lake"
-          },
-          {
-            "label": "浮遊都市",
-            "value": "floating city in the sky"
-          },
-          {
-            "label": "星空・天体",
-            "value": "vast star-filled sky"
-          },
-          {
-            "label": "幻想的な花畑",
-            "value": "dreamlike field of flowers"
-          },
-          {
-            "label": "神殿・遺跡",
-            "value": "ancient temple and mysterious ruins"
-          },
-          {
-            "label": "異界・境界",
-            "value": "liminal otherworldly space"
-          },
-          {
-            "label": "王都・城下町",
-            "value": "grand fantasy capital city and castle town"
+            "value": "magical city with fantasy architecture"
           },
           {
             "label": "中世の村",
             "value": "quiet medieval fantasy village"
           },
           {
-            "label": "魔法学園",
-            "value": "fantasy academy with magical architecture"
+            "label": "冒険者ギルド・酒場",
+            "value": "cozy fantasy adventurer guild tavern"
           },
           {
-            "label": "空中庭園",
-            "value": "floating garden suspended in the sky"
+            "label": "魔法学園",
+            "value": "magical fantasy academy"
+          },
+          {
+            "label": "王宮の玉座の間",
+            "value": "grand fantasy palace throne room"
+          },
+          {
+            "label": "魔王城・暗黒城",
+            "value": "dark menacing villain castle"
+          },
+          {
+            "label": "古城・廃城",
+            "value": "ancient castle ruins"
+          },
+          {
+            "label": "神殿・遺跡",
+            "value": "mysterious ancient temple ruins"
+          },
+          {
+            "label": "ダンジョン・迷宮",
+            "value": "stone fantasy dungeon corridor"
           },
           {
             "label": "地下都市",
             "value": "vast underground fantasy city"
           },
           {
-            "label": "魔法の森",
-            "value": "enchanted forest filled with subtle magical light"
+            "label": "晶洞・水晶の洞窟",
+            "value": "glowing crystal cave"
+          },
+          {
+            "label": "魔法の森・発光する森",
+            "value": "enchanted forest with bioluminescent plants"
+          },
+          {
+            "label": "巨大樹・世界樹の麓",
+            "value": "base of a giant sacred world tree"
+          },
+          {
+            "label": "幻想的な花畑",
+            "value": "dreamlike fantasy flower field"
+          },
+          {
+            "label": "幻想的な湖・水辺",
+            "value": "serene magical fantasy lake"
+          },
+          {
+            "label": "深海・水中の都市",
+            "value": "mystical underwater fantasy city"
+          },
+          {
+            "label": "浮遊都市・天空の城",
+            "value": "floating city suspended in the sky"
+          },
+          {
+            "label": "空中庭園",
+            "value": "floating fantasy garden"
           },
           {
             "label": "異形の荒野",
-            "value": "otherworldly barren wasteland with strange formations"
+            "value": "otherworldly barren wasteland"
           },
           {
-            "label": "幻想的な街",
-            "value": "dreamlike fantasy city"
+            "label": "異界・亜空間",
+            "value": "surreal otherworldly dimension"
           }
         ]
       },
@@ -4915,36 +5556,52 @@
             "value": "near-future megacity"
           },
           {
-            "label": "ネオン街",
-            "value": "neon-lit futuristic street"
+            "label": "サイバーパンクの街",
+            "value": "cyberpunk city street with glowing billboards"
           },
           {
-            "label": "宇宙船",
-            "value": "interior of a futuristic spacecraft"
-          },
-          {
-            "label": "宇宙ステーション",
-            "value": "vast orbital space station"
-          },
-          {
-            "label": "サイバー空間",
-            "value": "abstract digital cyberspace"
-          },
-          {
-            "label": "研究施設",
-            "value": "advanced futuristic laboratory"
-          },
-          {
-            "label": "荒廃した未来都市",
-            "value": "post-apocalyptic futuristic city ruins"
-          },
-          {
-            "label": "ホログラム空間",
-            "value": "holographic virtual environment"
+            "label": "サイバーパンクのスラム街",
+            "value": "dystopian cyberpunk alleyway with cluttered cables and neon lights"
           },
           {
             "label": "ディストピア都市",
             "value": "oppressive dystopian megacity"
+          },
+          {
+            "label": "ソーラーパンク都市（緑と未来技術）",
+            "value": "solarpunk eco-city with futuristic glass architecture and lush greenery"
+          },
+          {
+            "label": "機械都市",
+            "value": "vast machine-driven industrial city"
+          },
+          {
+            "label": "海上都市",
+            "value": "floating ocean megacity"
+          },
+          {
+            "label": "研究施設・ラボ",
+            "value": "advanced futuristic laboratory"
+          },
+          {
+            "label": "培養室・生体ラボ",
+            "value": "futuristic bio-lab with glowing stasis pods"
+          },
+          {
+            "label": "コックピット・操縦席",
+            "value": "futuristic spaceship cockpit with holographic displays"
+          },
+          {
+            "label": "宇宙船内",
+            "value": "interior of a futuristic spacecraft"
+          },
+          {
+            "label": "格納庫・ハンガー",
+            "value": "vast futuristic spaceship hangar"
+          },
+          {
+            "label": "宇宙ステーション",
+            "value": "vast orbital space station"
           },
           {
             "label": "宇宙コロニー",
@@ -4956,32 +5613,32 @@
           },
           {
             "label": "火星開拓地",
-            "value": "remote Mars settlement under a vast alien sky"
+            "value": "remote Mars settlement under an alien sky"
           },
           {
-            "label": "海上都市",
-            "value": "floating ocean megacity of the future"
+            "label": "宇宙空間",
+            "value": "vast deep-space environment with distant nebulae and stars"
+          },
+          {
+            "label": "サイバー空間・データ空間",
+            "value": "abstract digital cyberspace"
+          },
+          {
+            "label": "仮想現実空間（VR）",
+            "value": "immersive virtual reality environment"
           },
           {
             "label": "地下シェルター",
             "value": "sealed underground survival shelter"
           },
           {
+            "label": "荒廃した未来都市",
+            "value": "post-apocalyptic futuristic city ruins"
+          },
+          {
             "label": "廃墟化した研究都市",
             "value": "abandoned futuristic research city"
           },
-          {
-            "label": "機械都市",
-            "value": "vast machine-driven industrial city"
-          },
-          {
-            "label": "仮想現実空間",
-            "value": "immersive virtual reality world"
-          },
-          {
-            "label": "宇宙空間",
-            "value": "vast deep-space environment with distant stars"
-          }
         ]
       },
       {
@@ -5000,35 +5657,55 @@
           },
           {
             "label": "蒸気都市",
-            "value": "a sprawling Victorian-inspired steampunk city filled with steam"
+            "value": "sprawling Victorian steampunk city with rising steam"
           },
           {
             "label": "歯車の街",
-            "value": "an intricate city of brass machinery and enormous gears"
-          },
-          {
-            "label": "飛行船港",
-            "value": "a bustling airship port above a steampunk city"
-          },
-          {
-            "label": "機械工房",
-            "value": "a warm mechanical workshop filled with brass tools and machinery"
-          },
-          {
-            "label": "地下機関区",
-            "value": "a vast underground engine room beneath the city"
-          },
-          {
-            "label": "霧の工業都市",
-            "value": "a foggy industrial city of chimneys, pipes, and steam"
+            "value": "intricate steampunk city of brass machinery and enormous gears"
           },
           {
             "label": "時計塔都市",
-            "value": "a grand city dominated by an enormous clock tower"
+            "value": "grand steampunk city dominated by a massive clock tower"
+          },
+          {
+            "label": "霧の工業都市",
+            "value": "foggy industrial city of chimneys, pipes, and iron structures"
+          },
+          {
+            "label": "飛行船港",
+            "value": "bustling airship port dock above a steampunk city"
           },
           {
             "label": "空中鉄道",
-            "value": "an elevated railway crossing a fantastical industrial city"
+            "value": "elevated steam railway crossing high above the industrial city"
+          },
+          {
+            "label": "飛行船のデッキ・船内",
+            "value": "wooden deck of a brass steampunk airship looking at the sky"
+          },
+          {
+            "label": "蒸気機関車の車内",
+            "value": "interior of a luxurious Victorian steam train"
+          },
+          {
+            "label": "機械工房・ガレージ",
+            "value": "mechanical workshop filled with brass tools, gears, and machinery"
+          },
+          {
+            "label": "時計塔の内部",
+            "value": "interior of a giant clock tower filled with rotating gears"
+          },
+          {
+            "label": "錬金術・科学研究室",
+            "value": "Victorian alchemy laboratory with glowing flasks and brass instruments"
+          },
+          {
+            "label": "地下機関区・ボイラールーム",
+            "value": "vast underground engine room with glowing furnaces and steam pipes"
+          },
+          {
+            "label": "廃工場・機械の廃墟",
+            "value": "abandoned steampunk factory with rusted gears and pipes"
           }
         ]
       },
@@ -5048,35 +5725,59 @@
           },
           {
             "label": "妖怪の住む町",
-            "value": "a hidden town inhabited by Japanese spirits and yokai"
+            "value": "hidden town inhabited by Japanese spirits and yokai"
           },
           {
             "label": "怪異の路地",
-            "value": "an eerie alley where supernatural phenomena gather"
+            "value": "eerie back alley with supernatural shadows and red lanterns"
           },
           {
-            "label": "異形の森",
-            "value": "an uncanny forest filled with strange living shapes"
+            "label": "あやかしの遊郭",
+            "value": "surreal red-light district populated by mysterious spirits"
           },
           {
-            "label": "霊的な境界",
-            "value": "a thin boundary between the living world and the spirit realm"
+            "label": "忘れられた神社・神域",
+            "value": "forgotten overgrown Shinto shrine with crumbling torii gates"
           },
           {
             "label": "呪われた屋敷",
-            "value": "a haunted and cursed old mansion"
+            "value": "haunted cursed Japanese estate with decaying wooden halls"
           },
           {
-            "label": "忘れられた神域",
-            "value": "a forgotten sacred place where an ancient presence remains"
+            "label": "廃病院",
+            "value": "eerie abandoned hospital corridor with flickering lights"
+          },
+          {
+            "label": "廃校・夜の校舎",
+            "value": "creepy abandoned school hallway at night"
+          },
+          {
+            "label": "異形の森",
+            "value": "uncanny forest of twisted trees and strange organic shapes"
+          },
+          {
+            "label": "深海・邪神の遺構",
+            "value": "sunken non-Euclidean city of ancient cosmic horrors"
+          },
+          {
+            "label": "霊的な境界",
+            "value": "liminal boundary between the living world and spirit realm"
+          },
+          {
+            "label": "黄昏の無人街",
+            "value": "uncanny deserted yellow-lit endless corridors, backrooms style"
           },
           {
             "label": "夢の中の街",
-            "value": "an impossible city existing inside a dream"
+            "value": "surreal impossible city existing inside a bizarre dream"
           },
           {
             "label": "時間の歪んだ場所",
-            "value": "a place where time bends and fragments overlap"
+            "value": "fractured space where time bends with overlapping fragments"
+          },
+          {
+            "label": "虚無の空間",
+            "value": "endless void with floating architectural debris"
           }
         ]
       },
@@ -5096,39 +5797,59 @@
           },
           {
             "label": "崩壊した都市",
-            "value": "collapsed modern city reclaimed by nature"
+            "value": "ruined modern city with collapsed skyscrapers"
           },
           {
             "label": "廃墟の街",
-            "value": "abandoned city ruins under an empty sky"
-          },
-          {
-            "label": "荒野",
-            "value": "vast desolate wasteland"
-          },
-          {
-            "label": "砂に埋もれた都市",
-            "value": "abandoned city ruins under an empty sky half-buried in sand"
-          },
-          {
-            "label": "浸水した街",
-            "value": "flooded city with abandoned buildings rising from the water"
-          },
-          {
-            "label": "雪に閉ざされた街",
-            "value": "abandoned city buried under snow"
+            "value": "deserted city ruins under an empty sky"
           },
           {
             "label": "植物に侵食された都市",
-            "value": "overgrown city overtaken by vegetation"
+            "value": "overgrown city fully reclaimed by lush vegetation"
+          },
+          {
+            "label": "砂に埋もれた都市",
+            "value": "sunken city ruins half-buried in desert sand"
+          },
+          {
+            "label": "浸水した街・水没都市",
+            "value": "flooded city with abandoned buildings rising from clear water"
+          },
+          {
+            "label": "雪と氷に閉ざされた都市",
+            "value": "frozen city ruins buried under deep snow and ice"
+          },
+          {
+            "label": "広大な荒野・世紀末",
+            "value": "vast desolate wasteland with dusty horizon"
           },
           {
             "label": "無人の高速道路",
-            "value": "empty abandoned highway stretching into the distance"
+            "value": "abandoned highway with rusted cars stretching into the distance"
           },
           {
-            "label": "避難所",
-            "value": "makeshift human shelter in a devastated world"
+            "label": "廃線・草に覆われた線路",
+            "value": "overgrown railway tracks with a rusted train"
+          },
+          {
+            "label": "廃屋上の展望台",
+            "value": "abandoned rooftop overlook looking out over a ruined city"
+          },
+          {
+            "label": "廃遊園地",
+            "value": "creepy abandoned amusement park with a rusted ferris wheel"
+          },
+          {
+            "label": "旧文明の遺構・巨大機械",
+            "value": "massive rusted mechanical wreckage of an ancient civilization"
+          },
+          {
+            "label": "漂着した巨大船・陸に上がった船",
+            "value": "giant stranded shipwreck in a dry wasteland"
+          },
+          {
+            "label": "仮設避難所・集落",
+            "value": "makeshift survivor shelter built from scavenged scrap material"
           }
         ]
       },
@@ -5147,204 +5868,216 @@
             "isNone": true
           },
           {
-            "label": "古い商店街",
-            "value": "old nostalgic Japanese shopping street"
+            "label": "学校の教室",
+            "value": "Japanese high school classroom"
           },
           {
-            "label": "踏切",
-            "value": "quiet railway crossing"
+            "label": "学校の廊下",
+            "value": "sunlit school hallway with wooden floor"
           },
           {
-            "label": "バス停",
-            "value": "lonely roadside bus stop"
+            "label": "図書室",
+            "value": "quiet school library with bookshelf aisles"
           },
           {
-            "label": "公園",
-            "value": "quiet neighborhood park"
+            "label": "保健室",
+            "value": "school infirmary with white curtains and bed"
           },
           {
-            "label": "河川敷",
-            "value": "open riverside embankment"
+            "label": "校舎の屋上",
+            "value": "school rooftop with chain-link fence overlooking the city"
           },
           {
-            "label": "海岸",
-            "value": "windswept seaside shore"
+            "label": "体育館・部室",
+            "value": "spacious school gymnasium interior"
           },
           {
-            "label": "山道",
-            "value": "quiet mountain path"
+            "label": "自分の部屋・自室",
+            "value": "cozy lived-in bedroom with desk and personal items"
           },
           {
-            "label": "温室",
-            "value": "lush glass greenhouse"
+            "label": "キッチン・ダイニング",
+            "value": "warm modern home kitchen and dining area"
           },
           {
-            "label": "古い洋館",
-            "value": "old Western-style mansion interior"
+            "label": "バスルーム・浴室",
+            "value": "clean modern bathroom with steaming bathtub"
           },
           {
-            "label": "神社",
-            "value": "quiet Japanese shrine grounds"
+            "label": "マンションのベランダ",
+            "value": "apartment balcony overlooking a city skyline"
           },
           {
-            "label": "寺",
-            "value": "traditional Japanese temple grounds"
-          },
-          {
-            "label": "地下空間",
-            "value": "dim underground passage or chamber"
-          },
-          {
-            "label": "屋内階段",
-            "value": "atmospheric interior staircase"
-          },
-          {
-            "label": "古い駅舎",
-            "value": "old nostalgic railway station building"
+            "label": "駅のホーム・ベンチ",
+            "value": "railway station platform with wooden benches"
           },
           {
             "label": "無人駅",
             "value": "lonely unmanned rural train station"
           },
           {
-            "label": "商店街の路地",
-            "value": "narrow back street behind an old shopping district"
+            "label": "電車の車内",
+            "value": "interior of a Japanese commuter train"
           },
           {
-            "label": "神社の境内",
-            "value": "peaceful Japanese shrine courtyard with torii gate"
+            "label": "踏切・線路沿い",
+            "value": "quiet Japanese railway crossing"
           },
           {
-            "label": "寺町",
-            "value": "traditional temple district with narrow streets"
+            "label": "バス停",
+            "value": "lonely roadside bus stop"
           },
           {
-            "label": "古い旅館",
-            "value": "traditional Japanese inn interior"
+            "label": "歩道橋",
+            "value": "pedestrian overpass overlooking city traffic"
           },
           {
-            "label": "銭湯",
-            "value": "nostalgic Japanese public bath interior"
+            "label": "横断歩道・交差点",
+            "value": "busy city crosswalk"
           },
           {
-            "label": "海辺の防波堤",
-            "value": "quiet seaside breakwater"
+            "label": "商店街・レトロ街",
+            "value": "nostalgic Japanese shopping arcade"
           },
           {
-            "label": "灯台",
-            "value": "solitary lighthouse on a rocky coast"
-          },
-          {
-            "label": "洞窟",
-            "value": "dark natural cave with subtle reflected light"
-          },
-          {
-            "label": "廃墟",
-            "value": "abandoned building reclaimed by nature"
-          },
-          {
-            "label": "廃遊園地",
-            "value": "abandoned amusement park overgrown with plants"
-          },
-          {
-            "label": "地下鉄",
-            "value": "empty underground subway platform"
+            "label": "路地裏・自販機前",
+            "value": "narrow Japanese back alley with glowing vending machines"
           },
           {
             "label": "高架下",
-            "value": "moody urban space beneath elevated railway tracks"
+            "value": "urban space beneath elevated railway tracks"
           },
           {
-            "label": "屋根裏部屋",
-            "value": "dusty nostalgic attic room"
+            "label": "レトロ喫茶店・カフェ",
+            "value": "cozy retro Japanese cafe interior"
           },
           {
-            "label": "温泉街",
-            "value": "quiet traditional Japanese hot spring town"
+            "label": "ファミレスのボックス席",
+            "value": "booth seat inside a brightly lit family restaurant"
           },
           {
-            "label": "駅・ホーム",
-            "value": "a railway station platform"
-          },
-          {
-            "label": "駅前ロータリー",
-            "value": "a station-front rotary and plaza"
-          },
-          {
-            "label": "電車の車内",
-            "value": "the interior of a commuter train"
-          },
-          {
-            "label": "踏切のある住宅街",
-            "value": "a residential neighborhood with a railway crossing"
-          },
-          {
-            "label": "学校の教室",
-            "value": "a Japanese school classroom"
-          },
-          {
-            "label": "図書室",
-            "value": "a quiet school library room"
-          },
-          {
-            "label": "商店街",
-            "value": "a nostalgic local shopping street"
-          },
-          {
-            "label": "路地裏",
-            "value": "a narrow urban back alley"
-          },
-          {
-            "label": "横断歩道",
-            "value": "a city crosswalk"
+            "label": "古本屋・書店",
+            "value": "small old used-book store interior"
           },
           {
             "label": "コンビニ",
-            "value": "a Japanese convenience store"
+            "value": "brightly lit Japanese convenience store at night"
           },
           {
-            "label": "書店",
-            "value": "a Japanese bookstore"
+            "label": "コインランドリー",
+            "value": "retro laundromat with washing machines"
           },
           {
-            "label": "古本屋",
-            "value": "a small old used-book shop"
+            "label": "銭湯・温泉街",
+            "value": "nostalgic Japanese public bath house interior"
           },
           {
-            "label": "花屋",
-            "value": "a small flower shop"
+            "label": "古い洋館・和洋折衷建築",
+            "value": "classic Western-style mansion interior with stained glass"
           },
           {
-            "label": "映画館",
-            "value": "a small cinema interior"
+            "label": "和室・畳の部屋",
+            "value": "traditional Japanese room with tatami mats"
           },
           {
-            "label": "美術館",
-            "value": "a quiet art museum gallery"
+            "label": "縁側・日本庭園",
+            "value": "traditional Japanese veranda overlooking a peaceful garden"
           },
           {
-            "label": "ホテル",
-            "value": "a hotel lobby or corridor"
+            "label": "屋根裏部屋",
+            "value": "dusty cozy attic room filled with vintage trinkets"
           },
           {
-            "label": "病院の廊下",
-            "value": "a quiet hospital corridor"
+            "label": "神社・境内",
+            "value": "peaceful Japanese shrine grounds with red torii gate"
           },
           {
-            "label": "オフィス",
-            "value": "a modern office interior"
+            "label": "寺院・寺町",
+            "value": "traditional Japanese temple grounds with stone lanterns"
           },
           {
-            "label": "屋上",
-            "value": "an open rooftop overlooking the city"
+            "label": "近所の公園・ベンチ",
+            "value": "quiet neighborhood park with a wooden bench"
           },
           {
-            "label": "港",
-            "value": "a working harbor and waterfront"
+            "label": "遊園地・観覧車前",
+            "value": "vibrant amusement park with a colorful ferris wheel"
           },
           {
-            "label": "地下シェルター",
-            "value": "an underground emergency shelter"
+            "label": "水族館・大水槽前",
+            "value": "dimly lit aquarium with a massive glowing blue tank"
+          },
+          {
+            "label": "ライブハウス・ステージ",
+            "value": "dim live music club stage with colorful spotlights"
+          },
+          {
+            "label": "ゲームセンター",
+            "value": "retro arcade game center with glowing screens"
+          },
+          {
+            "label": "河川敷・土手",
+            "value": "grassy riverside embankment under an open sky"
+          },
+          {
+            "label": "砂浜・ビーチ",
+            "value": "sunny tropical sandy beach with clear turquoise water"
+          },
+          {
+            "label": "海岸・防波堤",
+            "value": "windswept seaside shore with concrete breakwater"
+          },
+          {
+            "label": "灯台のある岬",
+            "value": "solitary lighthouse on a grassy cliff"
+          },
+          {
+            "label": "山道・ハイキングコース",
+            "value": "quiet mountain trail surrounded by trees"
+          },
+          {
+            "label": "キャンプ場・焚き火前",
+            "value": "cozy campsite in the forest next to a glowing campfire"
+          },
+          {
+            "label": "ひまわり畑",
+            "value": "vast vibrant sunflower field under a summer blue sky"
+          },
+          {
+            "label": "温室・植物園",
+            "value": "lush glass greenhouse filled with tropical flowers"
+          },
+          {
+            "label": "港・埠頭",
+            "value": "quiet harbor dock and waterfront with docked boats"
+          },
+          {
+            "label": "空港のターミナル・滑走路",
+            "value": "modern airport terminal looking out at the runway"
+          },
+          {
+            "label": "地下鉄ホーム・地下通路",
+            "value": "empty underground subway station"
+          },
+          {
+            "label": "オフィス・会議室",
+            "value": "modern office interior with large windows"
+          },
+          {
+            "label": "病院の廊下・病室",
+            "value": "quiet sterile hospital corridor"
+          },
+          {
+            "label": "美術館・ギャラリー",
+            "value": "quiet art museum gallery with artwork on walls"
+          },
+          {
+            "label": "軍事基地・格納庫",
+            "value": "vast military hangar base with heavy machinery"
+          },
+          {
+            "label": "廃墟・旧校舎",
+            "value": "overgrown abandoned building interior"
           }
         ]
       },
@@ -5435,6 +6168,10 @@
             "value": "a clear river or mountain stream"
           },
           {
+            "label": "滝",
+            "value": "majestic waterfall surrounded by lush nature and mist"
+          },
+          {
             "label": "山",
             "value": "distant mountains and layered ridgelines"
           },
@@ -5453,6 +6190,14 @@
           {
             "label": "砂漠",
             "value": "a vast arid desert landscape"
+          },
+          {
+            "label": "雲海",
+            "value": "dramatic sea of clouds below the viewpoint"
+          },
+          {
+            "label": "天の川・銀河",
+            "value": "stunning Milky Way galaxy across the dark night sky"
           },
           {
             "label": "星空",
@@ -5475,10 +6220,6 @@
             "value": "a luminous aurora across the night sky"
           },
           {
-            "label": "雲海",
-            "value": "a vast sea of clouds below the viewpoint"
-          },
-          {
             "label": "水面",
             "value": "a calm reflective water surface"
           }
@@ -5492,95 +6233,99 @@
           "character",
           "all"
         ],
-        "title": "天候",
+        "title": "天候・空気感",
         "items": [
           {
             "label": "指定なし",
             "isNone": true
           },
           {
-            "label": "快晴",
-            "value": "clear blue sky and crisp sunlight"
+            "label": "快晴・青空",
+            "value": "clear bright blue sky with crisp intense sunlight"
           },
           {
-            "label": "青空",
-            "value": "clear blue sky with bright daylight"
+            "label": "入道雲・夏空",
+            "value": "massive towering cumulonimbus clouds under a vivid summer sky"
+          },
+          {
+            "label": "木漏れ日",
+            "value": "soft dappled sunlight filtering through green leaves"
           },
           {
             "label": "薄曇り",
-            "value": "a softly overcast pale sky"
+            "value": "softly overcast pale sky with gentle ambient light"
           },
           {
             "label": "曇天",
-            "value": "an overcast sky with soft diffused ambient light"
+            "value": "moody dark overcast sky with diffuse lighting"
           },
           {
-            "label": "小雨",
-            "value": "gentle drizzle and damp atmosphere"
+            "label": "小雨・しとしと雨",
+            "value": "gentle drizzle with damp mist and soft atmosphere"
           },
           {
-            "label": "雨",
-            "value": "rainy weather and wet reflective surfaces"
+            "label": "雨・濡れた路面",
+            "value": "rainy weather with wet reflective ground and water droplets"
+          },
+          {
+            "label": "豪雨・土砂降り",
+            "value": "heavy downpour with dramatic rainfall and blurry background"
+          },
+          {
+            "label": "夕立・スコール",
+            "value": "sudden summer rain shower under a dark dramatic sky"
           },
           {
             "label": "雨上がり",
-            "value": "fresh wet surfaces and clear air after rain"
-          },
-          {
-            "label": "夕立",
-            "value": "a sudden summer rain shower under a dramatic sky"
-          },
-          {
-            "label": "豪雨",
-            "value": "heavy rain and dramatic rainfall"
-          },
-          {
-            "label": "雪",
-            "value": "falling snow"
-          },
-          {
-            "label": "吹雪",
-            "value": "blizzard and blowing snow"
-          },
-          {
-            "label": "霧",
-            "value": "dense atmospheric fog"
-          },
-          {
-            "label": "朝霧",
-            "value": "misty early morning fog"
-          },
-          {
-            "label": "夜霧",
-            "value": "dense fog drifting through the night"
-          },
-          {
-            "label": "雷雨",
-            "value": "a thunderstorm with distant lightning"
-          },
-          {
-            "label": "強風",
-            "value": "strong wind moving trees and fabric"
-          },
-          {
-            "label": "嵐",
-            "value": "violent storm conditions and turbulent weather"
+            "value": "fresh wet surfaces and clear atmosphere after rain"
           },
           {
             "label": "虹",
-            "value": "a vivid rainbow appearing after rain"
+            "value": "a vivid rainbow arches across the sky"
           },
           {
-            "label": "夕焼け",
-            "value": "dramatic sunset sky"
+            "label": "粉雪・舞い散る雪",
+            "value": "soft gentle snowflakes falling gracefully"
           },
           {
-            "label": "朝焼け",
-            "value": "soft dawn light across the sky"
+            "label": "吹雪・猛吹雪",
+            "value": "raging blizzard with blowing snow and low visibility"
           },
           {
-            "label": "凍てつく空気",
-            "value": "bitingly cold air with visible frost"
+            "label": "朝霧・靄",
+            "value": "mystical early morning fog with soft glowing light"
+          },
+          {
+            "label": "濃霧・夜霧",
+            "value": "dense heavy fog drifting silently through the scene"
+          },
+          {
+            "label": "雷雨・稲妻",
+            "value": "dramatic thunderstorm with visible lightning flashing"
+          },
+          {
+            "label": "強風・風の戯れ",
+            "value": "strong gust of wind moving hair, clothes, and leaves"
+          },
+          {
+            "label": "嵐・台風",
+            "value": "violent storm conditions with turbulent winds and dark sky"
+          },
+          {
+            "label": "朝焼け・黎明",
+            "value": "soft pink and golden dawn light softly illuminating the sky"
+          },
+          {
+            "label": "夕焼け・茜空",
+            "value": "vibrant orange and crimson sunset sky"
+          },
+          {
+            "label": "黄昏・マジックアワー",
+            "value": "magical twilight sky with purple and deep blue gradients"
+          },
+          {
+            "label": "凍てつく空気・霜",
+            "value": "bitingly cold air with frosty crystalline texture"
           }
         ]
       },
@@ -5674,7 +6419,7 @@
           "abstract",
           "all"
         ],
-        "title": "背景ディテール",
+        "title": "背景ディテール・演出",
         "items": [
           {
             "label": "指定なし",
@@ -5682,119 +6427,123 @@
           },
           {
             "label": "生活感のある背景",
-            "value": "lived-in background details and subtle signs of everyday life"
+            "value": "lived-in background details with subtle signs of everyday life"
           },
           {
-            "label": "人の気配だけ",
-            "value": "subtle traces of people without showing crowds"
+            "label": "人の気配・残香",
+            "value": "subtle traces of human presence without showing crowds"
           },
           {
-            "label": "無人の空間",
-            "value": "completely empty environment"
+            "label": "無人の静寂空間",
+            "value": "completely empty and silent environment"
           },
           {
-            "label": "散らかった空間",
-            "value": "cluttered lived-in environment"
+            "label": "散らかった部屋・空間",
+            "value": "cluttered lived-in environment with scattered items"
           },
           {
             "label": "整然とした空間",
-            "value": "clean orderly environment"
+            "value": "clean orderly environment with minimal decor"
           },
           {
-            "label": "遠景まで広がる",
-            "value": "deep layered background extending into the distance"
+            "label": "遠景まで広がる奥行き",
+            "value": "deep layered background extending far into the distance"
           },
           {
-            "label": "前景に小物",
-            "value": "foreground objects framing the scene"
-          },
-          {
-            "label": "反射を入れる",
-            "value": "reflections in glass, water, or polished surfaces"
-          },
-          {
-            "label": "雨粒・水滴",
-            "value": "visible raindrops and water droplets on surfaces"
-          },
-          {
-            "label": "光の粒子",
-            "value": "floating dust and tiny illuminated particles"
-          },
-          {
-            "label": "花びらが舞う",
-            "value": "scattered flower petals drifting through the air"
+            "label": "前景フレーム・前ボケ",
+            "value": "foreground objects blurred to frame the main subject"
           },
           {
             "label": "背景をぼかす",
-            "value": "a softly blurred background with shallow visual separation"
+            "value": "softly blurred background with shallow depth of field"
           },
           {
-            "label": "ガラス越し",
-            "value": "the scene viewed through glass with subtle reflections"
+            "label": "背景の玉ボケ・光の丸ボケ",
+            "value": "beautiful bokeh circle lights glowing in the background"
           },
           {
-            "label": "濡れた路面",
-            "value": "wet pavement reflecting surrounding light"
+            "label": "反射・水鏡",
+            "value": "sharp reflections on glass, water, or polished surfaces"
           },
           {
-            "label": "水たまり",
-            "value": "shallow puddles reflecting the environment"
+            "label": "ガラス越し・窓越し",
+            "value": "viewed through a window pane with subtle reflections and glare"
+          },
+          {
+            "label": "鏡越し・ミラー構図",
+            "value": "scene viewed through a mirror reflection"
+          },
+          {
+            "label": "濡れた路面・雨上がり",
+            "value": "wet pavement reflecting surrounding ambient light"
+          },
+          {
+            "label": "水たまりと映り込み",
+            "value": "shallow water puddles reflecting the sky and surroundings"
+          },
+          {
+            "label": "雨粒・窓の水滴",
+            "value": "visible raindrops in the air and water droplets on glass"
           },
           {
             "label": "窓から差し込む光",
-            "value": "light streaming through a nearby window"
+            "value": "dramatic sunbeams streaming through a nearby window"
           },
           {
-            "label": "壁や床への光",
-            "value": "distinct light patterns falling across walls and floor"
+            "label": "影のパターン（ブラインド／木漏れ日）",
+            "value": "distinct shadow patterns cast across the wall and floor"
           },
           {
-            "label": "ネオンの反射",
-            "value": "colored neon reflections across nearby surfaces"
-          },
-          {
-            "label": "カーテンが揺れる",
-            "value": "curtains gently moving in the breeze"
-          },
-          {
-            "label": "木の葉が舞う",
-            "value": "leaves drifting through the air"
-          },
-          {
-            "label": "紙片が舞う",
-            "value": "loose sheets of paper drifting through the scene"
-          },
-          {
-            "label": "煙・蒸気",
-            "value": "soft smoke or steam adding depth to the environment"
-          },
-          {
-            "label": "霞・靄",
-            "value": "soft atmospheric haze creating depth"
-          },
-          {
-            "label": "長い影",
+            "label": "伸びる長い影",
             "value": "long pronounced shadows stretching across the scene"
           },
           {
-            "label": "シルエット",
-            "value": "strong silhouetted forms against brighter background light"
+            "label": "シルエット効果",
+            "value": "strong silhouetted forms against a bright background"
           },
           {
-            "label": "足跡",
-            "value": "visible footprints suggesting recent passage"
+            "label": "ネオンの反射・光彩",
+            "value": "colorful neon light reflections glow across nearby surfaces"
           },
           {
-            "label": "時間の痕跡",
-            "value": "subtle visual traces of age and passing time"
+            "label": "光の粒子・埃",
+            "value": "floating dust and tiny glowing particles in the light beams"
           },
           {
-            "label": "古びた質感",
-            "value": "aged surfaces with worn textures and patina"
+            "label": "花びらが舞う",
+            "value": "scattered flower petals drifting softly through the air"
           },
           {
-            "label": "人の残した痕跡",
-            "value": "small signs that people have recently occupied the space"
+            "label": "木の葉が舞う",
+            "value": "autumn leaves drifting gracefully through the wind"
+          },
+          {
+            "label": "紙片・本が舞う",
+            "value": "loose sheets of paper swirling through the air"
+          },
+          {
+            "label": "舞い散る羽・火の粉",
+            "value": "floating feathers and glowing embers drifting in the air"
+          },
+          {
+            "label": "風で揺れるカーテン",
+            "value": "sheer curtains gently blowing in a soft breeze"
+          },
+          {
+            "label": "煙・蒸気・湯気",
+            "value": "soft wisps of smoke or steam adding atmospheric depth"
+          },
+          {
+            "label": "霞・モヤ",
+            "value": "soft atmospheric haze creating depth and mystery"
+          },
+          {
+            "label": "足跡・タイヤ痕",
+            "value": "visible footprints or tracks suggesting recent movement"
+          },
+          {
+            "label": "時間経過の痕跡・経年劣化",
+            "value": "weathered and aged surfaces with worn textures, rust, or moss"
           }
         ]
       },
@@ -6114,195 +6863,223 @@
           },
           {
             "label": "赤",
-            "value": "red-centered palette"
+            "value": "red-centered vibrant color palette"
           },
           {
             "label": "深紅",
-            "value": "deep crimson palette"
+            "value": "deep crimson and burgundy palette"
           },
           {
-            "label": "赤をアクセント",
-            "value": "restrained palette with a striking crimson accent"
+            "label": "朱色（和風赤）",
+            "value": "traditional vermilion red and scarlet palette"
           },
           {
-            "label": "桃",
-            "value": "pink-centered palette"
+            "label": "ピンク",
+            "value": "vibrant pink-centered palette"
           },
           {
-            "label": "桜色・淡色",
+            "label": "桜色",
             "value": "soft sakura pink and pale pastel palette"
           },
           {
-            "label": "橙",
-            "value": "orange-centered palette"
+            "label": "コーラル",
+            "value": "warm coral pink and peach color palette"
           },
           {
-            "label": "暖色・夕焼け",
-            "value": "warm amber orange and muted red palette"
+            "label": "マゼンタ・ショッキングピンク",
+            "value": "bold vivid magenta and deep hot pink palette"
+          },
+          {
+            "label": "橙",
+            "value": "warm bright orange-centered palette"
+          },
+          {
+            "label": "琥珀",
+            "value": "rich amber and honey-gold warm palette"
           },
           {
             "label": "黄",
-            "value": "yellow-centered palette"
+            "value": "bright sunshine yellow palette"
           },
           {
-            "label": "淡黄・クリーム",
-            "value": "pale yellow and cream palette"
+            "label": "山吹色",
+            "value": "rich yamabuki yellow and warm gold palette"
           },
           {
-            "label": "琥珀・アンバー",
-            "value": "amber and honey-gold palette"
-          },
-          {
-            "label": "山吹",
-            "value": "rich yamabuki yellow palette"
+            "label": "クリーム",
+            "value": "pale yellow, soft cream, and beige palette"
           },
           {
             "label": "マスタード",
-            "value": "muted mustard yellow palette"
+            "value": "muted mustard yellow and ochre palette"
           },
           {
-            "label": "黄緑",
-            "value": "yellow-green palette"
+            "label": "ライムグリーン",
+            "value": "fresh yellow-green and vivid lime palette"
           },
           {
             "label": "緑",
-            "value": "green-centered palette"
+            "value": "vivid green-centered natural palette"
           },
           {
-            "label": "アースカラー",
-            "value": "natural earth-tone color palette"
+            "label": "深緑",
+            "value": "deep forest green and pine green palette"
           },
           {
-            "label": "深緑×茶・森",
-            "value": "deep forest green and earthy brown palette"
+            "label": "薄緑",
+            "value": "refreshing mint green and pale sage palette"
           },
           {
-            "label": "緑×金",
-            "value": "deep green and antique gold palette"
-          },
-          {
-            "label": "青",
-            "value": "blue-centered palette"
+            "label": "青緑",
+            "value": "rich teal, peacock blue, and emerald green palette"
           },
           {
             "label": "水色",
-            "value": "light cyan and pale blue palette"
+            "value": "light cyan, sky blue, and pale azure palette"
           },
           {
-            "label": "紺・群青",
-            "value": "navy and ultramarine palette"
+            "label": "青",
+            "value": "vibrant blue-centered cool color palette"
           },
           {
-            "label": "藍",
-            "value": "indigo-centered palette"
+            "label": "紺",
+            "value": "deep navy blue and night sky indigo palette"
           },
           {
-            "label": "寒色・静寂",
-            "value": "cool desaturated blue palette"
-          },
-          {
-            "label": "水色×白・透明感",
-            "value": "airy white and pale blue translucent palette"
+            "label": "群青",
+            "value": "rich intense ultramarine blue palette"
           },
           {
             "label": "紫",
-            "value": "purple-centered palette"
+            "value": "purple and rich violet palette"
           },
           {
-            "label": "青紫・夜色",
-            "value": "deep blue and violet nocturnal palette"
+            "label": "藤色",
+            "value": "soft lavender and pale wisteria purple palette"
           },
           {
-            "label": "紫×桃・幻想",
-            "value": "dreamy violet and soft pink palette"
+            "label": "青紫",
+            "value": "deep blue and night violet nocturnal palette"
           },
           {
-            "label": "紫×金",
-            "value": "deep violet and antique gold palette"
+            "label": "赤紫",
+            "value": "deep plum and wine red purple palette"
           },
           {
-            "label": "無彩色",
-            "value": "neutral grayscale palette"
-          },
-          {
-            "label": "白・銀・雪色",
-            "value": "white, silver and snowy pale palette"
+            "label": "茶",
+            "value": "rich warm brown and chocolate palette"
           },
           {
             "label": "モノクロ",
-            "value": "monochrome black and white palette"
+            "value": "monochrome black and white high contrast palette"
+          },
+          {
+            "label": "白・銀・雪色",
+            "value": "white, silver, and snowy pale monochrome palette"
+          },
+          {
+            "label": "漆黒",
+            "value": "deep pitch black and shadow monochromatic palette"
           },
           {
             "label": "セピア・古写真",
             "value": "vintage sepia monochromatic palette"
           },
           {
-            "label": "黒・紫・深紅",
-            "value": "black, deep violet and crimson palette"
+            "label": "赤をアクセント",
+            "value": "restrained monochrome palette with a striking crimson accent"
           },
           {
-            "label": "灰×紫・退廃",
-            "value": "desaturated gray and muted violet decadent palette"
+            "label": "青をアクセント",
+            "value": "muted desaturated palette with a striking bright blue accent"
           },
           {
-            "label": "黒×金・荘厳",
-            "value": "black and antique gold luxurious palette"
+            "label": "ゴールド",
+            "value": "luminous metallic gold and warm light palette"
           },
           {
-            "label": "混色・コントラスト",
-            "value": "mixed color relationships and contrast palette"
+            "label": "青×橙（映画風）",
+            "value": "cinematic blue and orange complementary palette"
           },
           {
-            "label": "補色・強い対比",
-            "value": "strong complementary color contrast"
+            "label": "青×赤（対立・コントラスト）",
+            "value": "cinematic blue and intense crimson palette with high visual tension"
           },
           {
-            "label": "青×橙",
-            "value": "cinematic blue and orange color palette"
+            "label": "紫×ピンク（夢幻・ファンタジー）",
+            "value": "dreamy pastel violet and soft pink palette"
           },
           {
-            "label": "青×赤・対立",
-            "value": "cinematic blue and crimson palette, visual tension"
+            "label": "紫×金（高貴・荘厳）",
+            "value": "deep regal violet and metallic gold palette"
           },
           {
-            "label": "青緑×紫",
-            "value": "teal and violet palette"
+            "label": "黒×金（ラグジュアリー）",
+            "value": "luxurious black and antique gold palette"
           },
           {
-            "label": "緑×青・自然",
-            "value": "emerald green and deep blue natural palette"
+            "label": "緑×金（オリエンタル・クラシック）",
+            "value": "emerald green and antique gold palette"
           },
           {
-            "label": "橙×紫・夕暮れ",
+            "label": "青緑×紫（サイバー・夜の街）",
+            "value": "cool teal and vibrant violet palette"
+          },
+          {
+            "label": "橙×紫（黄昏・夕暮れ）",
             "value": "dusky orange and violet twilight palette"
           },
           {
-            "label": "赤×白・鮮烈",
-            "value": "striking scarlet red and white palette"
+            "label": "赤×黒×紫（ダーク・退廃）",
+            "value": "gothic black, deep violet, and crimson palette"
           },
           {
-            "label": "低彩度・くすみ",
-            "value": "muted low-saturation color palette"
+            "label": "水色×白（透明感・清涼）",
+            "value": "airy white and pale blue translucent palette"
           },
           {
-            "label": "クリーム・ブラウン",
-            "value": "warm cream, beige and brown palette"
+            "label": "黒×赤×白（モダン和風・パンク）",
+            "value": "striking black, bold scarlet red, and stark white palette"
           },
           {
-            "label": "パステル",
-            "value": "soft pastel color palette"
+            "label": "水色×ピンク×黄（ゆめかわ）",
+            "value": "whimsical pastel pink, light cyan, and soft yellow fairy-kei palette"
           },
           {
-            "label": "鮮やか・高彩度",
-            "value": "vivid high-saturation color palette"
+            "label": "深緑×茶×金（レトロクラシック）",
+            "value": "vintage forest green, rich brown, and warm gold palette"
+          },
+          {
+            "label": "虹色・グラデーション",
+            "value": "vibrant rainbow spectrum and iridescent gradient palette"
+          },
+          {
+            "label": "パステル・ファンシー",
+            "value": "soft dreamy pastel color palette"
+          },
+          {
+            "label": "ビビッド・高彩度",
+            "value": "vivid high-saturation neon and bright color palette"
+          },
+          {
+            "label": "くすみ・低彩度",
+            "value": "muted low-saturation desaturated color palette"
+          },
+          {
+            "label": "アースカラー・ナチュラル",
+            "value": "natural organic earth-tone palette"
           },
           {
             "label": "ジュエルカラー",
-            "value": "rich jewel-tone color palette"
+            "value": "rich ruby, emerald, and sapphire jewel-tone palette"
           },
           {
-            "label": "同系色・グラデーション",
-            "value": "harmonious monochromatic gradient palette"
+            "label": "サイバーネオン",
+            "value": "glowing neon pink, cyan, and dark cyberpunk color palette"
+          },
+          {
+            "label": "レトロポップ",
+            "value": "vivid retro 80s nostalgic color palette with warm muted tones"
           }
         ]
       },
@@ -6441,55 +7218,67 @@
           "abstract",
           "all"
         ],
-        "title": "カメラ・レンズ",
+        "title": "カメラ・レンズ効果",
         "items": [
           {
             "label": "指定なし",
             "isNone": true
           },
           {
-            "label": "浅い被写界深度",
-            "value": "shallow depth of field, soft background bokeh"
+            "label": "背景をふわっとぼかす",
+            "value": "shallow depth of field, soft creamy background bokeh"
           },
           {
-            "label": "背景までくっきり",
-            "value": "deep depth of field, detailed background"
+            "label": "前も後もぼかす（ピントくっきり）",
+            "value": "strong foreground and background bokeh framing the subject"
           },
           {
-            "label": "超広角",
-            "value": "ultra wide-angle lens, expansive perspective"
+            "label": "背景までくっきり（全体にピント）",
+            "value": "deep depth of field, sharp focus on entire background"
           },
           {
-            "label": "広角",
-            "value": "wide-angle lens, immersive perspective"
+            "label": "超広角（パノラマ・ダイナミック）",
+            "value": "ultra wide-angle lens, expansive dynamic perspective"
           },
           {
-            "label": "標準レンズ",
-            "value": "natural standard-lens perspective"
+            "label": "広角（空間を広く見せる）",
+            "value": "wide-angle lens, immersive spatial perspective"
           },
           {
-            "label": "望遠・圧縮感",
-            "value": "telephoto lens, compressed perspective"
+            "label": "標準レンズ（見たままの自然さ）",
+            "value": "natural standard 50mm lens perspective"
           },
           {
-            "label": "マクロ",
-            "value": "macro lens, intimate close detail"
+            "label": "望遠（背景を引き寄せる・圧縮感）",
+            "value": "telephoto lens, compressed background perspective"
           },
           {
-            "label": "35mmフィルム",
-            "value": "35mm film photography aesthetic, subtle grain"
+            "label": "マクロ・超接写（ドアップ）",
+            "value": "macro photo, extreme close-up detail"
           },
           {
-            "label": "長時間露光",
-            "value": "long exposure, subtle motion trails"
+            "label": "魚眼レンズ（丸く歪む表現）",
+            "value": "fisheye lens, distorted spherical perspective"
           },
           {
-            "label": "ボケ強調",
-            "value": "strong foreground and background bokeh"
+            "label": "35mmフィルムカメラ風（レトロエモ）",
+            "value": "35mm film photo aesthetic, subtle film grain"
           },
           {
-            "label": "光芒・フレア",
-            "value": "cinematic lens flare and visible light rays"
+            "label": "インスタントカメラ風（チェキ風）",
+            "value": "polaroid instant camera style, soft flash lighting"
+          },
+          {
+            "label": "長時間露光（ブレ・光の尾）",
+            "value": "long exposure photo, motion blur trails"
+          },
+          {
+            "label": "レンズフレア・光芒（逆光の光）",
+            "value": "cinematic lens flare, glowing light rays"
+          },
+          {
+            "label": "チルトシフト（ミニチュア風）",
+            "value": "tilt-shift lens effect, miniature style focus"
           }
         ]
       },
@@ -6625,84 +7414,108 @@
             "isNone": true
           },
           {
-            "label": "境界",
-            "value": "visual metaphor of a boundary between worlds"
+            "label": "境界・あわい",
+            "value": "visual metaphor of a boundary between two different worlds"
           },
           {
-            "label": "記憶",
-            "value": "visual metaphor of fragmented memories"
+            "label": "記憶・欠片",
+            "value": "visual metaphor of fragmented glass memories floating in the air"
           },
           {
-            "label": "運命",
-            "value": "visual metaphor of fate and inevitability"
+            "label": "忘却・風化",
+            "value": "visual metaphor of fading memories, erasure, and gradual oblivion"
+          },
+          {
+            "label": "運命・不可避",
+            "value": "visual metaphor of fate, destiny, and red threads of connection"
+          },
+          {
+            "label": "選択・分岐",
+            "value": "visual metaphor of a difficult choice, crossroads, and branching paths"
+          },
+          {
+            "label": "絆・つながり",
+            "value": "visual metaphor of deep emotional connection and unbreakable bonds"
+          },
+          {
+            "label": "断絶・孤独",
+            "value": "visual metaphor of emotional distance, rupture, and solitude"
           },
           {
             "label": "再会",
-            "value": "visual metaphor of reunion"
+            "value": "visual metaphor of an emotional reunion after a long separation"
           },
           {
-            "label": "別離",
-            "value": "visual metaphor of separation"
+            "label": "別離・餞",
+            "value": "visual metaphor of bittersweet farewell and parting ways"
           },
           {
-            "label": "循環",
-            "value": "visual metaphor of cycles and repetition"
+            "label": "自由・解放",
+            "value": "visual metaphor of freedom, spreading wings, and breaking constraints"
           },
           {
-            "label": "秘密",
-            "value": "visual metaphor of hidden secrets"
+            "label": "束縛・囚われ",
+            "value": "visual metaphor of confinement, chains, restraint, and emotional captivity"
           },
           {
-            "label": "選択",
-            "value": "visual metaphor of a difficult choice"
+            "label": "秘密・隠蔽",
+            "value": "visual metaphor of hidden secrets, mystery, and veiled truths"
           },
           {
-            "label": "生と死",
+            "label": "真実・露見",
+            "value": "visual metaphor of absolute truth revealed from shadows"
+          },
+          {
+            "label": "嘘・偽り",
+            "value": "visual metaphor of deception, masks, and hidden double motives"
+          },
+          {
+            "label": "生と死・儚さ",
             "value": "visual metaphor of life and death, fragile existence and mortality"
           },
           {
-            "label": "光と闇",
-            "value": "visual metaphor of light and darkness, opposing forces"
+            "label": "光と闇・二面性",
+            "value": "visual metaphor of light and darkness, dual nature, and opposing forces"
           },
           {
-            "label": "真実",
-            "value": "visual metaphor of truth revealed from concealment"
+            "label": "夢と現実",
+            "value": "visual metaphor of blurred lines between dream fantasy and reality"
           },
           {
-            "label": "嘘",
-            "value": "visual metaphor of deception, lies and hidden intentions"
+            "label": "救済・光挿す場所",
+            "value": "visual metaphor of salvation, hope, and light breaking through darkness"
           },
           {
-            "label": "自由",
-            "value": "visual metaphor of freedom and breaking free from constraints"
+            "label": "贖罪・罪と罰",
+            "value": "visual metaphor of atonement, remorse, and bearing heavy burden"
           },
           {
-            "label": "束縛",
-            "value": "visual metaphor of confinement, restraint and emotional bonds"
+            "label": "渇望・執着",
+            "value": "visual metaphor of intense longing, yearning, and obsessive desire"
           },
           {
-            "label": "絆",
-            "value": "visual metaphor of connection, bonds and emotional ties"
+            "label": "祈り・願い",
+            "value": "visual metaphor of quiet prayer, devotion, and hopeful wishes"
           },
           {
-            "label": "断絶",
-            "value": "visual metaphor of rupture, disconnection and emotional distance"
+            "label": "循環・輪廻",
+            "value": "visual metaphor of infinite cycles, rebirth, and repetition"
           },
           {
-            "label": "忘却",
-            "value": "visual metaphor of forgetting, fading memories and erasure"
+            "label": "永遠・停滞",
+            "value": "visual metaphor of timeless eternity and frozen moments in time"
           },
           {
-            "label": "存在",
-            "value": "visual metaphor of existence, identity and the meaning of being"
+            "label": "変化・変容",
+            "value": "visual metaphor of transformation, growth, and irreversible change"
           },
           {
-            "label": "変化",
-            "value": "visual metaphor of transformation, transition and irreversible change"
+            "label": "存在・証明",
+            "value": "visual metaphor of human existence, self-identity, and purpose"
           },
           {
-            "label": "人間性",
-            "value": "visual metaphor of humanity, compassion and the nature of being human"
+            "label": "人間性・温もり",
+            "value": "visual metaphor of humanity, compassion, and emotional warmth"
           }
         ]
       },
@@ -6722,6 +7535,78 @@
             "isNone": true
           },
           {
+            "label": "歯車",
+            "value": "symbolic brass and iron gears, steampunk mechanism"
+          },
+          {
+            "label": "時計仕掛け",
+            "value": "symbolic intricate clockwork machinery and internal cogs"
+          },
+          {
+            "label": "時計",
+            "value": "symbolic modern or minimalist clock face motif"
+          },
+          {
+            "label": "アンティーク時計",
+            "value": "symbolic ornate antique grandfather clock or grand vintage wall clock motif"
+          },
+          {
+            "label": "懐中時計",
+            "value": "symbolic open pocket watch with chain motif"
+          },
+          {
+            "label": "砂時計",
+            "value": "symbolic hourglass motif with falling sand"
+          },
+          {
+            "label": "鍵",
+            "value": "symbolic ornate antique key motif"
+          },
+          {
+            "label": "鍵穴",
+            "value": "symbolic keyhole motif, glowing light leaking through keyhole"
+          },
+          {
+            "label": "鎖",
+            "value": "symbolic heavy iron chains"
+          },
+          {
+            "label": "鳥籠",
+            "value": "symbolic ornate birdcage motif"
+          },
+          {
+            "label": "仮面",
+            "value": "symbolic theatrical mask motif"
+          },
+          {
+            "label": "チェス駒",
+            "value": "symbolic chess piece motif, king or queen"
+          },
+          {
+            "label": "トランプカード",
+            "value": "symbolic playing cards scattered"
+          },
+          {
+            "label": "鏡・姿見",
+            "value": "symbolic large ornate mirror motif"
+          },
+          {
+            "label": "手鏡",
+            "value": "symbolic ornate vintage hand mirror motif"
+          },
+          {
+            "label": "鏡の破片",
+            "value": "symbolic broken mirror shards reflecting light"
+          },
+          {
+            "label": "割れたガラス",
+            "value": "symbolic shattered glass fragments"
+          },
+          {
+            "label": "額縁・空のフレーム",
+            "value": "symbolic empty ornate picture frame"
+          },
+          {
             "label": "蝶",
             "value": "symbolic butterfly motif"
           },
@@ -6730,188 +7615,164 @@
             "value": "symbolic black cat motif"
           },
           {
-            "label": "犬",
-            "value": "symbolic dog motif"
+            "label": "犬・忠犬",
+            "value": "symbolic loyal dog motif"
           },
           {
-            "label": "鳥",
+            "label": "鳥・飛翔",
             "value": "symbolic bird in flight"
+          },
+          {
+            "label": "羽根・羽毛",
+            "value": "symbolic floating feather motif"
+          },
+          {
+            "label": "天使の翼",
+            "value": "symbolic majestic angel wings motif"
+          },
+          {
+            "label": "彼岸花",
+            "value": "symbolic red spider lily motif"
+          },
+          {
+            "label": "一輪の薔薇",
+            "value": "symbolic single elegant rose flower"
+          },
+          {
+            "label": "ドライフラワー",
+            "value": "symbolic withered flower and dried bouquet"
           },
           {
             "label": "林檎",
             "value": "symbolic red apple motif"
           },
           {
-            "label": "花びら",
-            "value": "floating flower petals"
-          },
-          {
-            "label": "時計",
-            "value": "symbolic antique clock"
-          },
-          {
-            "label": "鏡",
-            "value": "symbolic mirror motif"
-          },
-          {
-            "label": "鍵",
-            "value": "symbolic key motif"
-          },
-          {
-            "label": "本",
-            "value": "symbolic open book motif"
-          },
-          {
-            "label": "手紙",
-            "value": "symbolic letter or envelope motif"
-          },
-          {
-            "label": "水面",
-            "value": "symbolic reflective water surface"
-          },
-          {
-            "label": "月",
-            "value": "symbolic crescent moon"
-          },
-          {
-            "label": "光と影",
-            "value": "symbolic contrast of light and shadow"
-          },
-          {
-            "label": "羽根",
-            "value": "symbolic feather motif"
-          },
-          {
             "label": "赤い糸",
-            "value": "symbolic red thread of fate"
+            "value": "symbolic red thread of fate motif"
           },
           {
-            "label": "蝋燭",
-            "value": "symbolic candle flame"
+            "label": "シフォンリボン",
+            "value": "symbolic airy translucent chiffon ribbons, soft weightless motion"
           },
           {
-            "label": "炎",
-            "value": "symbolic flame motif"
+            "label": "ひらひらのリボン（なびく質感）",
+            "value": "symbolic soft fluttering silk ribbons floating gracefully in the air"
           },
           {
-            "label": "煙",
-            "value": "symbolic drifting smoke"
-          },
-          {
-            "label": "割れたガラス",
-            "value": "symbolic shattered glass"
-          },
-          {
-            "label": "砂時計",
-            "value": "symbolic hourglass"
-          },
-          {
-            "label": "扉",
-            "value": "symbolic doorway motif"
-          },
-          {
-            "label": "窓",
-            "value": "symbolic window motif"
-          },
-          {
-            "label": "階段",
-            "value": "symbolic staircase motif"
-          },
-          {
-            "label": "空の椅子",
-            "value": "symbolic empty chair"
-          },
-          {
-            "label": "仮面",
-            "value": "symbolic mask motif"
-          },
-          {
-            "label": "花束",
-            "value": "symbolic bouquet of flowers"
-          },
-          {
-            "label": "枯れた花",
-            "value": "symbolic withered flower"
-          },
-          {
-            "label": "一輪の花",
-            "value": "symbolic single flower"
-          },
-          {
-            "label": "露・雫",
-            "value": "symbolic water droplets"
-          },
-          {
-            "label": "雪",
-            "value": "symbolic falling snow"
-          },
-          {
-            "label": "星空",
-            "value": "symbolic starry sky"
-          },
-          {
-            "label": "星座",
-            "value": "symbolic constellation"
-          },
-          {
-            "label": "日蝕・月蝕",
-            "value": "symbolic eclipse"
-          },
-          {
-            "label": "満月",
-            "value": "symbolic full moon"
-          },
-          {
-            "label": "影だけの人物",
-            "value": "symbolic human silhouette"
-          },
-          {
-            "label": "長い影",
-            "value": "symbolic elongated shadow"
-          },
-          {
-            "label": "足跡",
-            "value": "symbolic footprints"
-          },
-          {
-            "label": "波紋",
-            "value": "symbolic ripples on water"
-          },
-          {
-            "label": "泡",
-            "value": "symbolic floating bubbles"
-          },
-          {
-            "label": "鳥籠",
-            "value": "symbolic birdcage"
-          },
-          {
-            "label": "紙片・ページ",
-            "value": "symbolic drifting paper pages"
-          },
-          {
-            "label": "封蝋",
-            "value": "symbolic wax seal"
+            "label": "結び目・解けたリボン",
+            "value": "symbolic loosely tied ribbon knot and untying satin ribbon"
           },
           {
             "label": "指輪",
-            "value": "symbolic ring motif"
+            "value": "symbolic ring motif glowing subtly"
+          },
+          {
+            "label": "古本",
+            "value": "symbolic open antique book"
+          },
+          {
+            "label": "魔導書",
+            "value": "symbolic grimoire with glowing magical runes"
+          },
+          {
+            "label": "手紙",
+            "value": "symbolic vintage letter"
+          },
+          {
+            "label": "封蝋",
+            "value": "symbolic wax seal stamp motif"
+          },
+          {
+            "label": "紙片・舞い散るページ",
+            "value": "symbolic drifting book pages and paper floating"
+          },
+          {
+            "label": "蝋燭",
+            "value": "symbolic candle flame flickering"
           },
           {
             "label": "ランタン",
-            "value": "symbolic lantern light"
+            "value": "symbolic glowing lantern light"
           },
           {
-            "label": "灯りの消えた街灯",
-            "value": "symbolic extinguished street lamp"
+            "label": "炎",
+            "value": "symbolic flame embers drifting"
           },
           {
-            "label": "彼岸花",
-            "value": "symbolic red spider lily"
+            "label": "煙・紫煙",
+            "value": "symbolic drifting smoke and wisps"
           },
           {
-            "label": "水滴の中の景色",
-            "value": "symbolic reflected scene inside a water droplet"
+            "label": "宝石",
+            "value": "symbolic polished gemstone"
+          },
+          {
+            "label": "鉱物",
+            "value": "symbolic glowing raw crystal cluster"
+          },
+          {
+            "label": "泡・シャボン玉",
+            "value": "symbolic floating translucent bubbles"
+          },
+          {
+            "label": "水滴・雫",
+            "value": "symbolic water droplet motif"
+          },
+          {
+            "label": "波紋・水面",
+            "value": "symbolic gentle water ripples motif"
+          },
+          {
+            "label": "三日月",
+            "value": "symbolic glowing crescent moon"
+          },
+          {
+            "label": "満月",
+            "value": "symbolic luminous full moon"
+          },
+          {
+            "label": "日蝕・月蝕",
+            "value": "symbolic dramatic eclipse motif"
+          },
+          {
+            "label": "星空・星座",
+            "value": "symbolic starry sky and constellation lines"
+          },
+          {
+            "label": "開いた扉",
+            "value": "symbolic open doorway, bright light streaming through the opening"
+          },
+          {
+            "label": "閉ざされた扉",
+            "value": "symbolic closed ornate door, mysterious locked entrance"
+          },
+          {
+            "label": "扉",
+            "value": "symbolic surreal solitary door standing alone in space"
+          },
+          {
+            "label": "階段",
+            "value": "symbolic grand staircase leading upwards"
+          },
+          {
+            "label": "螺旋階段",
+            "value": "symbolic intricate spiral staircase, dramatic vertical composition"
+          },
+          {
+            "label": "見上げる階段",
+            "value": "symbolic low angle view looking up at towering endless stairs"
+          },
+          {
+            "label": "見下ろす階段",
+            "value": "symbolic high angle view looking down into a deep staircase abyss"
+          },
+          {
+            "label": "空の椅子",
+            "value": "symbolic solitary empty chair"
+          },
+          {
+            "label": "シルエット・影",
+            "value": "symbolic human silhouette and long shadow"
           },
           {
             "label": "自由入力",
@@ -10340,4 +11201,5 @@
   </script>
 
 </body>
+
 </html>
