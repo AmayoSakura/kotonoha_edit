@@ -561,265 +561,360 @@
         ],
         "title": "髪型",
         "items": [
-          {
-            "label": "指定なし",
-            "isNone": true
-          },
-          {
-            "label": "ベリーショート",
-            "value": "very short haircut",
-            "family": "髪の長さ"
-          },
-          {
-            "label": "ショート",
-            "value": "short hairstyle",
-            "family": "髪の長さ"
-          },
-          {
-            "label": "ボブ",
-            "value": "bob haircut",
-            "family": "髪の長さ"
-          },
-          {
-            "label": "切りっぱなしボブ",
-            "value": "sharp blunt cut bob, clean straight edge hair",
-            "family": "髪の長さ"
-          },
-          {
-            "label": "ミディアム",
-            "value": "medium-length hairstyle",
-            "family": "髪の長さ"
-          },
-          {
-            "label": "ロング",
-            "value": "long flowing hair",
-            "family": "髪の長さ"
-          },
-          {
-            "label": "スーパーロング",
-            "value": "very long hair",
-            "family": "髪の長さ"
-          },
-          {
-            "label": "ウルフカット",
-            "value": "wolf cut hairstyle",
-            "family": "髪型"
-          },
-          {
-            "label": "姫カット",
-            "value": "hime cut hairstyle",
-            "family": "髪型"
-          },
-          {
-            "label": "マッシュカット",
-            "value": "rounded mushroom cut, retro bowl cut haircut",
-            "family": "髪型"
-          },
-          {
-            "label": "おかっぱボブ",
-            "value": "classic straight blunt bob haircut with straight blunt bangs",
-            "family": "髪型"
-          },
-          {
-            "label": "ポニーテール",
-            "value": "ponytail",
-            "family": "髪型"
-          },
-          {
-            "label": "ハイポニーテール",
-            "value": "high ponytail",
-            "family": "髪型"
-          },
-          {
-            "label": "ローポニーテール",
-            "value": "low ponytail",
-            "family": "髪型"
-          },
-          {
-            "label": "サイドテール",
-            "value": "side ponytail",
-            "family": "髪型"
-          },
-          {
-            "label": "ツインテール",
-            "value": "twin tails hairstyle",
-            "family": "髪型"
-          },
-          {
-            "label": "ハーフアップ",
-            "value": "half-up hairstyle",
-            "family": "髪型"
-          },
-          {
-            "label": "サイドアップ",
-            "value": "side-up hairstyle",
-            "family": "髪型"
-          },
-          {
-            "label": "お団子",
-            "value": "hair in a bun",
-            "family": "髪型"
-          },
-          {
-            "label": "ツインお団子",
-            "value": "double bun hairstyle",
-            "family": "髪型"
-          },
-          {
-            "label": "編み込み",
-            "value": "intricately braided hairstyle",
-            "family": "髪型"
-          },
-          {
-            "label": "三つ編み",
-            "value": "braided hair",
-            "family": "髪型"
-          },
-          {
-            "label": "ツイン三つ編み",
-            "value": "twin braids",
-            "family": "髪型"
-          },
-          {
-            "label": "サイド三つ編み",
-            "value": "side-braided hair",
-            "family": "髪型"
-          },
-          {
-            "label": "前髪ぱっつん",
-            "value": "blunt straight bangs",
-            "family": "髪型"
-          },
-          {
-            "label": "シースルーバング",
-            "value": "see-through bangs",
-            "family": "髪型"
-          },
-          {
-            "label": "長い前髪",
-            "value": "long bangs",
-            "family": "髪型"
-          },
-          {
-            "label": "斜め前髪",
-            "value": "side-swept bangs",
-            "family": "髪型"
-          },
-          {
-            "label": "センター分け",
-            "value": "curtain bangs, center-parted hair",
-            "family": "髪型"
-          },
-          {
-            "label": "前髪なし",
-            "value": "hair styled without bangs",
-            "family": "髪型"
-          },
-          {
-            "label": "片目を隠す",
-            "value": "hair covering one eye",
-            "family": "髪型"
-          },
-          {
-            "label": "オールバック",
-            "value": "slicked-back hair",
-            "family": "髪型"
-          },
-          {
-            "label": "ストレート",
-            "value": "straight hair",
-            "family": "髪の形・質感"
-          },
-          {
-            "label": "ゆるウェーブ",
-            "value": "soft wavy hair",
-            "family": "髪の形・質感"
-          },
-          {
-            "label": "ウェーブ",
-            "value": "wavy hair",
-            "family": "髪の形・質感"
-          },
-          {
-            "label": "巻き髪",
-            "value": "curled hair",
-            "family": "髪の形・質感"
-          },
-          {
-            "label": "くせ毛",
-            "value": "naturally tousled hair",
-            "family": "髪の形・質感"
-          },
-          {
-            "label": "外ハネ",
-            "value": "outward-flipped ends",
-            "family": "髪の形・質感"
-          },
-          {
-            "label": "内巻き",
-            "value": "inward-curled ends",
-            "family": "髪の形・質感"
-          },
-          {
-            "label": "あほ毛",
-            "value": "ahoge, single standing hair strand",
-            "family": "髪の形・質感"
-          },
-          {
-            "label": "無造作ヘア",
-            "value": "messy effortless hairstyle",
-            "family": "髪の形・質感"
-          },
-          {
-            "label": "風になびく髪",
-            "value": "hair flowing dramatically in the wind",
-            "family": "髪の状態・動き"
-          },
-          {
-            "label": "風で大きく舞う髪",
-            "value": "hair dramatically swept by the wind",
-            "family": "髪の状態・動き"
-          },
-          {
-            "label": "髪がふわりと浮く",
-            "value": "hair softly floating in the air",
-            "family": "髪の状態・動き"
-          },
-          {
-            "label": "髪が揺れている",
-            "value": "hair gently swaying",
-            "family": "髪の状態・動き"
-          },
-          {
-            "label": "髪が乱れている",
-            "value": "slightly disheveled hair",
-            "family": "髪の状態・動き"
-          },
-          {
-            "label": "髪が激しく乱れる",
-            "value": "wildly tousled hair",
-            "family": "髪の状態・動き"
-          },
-          {
-            "label": "濡れた髪",
-            "value": "wet hair",
-            "family": "髪の状態・動き"
-          },
-          {
-            "label": "湿って重くなった髪",
-            "value": "damp, heavy hair",
-            "family": "髪の状態・動き"
-          },
-          {
-            "label": "水滴がついた髪",
-            "value": "hair with water droplets",
-            "family": "髪の状態・動き"
-          },
-          {
-            "label": "静電気で髪が浮く",
-            "value": "hair floating from static electricity",
-            "family": "髪の状態・動き"
-          }
+  {
+    "label": "指定なし",
+    "isNone": true
+  },
+  {
+    "label": "ベリーショート",
+    "value": "very short cropped haircut, pixie cut",
+    "family": "髪の長さ"
+  },
+  {
+    "label": "ショート",
+    "value": "short hairstyle",
+    "family": "髪の長さ"
+  },
+  {
+    "label": "ショートボブ",
+    "value": "chin-length short bob haircut, hair reaching the jawline",
+    "family": "髪の長さ"
+  },
+  {
+    "label": "ボブ",
+    "value": "classic bob haircut",
+    "family": "髪の長さ"
+  },
+  {
+    "label": "切りっぱなしボブ",
+    "value": "sharp blunt cut bob, clean straight edge hair",
+    "family": "髪の長さ"
+  },
+  {
+    "label": "ロブ（長めボブ）",
+    "value": "long bob haircut, lob, hair resting just above the shoulders",
+    "family": "髪の長さ"
+  },
+  {
+    "label": "ミディアム",
+    "value": "medium shoulder-length hair",
+    "family": "髪の長さ"
+  },
+  {
+    "label": "セミロング",
+    "value": "chest-length hair, mid-long hair",
+    "family": "髪の長さ"
+  },
+  {
+    "label": "ロング",
+    "value": "long flowing hair, waist-length hair",
+    "family": "髪の長さ"
+  },
+  {
+    "label": "スーパーロング",
+    "value": "super long hair, hip-length hair",
+    "family": "髪の長さ"
+  },
+  {
+    "label": "超長髪（床丈）",
+    "value": "floor-length hair, extremely long hair flowing down to the floor",
+    "family": "髪の長さ"
+  },
+  {
+    "label": "アシメ（長さ）",
+    "value": "asymmetrical haircut, uneven hair length",
+    "family": "髪の長さ"
+  },
+  {
+    "label": "ストレート",
+    "value": "straight hair",
+    "family": "髪型"
+  },
+  {
+    "label": "ウェーブ・パーマ",
+    "value": "wavy hair, soft perm hairstyle",
+    "family": "髪型"
+  },
+  {
+    "label": "カール・巻き髪",
+    "value": "curly hair, ringlet curls",
+    "family": "髪型"
+  },
+  {
+    "label": "ウルフカット",
+    "value": "wolf cut hairstyle",
+    "family": "髪型"
+  },
+  {
+    "label": "姫カット",
+    "value": "hime cut hairstyle",
+    "family": "髪型"
+  },
+  {
+    "label": "マッシュ",
+    "value": "rounded mushroom cut, bowl cut",
+    "family": "髪型"
+  },
+  {
+    "label": "おかっぱボブ",
+    "value": "classic straight blunt bob haircut",
+    "family": "髪型"
+  },
+  {
+    "label": "ツーブロック・刈り上げ",
+    "value": "undercut hairstyle",
+    "family": "髪型"
+  },
+  {
+    "label": "ポニーテール",
+    "value": "ponytail",
+    "family": "髪型"
+  },
+  {
+    "label": "ハイポニーテール",
+    "value": "high ponytail",
+    "family": "髪型"
+  },
+  {
+    "label": "ローポニーテール",
+    "value": "low ponytail",
+    "family": "髪型"
+  },
+  {
+    "label": "サイドテール",
+    "value": "side ponytail",
+    "family": "髪型"
+  },
+  {
+    "label": "ツインテール",
+    "value": "twin tails hairstyle",
+    "family": "髪型"
+  },
+  {
+    "label": "ハーフアップ",
+    "value": "half-up hairstyle",
+    "family": "髪型"
+  },
+  {
+    "label": "ハーフアップツイン",
+    "value": "half-up twin tails",
+    "family": "髪型"
+  },
+  {
+    "label": "サイドアップ",
+    "value": "side-up hairstyle",
+    "family": "髪型"
+  },
+  {
+    "label": "お団子",
+    "value": "hair in a bun",
+    "family": "髪型"
+  },
+  {
+    "label": "ツインお団子",
+    "value": "double bun hairstyle",
+    "family": "髪型"
+  },
+  {
+    "label": "シニヨン・まとめ髪",
+    "value": "chignon hairstyle, elegant updo hair",
+    "family": "髪型"
+  },
+  {
+    "label": "三つ編み",
+    "value": "braided hair",
+    "family": "髪型"
+  },
+  {
+    "label": "ツイン三つ編み",
+    "value": "twin braids",
+    "family": "髪型"
+  },
+  {
+    "label": "サイド三つ編み",
+    "value": "side-braided hair",
+    "family": "髪型"
+  },
+  {
+    "label": "編み込み",
+    "value": "intricately braided hairstyle, French braid",
+    "family": "髪型"
+  },
+  {
+    "label": "フィッシュボーン",
+    "value": "fishtail braid",
+    "family": "髪型"
+  },
+  {
+    "label": "前髪ぱっつん",
+    "value": "blunt straight bangs",
+    "family": "前髪"
+  },
+  {
+    "label": "シースルーバング",
+    "value": "see-through bangs",
+    "family": "前髪"
+  },
+  {
+    "label": "斜め前髪",
+    "value": "side-swept bangs",
+    "family": "前髪"
+  },
+  {
+    "label": "センター分け",
+    "value": "curtain bangs, center-parted hair",
+    "family": "前髪"
+  },
+  {
+    "label": "長い前髪",
+    "value": "long bangs",
+    "family": "前髪"
+  },
+  {
+    "label": "前髪なし・おでこ出し",
+    "value": "forehead exposed, no bangs",
+    "family": "前髪"
+  },
+  {
+    "label": "メカクレ（目隠れ）",
+    "value": "hair covering one eye",
+    "family": "前髪"
+  },
+  {
+    "label": "オールバック",
+    "value": "slicked-back hair",
+    "family": "前髪"
+  },
+  {
+    "label": "アホ毛",
+    "value": "cowlick, ahoge hair strand sticking up",
+    "family": "前髪"
+  },
+  {
+    "label": "ストレート",
+    "value": "silky smooth straight hair, glossy hair texture",
+    "family": "髪の形・質感"
+  },
+  {
+    "label": "ゆるウェーブ",
+    "value": "soft wavy hair, gentle waves",
+    "family": "髪の形・質感"
+  },
+  {
+    "label": "ウェーブ",
+    "value": "wavy hair, defined wave pattern",
+    "family": "髪の形・質感"
+  },
+  {
+    "label": "巻き髪",
+    "value": "curled hair, elegant ringlet curls",
+    "family": "髪の形・質感"
+  },
+  {
+    "label": "縦ロール",
+    "value": "vertical ringlet curls, drill hair",
+    "family": "髪の形・質感"
+  },
+  {
+    "label": "くせ毛",
+    "value": "naturally frizzy hair, tight natural curls, wild hair texture",
+    "family": "髪の形・質感"
+  },
+  {
+    "label": "外ハネ",
+    "value": "outward-flipped ends, flicked hair tips",
+    "family": "髪の形・質感"
+  },
+  {
+    "label": "内巻き",
+    "value": "inward-curled ends, soft turned-in hair tips",
+    "family": "髪の形・質感"
+  },
+  {
+    "label": "ふんわり",
+    "value": "softly feathered hair ends, light airy hair texture",
+    "family": "髪の形・質感"
+  },
+  {
+    "label": "あほ毛",
+    "value": "ahoge, single standing hair strand sticking up",
+    "family": "髪の形・質感"
+  },
+  {
+    "label": "無造作",
+    "value": "messy effortless hair, tousled bedhead texture",
+    "family": "髪の形・質感"
+  },
+  {
+    "label": "束感",
+    "value": "piecy hair strands, defined hair clumps, wet hair texture",
+    "family": "髪の形・質感"
+  },
+  {
+    "label": "ふわふわ",
+    "value": "fluffy voluminous hair, airy soft hair texture",
+    "family": "髪の形・質感"
+  },
+  {
+    "label": "ツヤ髪",
+    "value": "shiny hair, vivid hair highlight, angel ring hair shine",
+    "family": "髪の形・質感"
+  },
+  {
+    "label": "風になびく",
+    "value": "hair flowing gently in the wind",
+    "family": "髪の状態・動き"
+  },
+  {
+    "label": "風で舞う",
+    "value": "hair dramatically swept by strong wind, dynamic hair motion",
+    "family": "髪の状態・動き"
+  },
+  {
+    "label": "ふわりと浮く",
+    "value": "hair softly floating in the air, weightless hair strand",
+    "family": "髪の状態・動き"
+  },
+  {
+    "label": "無重力・水中",
+    "value": "hair floating in zero gravity, hair spread out underwater",
+    "family": "髪の状態・動き"
+  },
+  {
+    "label": "髪をかきあげる",
+    "value": "hand running through hair, hair pushed back with hand",
+    "family": "髪の状態・動き"
+  },
+  {
+    "label": "乱れ髪",
+    "value": "slightly disheveled hair, messy strands framing face",
+    "family": "髪の状態・動き"
+  },
+  {
+    "label": "激しい乱れ髪",
+    "value": "wildly tousled hair, dramatic unkempt hair strands",
+    "family": "髪の状態・動き"
+  },
+  {
+    "label": "濡れ髪",
+    "value": "wet hair, damp hair strands clinging to face",
+    "family": "髪の状態・動き"
+  },
+  {
+    "label": "水滴つき",
+    "value": "hair with glistening water droplets, dripping wet hair",
+    "family": "髪の状態・動き"
+  },
+  {
+    "label": "静電気",
+    "value": "hair floating from static electricity, fine hair strands spreading out",
+    "family": "髪の状態・動き"
+  },
+  {
+    "label": "顔にかかる髪",
+    "value": "hair strands falling across face, subtle face-framing hair",
+    "family": "髪の状態・動き"
+  }
         ]
       },
       {
