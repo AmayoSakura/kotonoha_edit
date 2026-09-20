@@ -3756,6 +3756,63 @@
         ]
       },
       {
+        "id": "environment-background",
+        "group": "scene-detail",
+        "modes": [
+          "landscape",
+          "character",
+          "abstract",
+          "all"
+        ],
+        "title": "単色背景",
+        "items": [
+          {
+            "label": "指定なし",
+            "isNone": true
+          },
+          {
+            "label": "白一色の背景",
+            "value": "solid white background"
+          },
+          {
+            "label": "黒一色の背景",
+            "value": "solid black background"
+          },
+          {
+            "label": "生成り・アイボリー一色の背景",
+            "value": "solid ivory background"
+          },
+          {
+            "label": "グレー一色の背景",
+            "value": "solid gray background"
+          },
+          {
+            "label": "ベージュ一色の背景",
+            "value": "solid beige background"
+          },
+          {
+            "label": "濃紺一色の背景",
+            "value": "solid deep navy background"
+          },
+          {
+            "label": "深緑一色の背景",
+            "value": "solid deep green background"
+          },
+          {
+            "label": "深紅一色の背景",
+            "value": "solid deep crimson background"
+          },
+          {
+            "label": "淡いブルー一色の背景",
+            "value": "solid pale blue background"
+          },
+          {
+            "label": "淡いピンク一色の背景",
+            "value": "solid pale pink background"
+          }
+        ]
+      },
+      {
         "id": "environment-detail",
         "group": "scene-detail",
         "modes": [
@@ -4057,6 +4114,24 @@
             "value": "ballpoint pen illustration, visible pressure variation, thin scratchy lines, repeated sketch strokes, subtle cross-hatching, imperfect contours, textured notebook paper",
             "description": "ノートにボールペンで描いたような、細い線と手癖が残る表現。",
             "family": "鉛筆・色鉛筆"
+          },
+          {
+            "label": "アングラアートブック",
+            "value": "quiet, refined underground art-book aesthetic, delicate fine pencil linework, soft refined colored-pencil strokes, traditional analog sketch aesthetic, subtle visible paper grain and natural paper texture, restrained muted colors, no clean anime-style lineart, no smooth digital painting",
+            "description": "繊細な鉛筆の主線と淡い色鉛筆、紙の質感を活かした、静謐で上品なアートブック調。",
+            "family": "アートブック・スケッチ"
+          },
+          {
+            "label": "私家版アートブック",
+            "value": "independent art-book illustration, fine graphite linework, softly layered colored-pencil shading, understated muted palette, visible paper grain, tactile printed-paper texture, delicate handmade imperfections, quiet editorial composition, no polished digital finish",
+            "description": "小規模な私家版アートブックのような、繊細な線と控えめな彩色、紙の風合いを残した表現。",
+            "family": "アートブック・スケッチ"
+          },
+          {
+            "label": "静謐な美術挿絵",
+            "value": "quiet fine-art book illustration, delicate graphite and colored-pencil drawing, pale restrained colors, subtle cross-hatching, softly textured paper, understated handmade finish, elegant negative space, contemplative atmosphere, no clean anime-style lineart, no glossy digital rendering",
+            "description": "美術書の挿絵のような、淡い色彩と繊細な線、余白を活かした静かな表現。",
+            "family": "アートブック・スケッチ"
           },
           {
             "label": "クレヨン・手描き",
@@ -6589,6 +6664,12 @@
           label: "スチームパンク",
           desc: "蒸気機関・歯車・工業都市の世界",
           cats: ["landscape-steampunk"],
+        },
+        {
+          id: "scene-background",
+          label: "単色背景",
+          desc: "背景を一色に固定する",
+          cats: ["environment-background"],
         },
         {
           id: "scene-place",
