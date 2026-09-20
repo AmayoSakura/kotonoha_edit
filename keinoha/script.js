@@ -776,7 +776,7 @@
     "family": "前髪"
   },
   {
-    "label": "メカクレ（目隠れ）",
+    "label": "目隠れ",
     "value": "hair covering one eye",
     "family": "前髪"
   },
