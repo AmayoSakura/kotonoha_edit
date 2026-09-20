@@ -6075,6 +6075,7 @@
         "environment-detail",
         "abstract-visual",
         "style",
+        "quality",
         "color-palette",
         "camera",
         "lighting-direction",
@@ -6096,6 +6097,7 @@
         "environment-detail",
         "abstract-visual",
         "style",
+        "quality",
         "color-palette",
         "camera",
         "lighting-direction",
@@ -6107,6 +6109,7 @@
         "abstract-concept",
         "abstract-visual",
         "style",
+        "quality",
         "color-palette",
         "camera",
         "lighting-direction",
@@ -6617,6 +6620,7 @@
             "visual-effects",
             "ratio",
             "style",
+            "quality",
           ],
         },
       ],
@@ -6669,8 +6673,8 @@
         const groupCats = categoriesData.filter(
           (cat) =>
             cat.id !== "text-style" &&
-            ((cat.group === groupId && !(groupId === "visual-detail" && cat.id === "style")) ||
-              (groupId === "composition-detail" && cat.id === "style")) &&
+            ((cat.group === groupId && !(groupId === "visual-detail" && ["style", "quality", "camera", "lighting-direction", "visual-effects"].includes(cat.id))) ||
+              (groupId === "composition-detail" && ["style", "quality", "camera", "lighting-direction", "visual-effects"].includes(cat.id))) &&
             (cat.modes.includes(currentMode) ||
               currentMode === "all" ||
               (currentMode === "character" && cat.group === "scene-detail")) &&
