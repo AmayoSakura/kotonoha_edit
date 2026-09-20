@@ -626,21 +626,6 @@
     "family": "髪の長さ"
   },
   {
-    "label": "ストレート",
-    "value": "straight hair",
-    "family": "髪型"
-  },
-  {
-    "label": "ウェーブ・パーマ",
-    "value": "wavy hair, soft perm hairstyle",
-    "family": "髪型"
-  },
-  {
-    "label": "カール・巻き髪",
-    "value": "curly hair, ringlet curls",
-    "family": "髪型"
-  },
-  {
     "label": "ウルフカット",
     "value": "wolf cut hairstyle",
     "family": "髪型"
