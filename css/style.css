@@ -652,6 +652,12 @@
     justify-content: flex-end;
   }
 
+  .toc-page {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+  }
+
   /* 文字の揃え方（縦書きでの上/中央/下揃え）：天地位置とは独立した設定 */
   .colophon-page.colophon-align-left .colophon-row,
   .colophon-page.colophon-align-left .colophon-note {
@@ -1141,6 +1147,25 @@
   }
 
   /* 天地位置は外側 .colophon-page の justify-content で制御する（上の定義を参照） */
+
+  /* 目次：各行の座標はJS側でpx計算し、position:absoluteで直接配置する。
+     Flexboxやwriting-modeの自動レイアウト・自動折り返しに一切頼らない。
+     toc-row個別にwriting-mode:vertical-rlを持たせ、文字だけ縦書きにする。 */
+  .toc-content {
+    font-family: var(--doc-font-family);
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    position: relative;
+  }
+
+  .toc-row {
+    writing-mode: vertical-rl;
+    -webkit-writing-mode: vertical-rl;
+    text-orientation: mixed;
+    line-height: 1.9;
+    white-space: nowrap;
+  }
 
   .md-body strong,
   .md-body em {

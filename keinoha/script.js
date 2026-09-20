@@ -3893,6 +3893,40 @@
         ]
       },
       {
+        "id": "quality",
+        "group": "visual-detail",
+        "modes": [
+          "character",
+          "landscape",
+          "abstract",
+          "all"
+        ],
+        "title": "品質",
+        "selectionMode": "single",
+        "items": [
+          {
+            "label": "指定なし",
+            "isNone": true
+          },
+          {
+            "label": "高品質",
+            "value": "high quality"
+          },
+          {
+            "label": "高精細",
+            "value": "highly detailed"
+          },
+          {
+            "label": "描き込み重視",
+            "value": "richly detailed rendering"
+          },
+          {
+            "label": "緻密な描写",
+            "value": "intricate fine details, refined rendering"
+          }
+        ]
+      },
+      {
         "id": "style",
         "group": "visual-detail",
         "modes": [
@@ -7969,6 +8003,11 @@
         if (targetTags.has(item.value)) {
           targetTags.delete(item.value);
         } else {
+          if (category.selectionMode === "single") {
+            category.items.forEach((it) => {
+              if (it.value) targetTags.delete(it.value);
+            });
+          }
           targetTags.add(item.value);
           if (pairCharacterValues.has(item.value)) {
             deleteSelectedValues(referenceCharacterValues);
@@ -8089,7 +8128,7 @@
       const sceneText = document.getElementById("scene-text")?.value.trim() || "";
 
       const result = {
-        quality: ["masterpiece", "best quality"],
+        quality: [],
       };
 
       if (outputPurpose) result.purpose = outputPurpose;
@@ -8126,6 +8165,7 @@
         effects: [],
         camera: [],
         text_style: [],
+        quality: [],
       };
 
       const groupMap = {
@@ -8166,6 +8206,7 @@
         "visual-effects": "effects",
         camera: "camera",
         "text-style": "text_style",
+        quality: "quality",
       };
 
       categoriesData.forEach((cat) => {
@@ -8181,7 +8222,11 @@
         });
       });
 
+      if (groups.quality.length) result.quality = groups.quality;
+      else delete result.quality;
+
       Object.entries(groups).forEach(([key, values]) => {
+        if (key === "quality") return;
         if (key === "character") {
           const hasCharacterValues = Object.values(values).some((items) => items.length);
           if (hasCharacterValues) result.character = values;
@@ -8301,6 +8346,7 @@
         "象徴・モチーフ": [],
         "色・配色": [],
         "文字・タイポグラフィ": [],
+        品質: [],
         画面設定: [],
       };
       const groupMap = {
@@ -8315,6 +8361,7 @@
         camera: "画面設定",
         "lighting-direction": "画面設定",
         "visual-effects": "画面設定",
+        quality: "品質",
       };
       getSelectedCategoryItems().forEach(({ cat, item }) => {
         let bucket = categoryBucketMap[cat.id] || groupMap[cat.group];
