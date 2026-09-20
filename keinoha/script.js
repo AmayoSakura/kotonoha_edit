@@ -3923,6 +3923,26 @@
           {
             "label": "緻密な描写",
             "value": "intricate fine details, refined rendering"
+          },
+          {
+            "label": "繊細な描写",
+            "value": "delicate and finely rendered details"
+          },
+          {
+            "label": "質感重視",
+            "value": "rich surface texture, tactile material detail"
+          },
+          {
+            "label": "色彩重視",
+            "value": "rich color rendering, nuanced color variation"
+          },
+          {
+            "label": "陰影重視",
+            "value": "refined shading, subtle tonal gradation"
+          },
+          {
+            "label": "自然な描写",
+            "value": "natural rendering, subtle organic detail"
           }
         ]
       },
@@ -6802,8 +6822,9 @@
             const hint = document.createElement("span");
             hint.className = "category-hint";
             const isSingleChoice =
-              cat.items.filter((i) => !i.isNone).length > 0 &&
-              cat.items.filter((i) => !i.isNone).every((i) => i.isSingleRatio);
+              cat.selectionMode === "single" ||
+              (cat.items.filter((i) => !i.isNone).length > 0 &&
+                cat.items.filter((i) => !i.isNone).every((i) => i.isSingleRatio));
             hint.innerHTML = isSingleChoice
               ? "1つ選択"
               : categoryHasSelection
@@ -8524,6 +8545,189 @@
       document.getElementById("progress-work-bar").style.width = workPct + "%";
       document.getElementById("progress-visual").textContent = visualPct + "%";
       document.getElementById("progress-visual-bar").style.width = visualPct + "%";
+    }
+
+    // ── 設定ファイルの書き出し／読み込み ──
+    const CONFIG_FORMAT = "keinoha-crafter-settings";
+    const CONFIG_VERSION = 1;
+    const CONFIG_INPUT_IDS = [
+      "novel-title",
+      "catchphrase",
+      "work-avoid",
+      "output-purpose",
+      "include-title-check",
+      "include-catchphrase-check",
+      "no-text-check",
+      "scene-text",
+    ];
+
+    function getConfigInputs() {
+      return Object.fromEntries(
+        CONFIG_INPUT_IDS.map((id) => {
+          const el = document.getElementById(id);
+          if (!el) return [id, null];
+          return [id, el.type === "checkbox" ? el.checked : el.value];
+        }),
+      );
+    }
+
+    function setConfigInputs(values = {}) {
+      CONFIG_INPUT_IDS.forEach((id) => {
+        const el = document.getElementById(id);
+        if (!el || !(id in values)) return;
+        if (el.type === "checkbox") el.checked = !!values[id];
+        else el.value = values[id] ?? "";
+      });
+    }
+
+    function cloneConfigValue(value) {
+      return JSON.parse(JSON.stringify(value));
+    }
+
+    function applySavedObject(target, source) {
+      if (!source || typeof source !== "object") return;
+      Object.keys(target).forEach((key) => {
+        if (!(key in source)) return;
+        const value = source[key];
+        if (
+          target[key] &&
+          typeof target[key] === "object" &&
+          !Array.isArray(target[key]) &&
+          value &&
+          typeof value === "object" &&
+          !Array.isArray(value)
+        ) {
+          applySavedObject(target[key], value);
+        } else if (typeof target[key] === "boolean") {
+          target[key] = !!value;
+        } else if (typeof target[key] === "string") {
+          target[key] = typeof value === "string" ? value : "";
+        }
+      });
+    }
+
+    function getSafeConfigFileName(name) {
+      const safe = String(name || "景ノ葉Crafter設定")
+        .trim()
+        .replace(/[\\/:*?"<>|]/g, "_")
+        .replace(/\s+/g, " ");
+      return `${safe || "景ノ葉Crafter設定"}.json`;
+    }
+
+    function exportSettings() {
+      const defaultName =
+        document.getElementById("novel-title")?.value.trim() ||
+        "景ノ葉Crafter設定";
+      const name = window.prompt("設定ファイルの名前", defaultName);
+      if (name === null) return;
+
+      updateOutput();
+      const data = {
+        format: CONFIG_FORMAT,
+        version: CONFIG_VERSION,
+        name: name.trim() || defaultName,
+        exportedAt: new Date().toISOString(),
+        settings: {
+          inputs: getConfigInputs(),
+          currentMode,
+          designMethod,
+          selectedTags: Array.from(selectedTags),
+          selectedRatio,
+          freeMotifText,
+          compositionState: cloneConfigValue(compositionState),
+          detailState: cloneConfigValue(detailState),
+          pairState: cloneConfigValue(pairState),
+        },
+        prompt: buildPromptJson(),
+      };
+
+      const blob = new Blob([JSON.stringify(data, null, 2)], {
+        type: "application/json;charset=utf-8",
+      });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = getSafeConfigFileName(data.name);
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 0);
+    }
+
+    function openSettingsFilePicker() {
+      let input = document.getElementById("settings-file-input");
+      if (!input) {
+        input = document.createElement("input");
+        input.type = "file";
+        input.id = "settings-file-input";
+        input.accept = ".json,application/json";
+        input.hidden = true;
+        input.addEventListener("change", () => {
+          const file = input.files?.[0];
+          if (file) importSettingsFile(file);
+          input.value = "";
+        });
+        document.body.appendChild(input);
+      }
+      input.click();
+    }
+
+    async function importSettingsFile(file) {
+      let data;
+      try {
+        data = JSON.parse(await file.text());
+      } catch (error) {
+        alert("設定ファイルを読み込めなかった。JSONファイルか確認してね。");
+        return;
+      }
+
+      if (!data || data.format !== CONFIG_FORMAT || !data.settings) {
+        alert("景ノ葉Crafterの設定ファイルではないみたい。");
+        return;
+      }
+
+      if (!window.confirm(`「${data.name || file.name}」の設定を読み込む？\n現在の設定は置き換わる。`)) return;
+
+      const saved = data.settings;
+      const validModes = new Set(["character", "landscape", "abstract", "all"]);
+      const validMethods = new Set(["free", "preset", "omakase", "from-text"]);
+
+      currentMode = validModes.has(saved.currentMode) ? saved.currentMode : "character";
+      designMethod = validMethods.has(saved.designMethod) ? saved.designMethod : "free";
+      selectedTags.clear();
+      if (Array.isArray(saved.selectedTags)) {
+        saved.selectedTags.forEach((value) => {
+          if (typeof value === "string") selectedTags.add(value);
+        });
+      }
+      selectedRatio = typeof saved.selectedRatio === "string" ? saved.selectedRatio : "";
+      freeMotifText = typeof saved.freeMotifText === "string" ? saved.freeMotifText : "";
+      applySavedObject(compositionState, saved.compositionState);
+      applySavedObject(detailState, saved.detailState);
+      applySavedObject(pairState, saved.pairState);
+      setConfigInputs(saved.inputs);
+
+      activePreset = "";
+      activeGenrePreset = "";
+      categoryCollapseSeeded = false;
+      collapsedCategories.clear();
+      collapsedSubgroups.clear();
+
+      document.querySelectorAll(".mode-card").forEach((btn) =>
+        btn.classList.toggle("active", btn.dataset.mode === currentMode),
+      );
+      document.querySelectorAll(".design-method").forEach((btn) =>
+        btn.classList.toggle("active", btn.dataset.method === designMethod),
+      );
+      const presetArea = document.getElementById("preset-area");
+      const sceneSource = document.getElementById("scene-source");
+      if (presetArea) presetArea.hidden = designMethod !== "preset";
+      if (sceneSource) sceneSource.hidden = designMethod !== "from-text";
+
+      buildUI();
+      syncNoTextMode();
+      updateOutput();
+      alert("設定を読み込んだ。");
     }
 
     // ── ユーティリティ ──

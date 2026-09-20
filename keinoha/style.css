@@ -2192,7 +2192,8 @@
       font-weight: 700;
       font-size: 0.72rem;
       letter-spacing: 0.03em;
-      transition: opacity 0.2s;
+      transition: opacity 0.2s, background 0.2s, color 0.2s;
+      background: var(--gold);
       color: var(--card-bg);
     }
 
