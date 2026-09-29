@@ -2559,15 +2559,58 @@ window.addEventListener("DOMContentLoaded", function () {
       );
       // 実際のシミュレーション結果のページ数が見積もりと異なる場合
       // （見積もり誤差の吸収）、simulatedPages.length を正とする。
-      const actualTocPageCount = Math.max(1, simulatedPages.length);
+      let actualTocPageCount = Math.max(1, simulatedPages.length);
+
+      // 本文の最初のページ（実際に紙面に印字される番号）が偶数になる場合、
+      // 目次の末尾に空白を1ページ挟んで奇数ページから本文が始まるようにする
+      // （日本語書籍の慣習：章の始まりは奇数＝右ページから）。
+      // 目次のページ数が1つ増えることになるため、それに応じて
+      // absolutePageIdx（＝本文の絶対ページ番号）も1つずつ後ろにずらして
+      // 再計算する必要がある。
+      const firstBodyPageNum =
+        frontPages.length + actualTocPageCount + startPageNum;
+      const needsTocTrailingBlank = firstBodyPageNum % 2 === 0;
+      let finalTocEntries = resolvedTocEntries;
+      let finalSimulatedPages = simulatedPages;
+      if (needsTocTrailingBlank) {
+        actualTocPageCount += 1;
+        finalTocEntries = tocEntries.map((e) => ({
+          ...e,
+          absolutePageIdx:
+            e.pageIdx + frontPages.length + actualTocPageCount + startPageNum,
+        }));
+        const resimulated = simulateTocLayout(
+          finalTocEntries,
+          isTocHeadingEnabled(),
+        );
+        finalSimulatedPages = resimulated.pages;
+        // 目次の実項目ページ数（末尾の空白を除く）はresimulatedの結果通り。
+        // 空白1ページを末尾に追加した分だけactualTocPageCountを合わせる。
+        actualTocPageCount = Math.max(1, finalSimulatedPages.length) + 1;
+      }
+
       for (let i = 0; i < actualTocPageCount; i++) {
+        const isTrailingBlank =
+          needsTocTrailingBlank && i === actualTocPageCount - 1;
+        if (isTrailingBlank) {
+          // 目次の末尾に挟む強制空白ページ（本文が奇数ページから
+          // 始まるようにするための調整）。
+          tocPages.push({
+            pageType: "blank",
+            showNombre: false,
+            tocAbsolutePageIdx: frontPages.length + i,
+          });
+          continue;
+        }
         tocPages.push({
           pageType: "toc",
           showNombre: false,
-          tocEntries: resolvedTocEntries,
+          tocEntries: finalTocEntries,
           tocPageIndex: i,
           tocPageCount: actualTocPageCount,
-          tocColumns: simulatedPages[i] ? simulatedPages[i].columns : [],
+          tocColumns: finalSimulatedPages[i]
+            ? finalSimulatedPages[i].columns
+            : [],
           // 本全体の中でのこの目次ページの絶対インデックス（0始まり）。
           // 綴じ代の奇数/偶数判定（gutter-odd/even）に使う。
           tocAbsolutePageIdx: frontPages.length + i,
