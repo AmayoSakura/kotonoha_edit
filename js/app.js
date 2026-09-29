@@ -24,6 +24,8 @@ window.addEventListener("DOMContentLoaded", function () {
         jumpToPageTypeInPreview("cover");
       } else if (this.dataset.target === "subpane-colophon") {
         jumpToPageTypeInPreview("colophon");
+      } else if (this.dataset.target === "subpane-toc") {
+        jumpToPageTypeInPreview("toc");
       }
     });
   });
@@ -98,6 +100,17 @@ window.addEventListener("DOMContentLoaded", function () {
     colophonFieldsCustomFontFamily: "colophonFieldsCustomFontFamily",
     colophonNoteCustomFontUrl: "colophonNoteCustomFontUrl",
     colophonNoteCustomFontFamily: "colophonNoteCustomFontFamily",
+    tocEnableToggle: "tocEnable",
+    tocFontSelect: "tocFont",
+    tocLeaderToggle: "tocLeader",
+    tocColumnsSelect: "tocColumns",
+    tocVertAlignSelect: "tocVertAlign",
+    tocDividerToggle: "tocDivider",
+    tocHeadingToggle: "tocHeading",
+    tocHeadingTextInput: "tocHeadingText",
+    tocHeadingFontSelect: "tocHeadingFont",
+    tocHeadingSizeSelect: "tocHeadingSize",
+    tocHeadingVertAlignSelect: "tocHeadingVertAlign",
   };
   const els = {};
   Object.keys(CONFIG_KEYS).forEach((id) => {
@@ -1235,6 +1248,7 @@ window.addEventListener("DOMContentLoaded", function () {
     }
     const sections = parseToAST(text);
     const pages = [];
+    const tocEntries = [];
     let currentPage = { pageIdx: 0, col1: [], col2: [] };
     let currentColIdx = 0;
     let currentLines = currentPage.col1;
@@ -1301,7 +1315,7 @@ window.addEventListener("DOMContentLoaded", function () {
             "|" +
             item.text;
           const hLines = getLinesWithCache(hCacheKey, item.text, scale);
-          hLines.forEach((hLine) => {
+          hLines.forEach((hLine, hIdx) => {
             addLineToPage(
               {
                 type: "heading",
@@ -1312,6 +1326,13 @@ window.addEventListener("DOMContentLoaded", function () {
               },
               cost,
             );
+            if (hIdx === 0) {
+              tocEntries.push({
+                level: item.level,
+                text: item.text,
+                pageIdx: currentPage.pageIdx,
+              });
+            }
           });
         } else if (item.type === "hr") {
           addLineToPage({ type: "hr", srcIndex: item.startIndex }, 1);
@@ -1372,7 +1393,7 @@ window.addEventListener("DOMContentLoaded", function () {
     for (const key of lineDataCache.keys()) {
       if (!usedKeysThisRun.has(key)) lineDataCache.delete(key);
     }
-    return pages;
+    return { pages, tocEntries };
   }
   function buildLinesHtml(lines) {
     if (!lines || lines.length === 0) return "";
@@ -1662,6 +1683,336 @@ window.addEventListener("DOMContentLoaded", function () {
       noteHtml +
       "</div>";
   }
+  function formatTocPageNumber(pageNum) {
+    const nombreTypeVal = els.nombreTypeSelect
+      ? els.nombreTypeSelect.value
+      : "arabic";
+    if (nombreTypeVal === "kanji-h") return toKanjiPositional(pageNum);
+    if (nombreTypeVal === "kanji-v") return toKanjiDigits(pageNum);
+    if (nombreTypeVal === "roman") return toRomanNumeral(pageNum);
+    return String(pageNum);
+  }
+  function renderTocPageDom(pageEl, pageData) {
+    const isGutterOn = els.gutterSelect && els.gutterSelect.value === "on";
+    const tocAbsolutePageIdx = pageData.tocAbsolutePageIdx || 0;
+    const isOdd = (tocAbsolutePageIdx + 1) % 2 !== 0;
+    const gutterClass = isGutterOn ? (isOdd ? " gutter-odd" : " gutter-even") : "";
+    // 本文ページと同じ綴じ代の考え方（奇数/偶数ページで片側にpaddingを足す）を
+    // 目次ページにも適用する。これにより実際にCSSが描画する.toc-contentの幅と、
+    // getTocLayoutMetricsが前提とするcolWPxの計算が一致する
+    // （前提が食い違うと、列の中央揃えの基準がズレる／使える幅を過小に見積もる）。
+    pageEl.className = "paper-page front-matter-page toc-page" + gutterClass;
+    const { columnWidthPx, sideOffsetPx, fontSizePx, colHPx } =
+      getTocLayoutMetrics();
+    const pageNumGapPx = fontSizePx * 1; // タイトル欄とページ番号欄の間の余白
+    const LEVEL_INDENT_PX = fontSizePx * 1.2;
+    const LEVEL_FONT_SCALE = { 1: 1, 2: 0.85, 3: 0.85 };
+    // 縦位置："top"(上寄せ)/"middle"(中央寄せ)
+    const vertAlign =
+      (els.tocVertAlignSelect && els.tocVertAlignSelect.value) || "top";
+    // 目次項目（タイトル・ページ番号）全体の書体。本文の書体設定とは
+    // 独立に、目次だけ別の書体を選べるようにする。
+    const tocFontKey = (els.tocFontSelect && els.tocFontSelect.value) || "noto";
+    const tocFontFamily = FONTS[tocFontKey] || FONTS.noto;
+
+    // 目次見出し（例：「目次」の2文字）。1ページ目の冒頭（一番右）に、
+    // 項目の列とは別枠でもう1列を確保して独立に描画する。
+    const showHeading =
+      pageData.tocPageIndex === 0 &&
+      els.tocHeadingToggle &&
+      els.tocHeadingToggle.value === "on";
+    const headingText =
+      (els.tocHeadingTextInput && els.tocHeadingTextInput.value) || "目次";
+    const headingFontKey =
+      (els.tocHeadingFontSelect && els.tocHeadingFontSelect.value) || "noto";
+    const headingFontFamily = FONTS[headingFontKey] || FONTS.noto;
+    const headingSizeScale = parseFloat(
+      (els.tocHeadingSizeSelect && els.tocHeadingSizeSelect.value) || "1",
+    );
+    const headingVertAlign =
+      (els.tocHeadingVertAlignSelect &&
+        els.tocHeadingVertAlignSelect.value) ||
+      "top";
+
+    // 列・ページの割り付けは buildFrontMatterAndColophonPages 内の
+    // simulateTocLayout() で既に確定済み。目次は「1項目＝1列」の体裁のため、
+    // columns[i] は常に1件のエントリだけを含む（[[entry], [entry], ...]）。
+    // renderTocPageDomはその結果をそのまま描画するだけ。
+    const columns = pageData.tocColumns || [];
+
+    // 各列の座標をJS側でpx計算し、position: absoluteで直接配置する。
+    // 列は右から左（rightを列インデックス×列幅で増やす）に並べるだけで、
+    // 1列の中で複数項目を上から下へ積むことはしない（目次は1項目＝1行）。
+    // sideOffsetPxは、版面の幅を列が使い切らない場合の余りを左右中央に
+    // 振り分けるための基準オフセット（getTocLayoutMetricsで算出済み）。
+    // リーダー線の種類："dotted"(点線)/"dashed"(破線)/"solid"(実線)/"off"(なし)
+    const leaderStyle =
+      els.tocLeaderToggle && els.tocLeaderToggle.value
+        ? els.tocLeaderToggle.value
+        : "dotted";
+    const rowsHtml = [];
+    // 版面の上下に全角1文字ぶんずつの余白を設ける（雨夜の要望）。
+    // 以降のタイトル・ページ番号の配置計算は、この余白ぶん縮めた
+    // effectiveColHPxを基準に行い、原点も上マージン(vMarginPx)ぶんずらす。
+    const vMarginPx = fontSizePx;
+    const effectiveColHPx = Math.max(0, colHPx - vMarginPx * 2);
+
+    // 各項目のレイアウト値を先に1パス目で計算しておく（2パス構成）。
+    // 区切り線・リーダー線の位置は「このページ内で最も上まで達するページ番号」
+    // （minPageNumTopPx）に依存するが、それは全項目を見ないと確定しない値。
+    // そのため、先に全項目分の値を計算してからdividerTopPxを確定し、
+    // 2パス目でリーダー線・区切り線を含めた実際の描画を行う。
+    let minPageNumTopPx = effectiveColHPx;
+    // 見出しが1ページ目に表示される場合、見出しは一番右（colIdx=0相当の
+    // 位置）に専有させ、項目はその左隣（colIdx=1相当）から並べ始める。
+    // simulateTocLayout側で1ページ目の項目列数は既に1つ減らしてあるため、
+    // ここでcolIdxを1つ右にシフトさせることで、右端の1列を見出し用に空ける。
+    const colIdxShift = showHeading ? 1 : 0;
+
+    // 縦位置が「中央寄せ」のときの、全項目共通のタイトル開始位置。
+    // 項目ごとに「空き高さ÷2」を計算すると、タイトルが短い項目ほど下に寄って
+    // 上端がバラバラになる。「このページで一番長いタイトル」を基準にすると、
+    // 長い章題があるページとないページとで基準がズレ、見開きで高さが
+    // 合わなくなる（例：番外編のあるページだけ開始位置が上にずれる）。
+    // そのため基準は「目次全体（pageData.tocEntries）で一番長いタイトル・
+    // 一番桁数の多いページ番号」から算出し、全ページ共通の開始位置にする。
+    let maxTitleHeightPx = 0;
+    let maxPageNumHeightPx = 0;
+    (pageData.tocEntries || []).forEach((e) => {
+      const fs = fontSizePx * (LEVEL_FONT_SCALE[e.level] || 1);
+      maxTitleHeightPx = Math.max(maxTitleHeightPx, fs * [...e.text].length);
+      maxPageNumHeightPx = Math.max(
+        maxPageNumHeightPx,
+        fs * formatTocPageNumber(e.absolutePageIdx).length,
+      );
+    });
+    const sharedTitleAreaLimitPx = Math.max(
+      0,
+      effectiveColHPx - maxPageNumHeightPx - pageNumGapPx,
+    );
+    const sharedMiddleOffsetPx =
+      vertAlign === "middle"
+        ? Math.max(0, (sharedTitleAreaLimitPx - maxTitleHeightPx) / 2)
+        : 0;
+
+    const entryLayouts = columns.map((col, colIdx) => {
+      const entry = col[0];
+      if (!entry) return null;
+      const rightPx = sideOffsetPx + (colIdx + colIdxShift) * columnWidthPx;
+      const displayPageNum = formatTocPageNumber(entry.absolutePageIdx);
+      const levelClass = " toc-level-" + entry.level;
+      const rowFontSizePx = fontSizePx * (LEVEL_FONT_SCALE[entry.level] || 1);
+      const indentPx = entry.level >= 2 ? LEVEL_INDENT_PX : 0;
+      const titleCharCount = [...entry.text].length;
+      // 高さは実際に描画するフォントサイズ(rowFontSizePx)を基準に計算する
+      // （レベル2/3はフォントサイズが縮小されるため、fontSizePx基準のままだと
+      // 実際の描画サイズとズレて、topで指定した位置と実描画位置が食い違う）。
+      const titleHeightPx = rowFontSizePx * titleCharCount;
+      // ページ番号は2段組の「下段」のように、縦位置設定とは無関係に
+      // 常に版面の下端付近に固定する（全項目で同じtop座標）。
+      const pageNumHeightPx = rowFontSizePx * displayPageNum.length;
+      const pageNumTopPx =
+        vMarginPx +
+        Math.max(
+          titleHeightPx + pageNumGapPx,
+          effectiveColHPx - pageNumHeightPx,
+        );
+      minPageNumTopPx = Math.min(minPageNumTopPx, pageNumTopPx - vMarginPx);
+      // タイトルは2段組の「上段」のように、縦位置設定（vertAlign）に従う。
+      // 上寄せは版面の上端、中央寄せは全項目共通の開始位置
+      // （sharedMiddleOffsetPx）から始める。項目ごとには計算しないので、
+      // 全項目でタイトルの上端が揃う。
+      const rowTopPx = vMarginPx + sharedMiddleOffsetPx + indentPx;
+      return {
+        entry,
+        rightPx,
+        displayPageNum,
+        levelClass,
+        rowFontSizePx,
+        titleCharCount,
+        titleHeightPx,
+        pageNumHeightPx,
+        pageNumTopPx,
+        rowTopPx,
+      };
+    });
+    // 横の区切り線（Image 1のイメージ：全項目を横断する1本の水平線）。
+    // 縦位置設定とは連動させず、常に版面の下端付近の固定位置に引く。
+    // 位置は「このページの中で最も上まで達するページ番号欄」の1文字分上
+    // に揃える。これにより、区切り線は必ず全項目のページ番号より上に来る。
+    const showDividerPreview =
+      els.tocDividerToggle && els.tocDividerToggle.value === "on";
+    // リーダー線もこの位置を終点にする（区切り線を突き破らないように）。
+    const dividerTopPx = Math.max(0, minPageNumTopPx + vMarginPx - fontSizePx);
+
+    entryLayouts.forEach((layout) => {
+      if (!layout) return;
+      const {
+        entry,
+        rightPx,
+        displayPageNum,
+        levelClass,
+        rowFontSizePx,
+        titleHeightPx,
+        pageNumTopPx,
+        rowTopPx,
+      } = layout;
+      // タイトル本体：1文字ずつ個別のdivに分割し、topを自分で計算して積む。
+      // 複数文字を1つの要素にまとめてwriting-mode:vertical-rlの自動レイアウトに
+      // 任せると、ブラウザが指定したheightより小さい範囲にしか描画せず、
+      // topで指定した位置と実際の描画位置がズレる不具合があったため
+      // （1文字ずつなら「1文字の高さ＝フォントサイズ」という前提で
+      //  自分で完全に位置を制御でき、ブラウザの自動配置に依存しない）。
+      const titleChars = [...entry.text];
+      titleChars.forEach((ch, chIdx) => {
+        // style属性はシングルクォートで囲む（tocFontFamilyがダブルクォートを
+        // 含む値のため。理由は目次見出しの箇所のコメントと同じ）。
+        rowsHtml.push(
+          `<div class='toc-row${levelClass}' style='position:absolute;top:` +
+            (rowTopPx + chIdx * rowFontSizePx) +
+            "px;right:" +
+            rightPx +
+            "px;width:" +
+            rowFontSizePx +
+            "px;height:" +
+            rowFontSizePx +
+            "px;font-size:" +
+            rowFontSizePx +
+            "px;font-family:" +
+            tocFontFamily +
+            "'>" +
+            escapeHtml(ch) +
+            "</div>",
+        );
+      });
+      // 縦のリーダー線（タイトルの末尾から、下端固定のページ番号欄の直前まで）。
+      // タイトルが短い項目ほど線は長くなる。区切り線が表示されている場合は
+      // その直前で止め、区切り線を突き破らないようにする。
+      // CSSのborderではなく、SVGのlineで1本の継ぎ目のない線として描画する
+      // （borderだとブラウザのレンダリング誤差で途切れて見えることがあるため）。
+      // リーダー線は、区切り線の表示有無に関わらず常に「区切り線がある
+      // べき位置」の1文字分手前で止める（区切り線をOFFにしても、
+      // リーダー線だけがページ番号の直前まで伸びてしまわないように）。
+      // 始点もタイトルの末尾からさらに1文字分空け、章題とリーダー線が
+      // 近すぎないようにする。
+      const leaderStartPx = rowTopPx + titleHeightPx + fontSizePx;
+      const leaderEndPx = dividerTopPx - fontSizePx;
+      if (leaderStyle !== "off" && leaderEndPx > leaderStartPx) {
+        const leaderHeightPx = leaderEndPx - leaderStartPx;
+        const leaderXPx = rowFontSizePx / 2;
+        rowsHtml.push(
+          '<svg class="toc-leader toc-leader-' +
+            leaderStyle +
+            '" style="position:absolute;top:' +
+            leaderStartPx +
+            "px;right:" +
+            rightPx +
+            "px;width:" +
+            rowFontSizePx +
+            "px;height:" +
+            leaderHeightPx +
+            'px;overflow:visible;" width="' +
+            rowFontSizePx +
+            '" height="' +
+            leaderHeightPx +
+            '"><line x1="' +
+            leaderXPx +
+            '" y1="0" x2="' +
+            leaderXPx +
+            '" y2="' +
+            leaderHeightPx +
+            '" /></svg>',
+        );
+      }
+      // ページ番号（版面の下端付近に固定、rowTopPxは影響しない）。
+      // heightを明示するのはタイトル本体と同じ理由（height:autoのままだと
+      // writing-mode:vertical-rlのabsolute要素で実描画位置がtopとズレるため）。
+      // ページ番号も同様に1文字ずつ個別のdivに分割して積む（理由はタイトル本体と同じ）。
+      const pageNumChars = [...displayPageNum];
+      pageNumChars.forEach((ch, chIdx) => {
+        rowsHtml.push(
+          "<div class='toc-row toc-pagenum' style='position:absolute;top:" +
+            (pageNumTopPx + chIdx * rowFontSizePx) +
+            "px;right:" +
+            rightPx +
+            "px;width:" +
+            rowFontSizePx +
+            "px;height:" +
+            rowFontSizePx +
+            "px;font-size:" +
+            rowFontSizePx +
+            "px;font-family:" +
+            tocFontFamily +
+            "'>" +
+            escapeHtml(ch) +
+            "</div>",
+        );
+      });
+    });
+
+    // 目次見出し（例：「目次」）。1ページ目の冒頭、版面の一番右（colIdx=0
+    // 相当の位置）に専有させる。項目側はcolIdxShiftによってその左隣
+    // （colIdx=1相当）から並ぶようにずらしてあるため、ここと重ならない。
+    if (showHeading && headingText) {
+      const headingRightPx = sideOffsetPx;
+      const headingFontSizePx = fontSizePx * headingSizeScale;
+      const headingChars = [...headingText];
+      const headingHeightPx = headingFontSizePx * headingChars.length;
+      const headingSlackPx = Math.max(0, effectiveColHPx - headingHeightPx);
+      const headingVertOffsetPx =
+        headingVertAlign === "middle" ? headingSlackPx / 2 : 0;
+      const headingTopPx = vMarginPx + headingVertOffsetPx;
+      headingChars.forEach((ch, chIdx) => {
+        // style属性はシングルクォートで囲む。headingFontFamily自体が
+        // ダブルクォートを含む値（例：'"Noto Serif JP", serif'）のため、
+        // style="..."（ダブルクォート）で囲むと属性値がフォント名の
+        // 冒頭で終端してしまい、font-family以降の指定が壊れる
+        // （これが見出しの書体が反映されなかった原因）。
+        rowsHtml.push(
+          "<div class='toc-row toc-heading' style='position:absolute;top:" +
+            (headingTopPx + chIdx * headingFontSizePx) +
+            "px;right:" +
+            headingRightPx +
+            "px;width:" +
+            headingFontSizePx +
+            "px;height:" +
+            headingFontSizePx +
+            "px;font-size:" +
+            headingFontSizePx +
+            "px;font-family:" +
+            headingFontFamily +
+            "'>" +
+            escapeHtml(ch) +
+            "</div>",
+        );
+      });
+    }
+
+    // 区切り線の描画（showDividerPreview・dividerTopPxは1パス目の後で算出済み）。
+    // 見出しがある1ページ目は、見出し列の分だけ幅を広げて、見出しの下まで
+    // 区切り線が伸びるようにする。
+    if (showDividerPreview && columns.length > 0) {
+      const totalWidthPx = (columns.length + colIdxShift) * columnWidthPx;
+      rowsHtml.push(
+        '<svg class="toc-divider" style="position:absolute;top:' +
+          dividerTopPx +
+          "px;right:" +
+          sideOffsetPx +
+          "px;width:" +
+          totalWidthPx +
+          'px;height:1px;overflow:visible;" width="' +
+          totalWidthPx +
+          '" height="1"><line x1="0" y1="0.5" x2="' +
+          totalWidthPx +
+          '" y2="0.5" /></svg>',
+      );
+    }
+
+    // 現状テンプレートは「1項目＝1列・章と節でインデント差あり・
+    // ページ番号位置は項目ごとのタイトル文字数直後（リーダー線ON/OFF切替可）」の1パターンのみ
+    pageEl.innerHTML =
+      '<div class="toc-content">' + rowsHtml.join("") + "</div>";
+  }
   function renderPageDom(pageEl, pageIdx) {
     const pageData = computedPagesData[pageIdx];
     if (!pageData) return;
@@ -1675,6 +2026,10 @@ window.addEventListener("DOMContentLoaded", function () {
     }
     if (pageData.pageType === "colophon") {
       renderColophonPageDom(pageEl, pageData);
+      return;
+    }
+    if (pageData.pageType === "toc") {
+      renderTocPageDom(pageEl, pageData);
       return;
     }
     const isTwoColumn = els.columnSelect.value === "2";
@@ -2009,10 +2364,111 @@ window.addEventListener("DOMContentLoaded", function () {
       pageJumpInput.value = String(currentPageIndex + 1);
     }
   });
-  function buildFrontMatterAndColophonPages(bodyPages) {
+  function getTocLayoutMetrics() {
+    // 版面サイズから「1ページに入る列数」を計算する。
+    // 目次は1項目＝1列で、右から左へ順に並べていくだけ。
+    // 「自動」時は版面の横幅に収まる最大列数を機械的に計算する。
+    // 「手動」時は雨夜が選んだ列数をそのまま使い、版面の幅をその列数で
+    // 均等に割って1列の幅を決める（版面の幅ちょうどに列が並ぶ）。
+    // どちらの場合も、列を敷き詰めた後に余る幅は左右中央に振り分ける
+    // （sideOffsetPxとして返し、描画時に列の右基準位置に加算する）。
+    const pageSize =
+      PAGE_SIZES_MM[els.pageSizeSelect.value] || PAGE_SIZES_MM["A4"];
+    const margin = getCurrentMarginMm();
+    const isGutterOn = els.gutterSelect && els.gutterSelect.value === "on";
+    const paperWPx = mmToPx(pageSize.w);
+    const paperHPx = mmToPx(pageSize.h);
+    const marginHPx = mmToPx(margin.h);
+    const marginVPx = mmToPx(margin.v);
+    const gutterWidth = isGutterOn ? mmToPx(getCurrentGutterWidthMm()) : 0;
+    const colWPx = paperWPx - marginHPx * 2 - gutterWidth;
+    const colHPx = paperHPx - marginVPx * 2;
+    const fontSizePx = ptToPx(els.fontSizeSelect.value) * 0.95; // toc-columnのfont-size相当
+
+    const manualColumnsRaw =
+      els.tocColumnsSelect && els.tocColumnsSelect.value !== "auto"
+        ? parseInt(els.tocColumnsSelect.value, 10)
+        : null;
+
+    let columnsPerPage;
+    let columnWidthPx;
+    if (manualColumnsRaw && manualColumnsRaw > 0) {
+      // 手動指定：版面の幅をその列数でちょうど均等に割る
+      columnsPerPage = manualColumnsRaw;
+      columnWidthPx = colWPx / columnsPerPage;
+    } else {
+      // 自動：列間の余白（本文の行間より広めに、目次らしいゆとりを持たせる）
+      const columnMarginPx = fontSizePx * 2.6;
+      columnWidthPx = fontSizePx + columnMarginPx;
+      columnsPerPage = Math.max(1, Math.floor(colWPx / columnWidthPx));
+    }
+    // 列を敷き詰めた後に余る幅を左右中央に振り分けるためのオフセット
+    const usedWidthPx = columnWidthPx * columnsPerPage;
+    const sideOffsetPx = Math.max(0, (colWPx - usedWidthPx) / 2);
+
+    return {
+      columnsPerPage,
+      columnWidthPx,
+      sideOffsetPx,
+      colHPx,
+      fontSizePx,
+    };
+  }
+  // 目次の全見出しを「列→ページ」の順に割り付けるシミュレーター。
+  // 目次の体裁は「1項目＝1列」（1つの列に複数項目を詰め込まない）。
+  // 各項目の列の高さ（＝タイトル欄の長さ）はその項目自身のタイトル文字数で決まり、
+  // 列同士で最長タイトルに揃える必要はない（列ごとに高さが違ってよい）。
+  // 1ページに何列入るかは版面の横幅から決まる columnsPerPage で機械的に決まるため、
+  // ページ振り分けと列分割の間にズレが生じる余地がない。
+  //
+  // pageNumCharsForEntry引数は不要になった（1項目＝1列のため、列の高さは
+  // タイトル文字数だけで決まり、ページ番号の桁数はページ振り分けに関与しない）。
+  //
+  // 戻り値: { pages: [{ columns: [[entry], ...] }, ...] }
+  //   pages[i].columns[j] は j 番目の列（＝1項目のみを含む配列）。
+  function simulateTocLayout(allEntries, reserveFirstPageColumn) {
+    const { columnsPerPage } = getTocLayoutMetrics();
+    // 見出し（「目次」等）を1ページ目に表示する設定の場合、1ページ目だけ
+    // 見出し列の分だけ項目の列数を1つ減らす（見出しは項目の列とは別枠で
+    // 常に1列を専有するため、1ページ目の項目はその分だけ少なく収まる）。
+    const pages = [];
+    let currentPageColumns = [];
+    allEntries.forEach((entry) => {
+      const isFirstPage = pages.length === 0;
+      const limitForThisPage =
+        isFirstPage && reserveFirstPageColumn
+          ? Math.max(1, columnsPerPage - 1)
+          : columnsPerPage;
+      currentPageColumns.push([entry]);
+      if (currentPageColumns.length >= limitForThisPage) {
+        pages.push({ columns: currentPageColumns });
+        currentPageColumns = [];
+      }
+    });
+    if (currentPageColumns.length > 0) {
+      pages.push({ columns: currentPageColumns });
+    }
+    if (pages.length === 0) pages.push({ columns: [] });
+    return { pages };
+  }
+  // 目次見出し（「目次」等）が1ページ目に表示される設定かどうか。
+  // ページ振り分け（simulateTocLayout）と実際の描画（renderTocPageDom）の
+  // 両方で同じ判定を使い、1ページ目の項目列数の食い違いを防ぐ。
+  function isTocHeadingEnabled() {
+    return !!(els.tocHeadingToggle && els.tocHeadingToggle.value === "on");
+  }
+  function estimateTocPageCount(tocEntries) {
+    if (!tocEntries || tocEntries.length === 0) return 0;
+    // 1項目＝1列のため、列の高さはページ番号の桁数に依存しない
+    // （＝目次のページ数と本文の絶対ページ番号の間にあった循環依存が解消された）。
+    // そのため概算ではなく、実際のページ数をそのままここで確定できる。
+    const { pages } = simulateTocLayout(tocEntries, isTocHeadingEnabled());
+    return Math.max(1, pages.length);
+  }
+  function buildFrontMatterAndColophonPages(bodyPages, tocEntries) {
     // 本文ページ配列に pageType: "body" を付与しつつ、
-    // 中表紙（＋強制空白）・奥付（＋奇数調整の空白）を前後に結合する。
-    // 中表紙・奥付とも本文の組版エンジン（禁則・行送り）には一切乗らない、
+    // 中表紙（＋強制空白）・目次・奥付（＋奇数調整の空白）を前後に結合する。
+    // 中表紙・目次・奥付とも本文の組版エンジン（禁則・行送り）には一切乗らない、
     // 別レイヤーの専用ページとして扱う。
     const taggedBodyPages = bodyPages.map((p) => ({
       ...p,
@@ -2074,6 +2530,49 @@ window.addEventListener("DOMContentLoaded", function () {
       });
       // 中表紙の2ページ目は常に強制空白
       frontPages.push({ pageType: "blank", showNombre: false });
+    }
+
+    const tocPages = [];
+    const tocEnabled =
+      els.tocEnableToggle && els.tocEnableToggle.value === "on";
+    if (tocEnabled && tocEntries && tocEntries.length > 0) {
+      const tocPageCount = estimateTocPageCount(tocEntries);
+      // 本文の絶対ページ番号 = 中表紙・強制空白のページ数 + 目次のページ数 + 本文内の相対ページ番号
+      const bodyPageOffset = frontPages.length + tocPageCount;
+      const startPageNum =
+        parseInt(els.startPageInput ? els.startPageInput.value : 1, 10) || 1;
+      const resolvedTocEntries = tocEntries.map((e) => ({
+        ...e,
+        // absolutePageIdxには開始ページ番号(startPageNum)込みの、
+        // 実際に紙面に印字される本文ページ番号そのものを入れておく。
+        // （行の高さ計算＝桁数と、表示用ページ番号の両方で同じ値を
+        //   参照できるようにし、ズレの余地をなくす）
+        absolutePageIdx: e.pageIdx + bodyPageOffset + startPageNum,
+      }));
+      // absolutePageIdxが確定した並びで、列・ページ割り付けを再度実行する
+      // （1項目＝1列のため結果は estimateTocPageCount と一致するはずだが、
+      //  ここで確定した columns 構成をそのまま各ページに埋め込み、
+      //  renderTocPageDom側では再計算せず描画するだけにする）。
+      const { pages: simulatedPages } = simulateTocLayout(
+        resolvedTocEntries,
+        isTocHeadingEnabled(),
+      );
+      // 実際のシミュレーション結果のページ数が見積もりと異なる場合
+      // （見積もり誤差の吸収）、simulatedPages.length を正とする。
+      const actualTocPageCount = Math.max(1, simulatedPages.length);
+      for (let i = 0; i < actualTocPageCount; i++) {
+        tocPages.push({
+          pageType: "toc",
+          showNombre: false,
+          tocEntries: resolvedTocEntries,
+          tocPageIndex: i,
+          tocPageCount: actualTocPageCount,
+          tocColumns: simulatedPages[i] ? simulatedPages[i].columns : [],
+          // 本全体の中でのこの目次ページの絶対インデックス（0始まり）。
+          // 綴じ代の奇数/偶数判定（gutter-odd/even）に使う。
+          tocAbsolutePageIdx: frontPages.length + i,
+        });
+      }
     }
 
     const backPages = [];
@@ -2151,7 +2650,7 @@ window.addEventListener("DOMContentLoaded", function () {
       });
     }
 
-    return frontPages.concat(taggedBodyPages, backPages);
+    return frontPages.concat(tocPages, taggedBodyPages, backPages);
   }
   function updatePreview() {
     if (columnRuleCol) {
@@ -2171,8 +2670,13 @@ window.addEventListener("DOMContentLoaded", function () {
     if (layoutSpinner) layoutSpinner.hidden = false;
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        const bodyPages = computeLayoutWithCanvas(els.sourceText.value);
-        computedPagesData = buildFrontMatterAndColophonPages(bodyPages);
+        const { pages: bodyPages, tocEntries } = computeLayoutWithCanvas(
+          els.sourceText.value,
+        );
+        computedPagesData = buildFrontMatterAndColophonPages(
+          bodyPages,
+          tocEntries,
+        );
         renderCurrentPages();
         saveToStorage();
         if (layoutSpinner) layoutSpinner.hidden = true;
@@ -2285,6 +2789,16 @@ window.addEventListener("DOMContentLoaded", function () {
     "colophonWritePosSelect",
     "colophonVertPosSelect",
     "colophonAlignSelect",
+    "tocEnableToggle",
+    "tocFontSelect",
+    "tocLeaderToggle",
+    "tocColumnsSelect",
+    "tocVertAlignSelect",
+    "tocDividerToggle",
+    "tocHeadingToggle",
+    "tocHeadingFontSelect",
+    "tocHeadingSizeSelect",
+    "tocHeadingVertAlignSelect",
   ];
   CHANGE_EVENT_IDS.forEach((id) => {
     if (els[id]) els[id].addEventListener("change", updatePreview);
@@ -2318,6 +2832,7 @@ window.addEventListener("DOMContentLoaded", function () {
     "colophonFieldsCustomFontFamily",
     "colophonNoteCustomFontUrl",
     "colophonNoteCustomFontFamily",
+    "tocHeadingTextInput",
   ];
   INPUT_EVENT_IDS.forEach((id) => {
     if (els[id]) els[id].addEventListener("input", debounceUpdatePreview);

@@ -68,7 +68,7 @@
         margin: 0;
       }
     </style>
-    <title>言ノ葉Editer v1.0</title>
+    <title>言ノ葉Editer v1.1</title>
 
     <link rel="stylesheet" href="css/style.css" />
   </head>
@@ -78,7 +78,7 @@
       <header class="hero no-print">
         <div class="hero-title-group">
           <h1>言ノ葉Editer</h1>
-          <span class="version-badge">v1.0</span>
+          <span class="version-badge">v1.1</span>
         </div>
         <div class="hero-actions">
           <a
@@ -132,7 +132,7 @@
               data-target="pane-frontmatter"
               type="button"
             >
-              中表紙・奥付
+              付帯ページ
             </button>
           </div>
 
@@ -543,6 +543,13 @@
                   type="button"
                 >
                   奥付
+                </button>
+                <button
+                  class="editor-subtab-btn"
+                  data-target="subpane-toc"
+                  type="button"
+                >
+                  目次
                 </button>
               </div>
 
@@ -1383,6 +1390,181 @@
                     </div>
                   </details>
                 </div>
+              </div>
+
+              <div id="subpane-toc" class="editor-subpane">
+                <details class="setting-group" open>
+                  <summary>基本設定</summary>
+                  <div class="setting-content">
+                    <div class="form-row two-cols">
+                      <div class="form-col">
+                        <div class="field-label">
+                          <label for="tocEnableToggle">目次を作成する</label>
+                        </div>
+                        <select id="tocEnableToggle" class="select-input">
+                          <option value="off" selected>作成しない</option>
+                          <option value="on">作成する</option>
+                        </select>
+                      </div>
+                      <div class="form-col">
+                        <div class="field-label">
+                          <label for="tocFontSelect">目次の書体</label>
+                        </div>
+                        <select id="tocFontSelect" class="select-input">
+                          <option value="system">システム標準明朝</option>
+                          <option value="shippori">しっぽり明朝</option>
+                          <option value="noto" selected>Noto Serif JP</option>
+                          <option value="sawarabi">さわらび明朝</option>
+                          <option value="mplus1p">M PLUS 1p Light</option>
+                          <option value="rocknroll">RocknRoll One</option>
+                          <option value="plexjpregular">
+                            IBM Plex Sans JP
+                          </option>
+                          <option value="lineseedregular">
+                            LINE Seed JP
+                          </option>
+                          <option value="klee">Klee One</option>
+                          <option value="yomogi">よもぎフォント</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </details>
+
+                <details class="setting-group" open>
+                  <summary>見出し（1ページ目冒頭）</summary>
+                  <div class="setting-content">
+                    <div class="form-row two-cols">
+                      <div class="form-col">
+                        <div class="field-label">
+                          <label for="tocHeadingToggle">表示</label>
+                        </div>
+                        <select id="tocHeadingToggle" class="select-input">
+                          <option value="off">表示しない</option>
+                          <option value="on" selected>表示する</option>
+                        </select>
+                      </div>
+                      <div class="form-col">
+                        <div class="field-label">
+                          <label for="tocHeadingTextInput"
+                            >見出しテキスト</label
+                          >
+                        </div>
+                        <input
+                          type="text"
+                          id="tocHeadingTextInput"
+                          class="title-input"
+                          value="目次"
+                        />
+                      </div>
+                    </div>
+                    <div class="form-row" style="margin-top: 10px">
+                      <div class="form-col">
+                        <div class="field-label">
+                          <label for="tocHeadingFontSelect">書体</label>
+                        </div>
+                        <select
+                          id="tocHeadingFontSelect"
+                          class="select-input"
+                        >
+                          <option value="system">システム標準明朝</option>
+                          <option value="shippori">しっぽり明朝</option>
+                          <option value="noto" selected>Noto Serif JP</option>
+                          <option value="sawarabi">さわらび明朝</option>
+                          <option value="mplus1p">M PLUS 1p Light</option>
+                          <option value="rocknroll">RocknRoll One</option>
+                          <option value="plexjpregular">
+                            IBM Plex Sans JP
+                          </option>
+                          <option value="lineseedregular">
+                            LINE Seed JP
+                          </option>
+                          <option value="klee">Klee One</option>
+                          <option value="yomogi">よもぎフォント</option>
+                        </select>
+                      </div>
+                      <div class="form-col">
+                        <div class="field-label">
+                          <label for="tocHeadingSizeSelect">文字サイズ</label>
+                        </div>
+                        <select
+                          id="tocHeadingSizeSelect"
+                          class="select-input"
+                        >
+                          <option value="0.85">小</option>
+                          <option value="1" selected>標準</option>
+                          <option value="1.3">大</option>
+                          <option value="1.6">特大</option>
+                        </select>
+                      </div>
+                      <div class="form-col">
+                        <div class="field-label">
+                          <label for="tocHeadingVertAlignSelect">縦位置</label>
+                        </div>
+                        <select
+                          id="tocHeadingVertAlignSelect"
+                          class="select-input"
+                        >
+                          <option value="top" selected>上寄せ</option>
+                          <option value="middle">中央寄せ</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </details>
+
+                <details class="setting-group" open>
+                  <summary>レイアウト・装飾</summary>
+                  <div class="setting-content">
+                    <div class="form-row">
+                      <div class="form-col">
+                        <div class="field-label">
+                          <label for="tocColumnsSelect">1ページの列数</label>
+                        </div>
+                        <select id="tocColumnsSelect" class="select-input">
+                          <option value="auto" selected>自動</option>
+                          <option value="7">7列</option>
+                          <option value="8">8列</option>
+                          <option value="9">9列</option>
+                          <option value="10">10列</option>
+                          <option value="11">11列</option>
+                          <option value="12">12列</option>
+                        </select>
+                      </div>
+                      <div class="form-col">
+                        <div class="field-label">
+                          <label for="tocVertAlignSelect">縦位置</label>
+                        </div>
+                        <select id="tocVertAlignSelect" class="select-input">
+                          <option value="top" selected>上寄せ</option>
+                          <option value="middle">中央寄せ</option>
+                        </select>
+                      </div>
+                      <div class="form-col">
+                        <div class="field-label">
+                          <label for="tocLeaderToggle">リーダー線</label>
+                        </div>
+                        <select id="tocLeaderToggle" class="select-input">
+                          <option value="dotted" selected>点線</option>
+                          <option value="dashed">破線</option>
+                          <option value="solid">実線</option>
+                          <option value="off">なし</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="form-row" style="margin-top: 10px">
+                      <div class="form-col">
+                        <div class="field-label">
+                          <label for="tocDividerToggle">区切り線（横）</label>
+                        </div>
+                        <select id="tocDividerToggle" class="select-input">
+                          <option value="off" selected>表示しない</option>
+                          <option value="on">表示する</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </details>
               </div>
             </div>
           </div>

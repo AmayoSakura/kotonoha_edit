@@ -1163,8 +1163,37 @@
     writing-mode: vertical-rl;
     -webkit-writing-mode: vertical-rl;
     text-orientation: mixed;
-    line-height: 1.9;
+    line-height: 1;
     white-space: nowrap;
+  }
+
+  .toc-row.toc-pagenum {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* リーダー線はSVGのlineで描画する（1本の継ぎ目のない線にするため）。
+     stroke-dasharrayで点線・破線を表現する。 */
+  .toc-leader line {
+    stroke: var(--muted, #999999);
+    stroke-width: 1;
+  }
+  .toc-leader-dotted line {
+    stroke-dasharray: 1 2;
+    stroke-linecap: round;
+  }
+  .toc-leader-dashed line {
+    stroke-dasharray: 4 3;
+  }
+  /* 実線は段組みの仕切り線に近い、少ししっかりした見た目にする */
+  .toc-leader-solid line {
+    stroke-width: 1;
+  }
+
+  /* 横の区切り線（全項目を横断する1本の水平線）。
+     段組みの区切り線と同じ、少ししっかりした実線にする。 */
+  .toc-divider line {
+    stroke: var(--muted, #bbbbbb);
+    stroke-width: 0.75;
   }
 
   .md-body strong,

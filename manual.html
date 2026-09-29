@@ -96,6 +96,7 @@
 
           <div class="toc-group-label">前付け・後付け</div>
           <a href="#frontmatter">中表紙（扉ページ）</a>
+          <a href="#toc-guide">目次</a>
           <a href="#colophon">奥付</a>
 
           <div class="toc-group-label">出力・環境</div>
@@ -807,8 +808,73 @@
           </div>
         </section>
 
+        <section class="doc-section" id="toc-guide">
+          <h2><span class="section-no">10</span>目次</h2>
+          <p>
+            本文中の見出し（<code>#</code>〜<code>######</code>のMarkdown記法）から自動生成される目次ページです。「タイトル……ページ番号」の体裁で、1項目ごとに1列（縦書きの列）を使って版面の右から左へ配置されます。必要なページ数は見出しの数に応じて自動で調整され、目次のページ数ぶん本文のページ番号は後ろにずれます。
+          </p>
+          <table class="ref-table">
+            <thead>
+              <tr>
+                <th>項目</th>
+                <th>選択肢</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>目次の書体</td>
+                <td>
+                  項目（タイトル・ページ番号）全体に適用（詳細は<a
+                    href="#font"
+                    >06 フォント</a
+                  >を参照）
+                </td>
+              </tr>
+              <tr>
+                <td>見出し（1ページ目冒頭）</td>
+                <td>
+                  表示する / 表示しない。表示する場合、テキスト・書体・文字サイズ（小〜特大）・縦位置（上寄せ／中央寄せ）を個別に指定可能。1ページ目の一番右に、項目の列とは別枠で1列を確保して配置される
+                </td>
+              </tr>
+              <tr>
+                <td>1ページの列数</td>
+                <td>
+                  自動（版面の幅に収まる最大列数）/ 7〜12列から手動指定。手動指定時は版面の幅をその列数でちょうど均等に割り、左右中央に配置される
+                </td>
+              </tr>
+              <tr>
+                <td>縦位置</td>
+                <td>
+                  上寄せ / 中央寄せ。中央寄せは目次全体で最も長いタイトルを基準に開始位置を1つ決め、全項目・全ページで同じ高さに揃える（見開きページ間で開始位置がズレないようにするため）
+                </td>
+              </tr>
+              <tr>
+                <td>リーダー線</td>
+                <td>点線 / 破線 / 実線 / なし</td>
+              </tr>
+              <tr>
+                <td>区切り線（横）</td>
+                <td>
+                  表示する / 表示しない。表示すると、版面の下端付近、全項目のページ番号より上の位置に、ページ全体を横断する1本の線が引かれる
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="tip-box">
+            <strong>ページ番号は版面の下端に固定</strong><br />
+            タイトルの位置は縦位置設定に従って動きますが、ページ番号は縦位置設定とは関係なく、常に版面の下端付近に揃えて配置されます。リーダー線は、タイトルの末尾からページ番号の手前までを、項目ごとの長さに応じて自動でつなぎます。
+          </div>
+          <div class="tip-box">
+            <strong>見出しレベルとインデント</strong><br />
+            行頭の<code>#</code>の数（1〜6個）がそのまま見出しのレベルになり、レベル2以降は目次上で少しインデントされます（詳細は<a
+              href="#markup"
+              >04 組版マークアップ</a
+            >を参照）。
+          </div>
+        </section>
+
         <section class="doc-section" id="colophon">
-          <h2><span class="section-no">10</span>奥付</h2>
+          <h2><span class="section-no">11</span>奥付</h2>
           <p>
             本文の後に挿入するページです。タイトル・発行日・著者・サークル名・連絡先・印刷所の6項目と、自由記載欄を設定できます。<br />未入力の項目は行ごと表示されず、詰めて配置されるため、「タイトルのみ入力、残りの項目は自由記載欄で入力」といった使い方も可能です。全体のページ数が奇数になる場合は、奥付の直前に空白ページが自動で1枚挿入されます。
           </p>
@@ -868,21 +934,21 @@
         </section>
 
         <section class="doc-section" id="output">
-          <h2><span class="section-no">11</span>印刷・PDF出力</h2>
+          <h2><span class="section-no">12</span>印刷・PDF出力</h2>
           <p>
             ブラウザの標準印刷機能を利用し、全ページをプレビュー通り一括レンダリングします。そのまま縦書きPDF保存や印刷が可能で、同人誌入稿や紙面確認にそのまま使用できます。
           </p>
         </section>
 
         <section class="doc-section" id="local">
-          <h2><span class="section-no">12</span>データの保存について</h2>
+          <h2><span class="section-no">13</span>データの保存について</h2>
           <p>
             原稿データは一切外部サーバーに送信されず、お使いのブラウザ内（LocalStorage）のみで保持されます。<br />テキストファイル<code>.txt</code>やマークダウンファイル<code>.md</code>の読込（インポート）、タイトル指定でのテキストファイル<code>.txt</code>保存（エクスポート）に対応しています。
           </p>
         </section>
 
         <section class="doc-section" id="pwa">
-          <h2><span class="section-no">13</span>アプリとしてインストール</h2>
+          <h2><span class="section-no">14</span>アプリとしてインストール</h2>
           <p>
             言ノ葉Editerはブラウザから開くだけで使えますが、お使いの端末に「アプリ」としてインストールし、オフラインでも起動できるようにすることも可能です（PWA対応）。原稿データの保存先はインストール前後で変わらず、引き続きお使いのブラウザ内（LocalStorage）です。
           </p>
@@ -919,7 +985,7 @@
         </section>
 
         <section class="doc-section" id="license">
-          <h2><span class="section-no">14</span>ライセンスについて</h2>
+          <h2><span class="section-no">15</span>ライセンスについて</h2>
           <p>
             <a
               href="https://github.com/AmayoSakura/kotonoha_edit/blob/main/LICENSE"
@@ -931,7 +997,7 @@
         </section>
 
         <section class="doc-section" id="faq">
-          <h2><span class="section-no">15</span>問い合わせ先</h2>
+          <h2><span class="section-no">16</span>問い合わせ先</h2>
           <p>
             本ツールに関するご意見、バグ報告、機能要望は、以下のいずれかよりご連絡ください。
           </p>
