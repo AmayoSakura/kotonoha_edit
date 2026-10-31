@@ -1,4 +1,4 @@
-const CACHE_NAME = "kotonoha-v1.0.3";
+const CACHE_NAME = "kotonoha-v1.2";
 const APP_SHELL = [
   "./kotonoha.html",
   "./manual.html",

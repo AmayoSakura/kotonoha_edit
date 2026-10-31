@@ -520,6 +520,24 @@ window.addEventListener("DOMContentLoaded", function () {
       codeBlocks.push('<code class="inline-code">' + code + "</code>");
       return placeholderFor(idx);
     });
+    // 縦中横の手動指定（自動判定の上書き）。
+    //   [縦:100]    … 自動判定の対象外でも、1コマの縦中横にする
+    //   [横:Vol.5]  … 自動判定の対象でも縦中横にせず、横倒しのまま並べる
+    // 中身はルビ・太字・縦中横の自動判定に触れさせないよう、コードと同じ
+    // プレースホルダへ退避する（＝中身はそのままの文字として出力される）。
+    // 全角括弧・全角コロン（［縦：100］）も受け付ける。
+    value = value.replace(
+      /[\[［](縦|横)[:：]([^\]］\n]+)[\]］]/g,
+      function (match, kind, body) {
+        const idx = codeBlocks.length;
+        codeBlocks.push(
+          kind === "縦"
+            ? '<span class="tcy">' + body + "</span>"
+            : '<span class="no-tcy">' + body + "</span>",
+        );
+        return placeholderFor(idx);
+      },
+    );
     value = value.replace(
       /《《([^》\n]+)》》/g,
       '<span class="bouten">$1</span>',
@@ -541,7 +559,7 @@ window.addEventListener("DOMContentLoaded", function () {
     value = value.replace(/(\b\d{1,2}\b)/g, '<span class="tcy">$1</span>');
     value = value.replace(/(――+|……+|──+)/g, '<span class="nobreak">$1</span>');
     for (let idx = 0; idx < codeBlocks.length; idx++) {
-      value = value.replace(placeholderFor(idx), codeBlocks[idx]);
+      value = value.replace(placeholderFor(idx), () => codeBlocks[idx]);
     }
     return value;
   }
@@ -843,12 +861,16 @@ window.addEventListener("DOMContentLoaded", function () {
     function parseTextTokens(str) {
       const tokens = [];
       const pattern =
-        /(!\?|\?!|!!|\?\?|！？|？！|！！|！！|？？)|(\b\d{1,2}\b)|([\|｜][^《\n]+《[^》\n]+》)|([一-龯]+《[^》\n]+》)|(《《[^》\n]+》》)|(\*\*[^*]+\*\*)|(\*[^*\n]+\*)|(`[^`]+`)|(―{2,}|…{2,}|─{2,})|([―…─])|([^\|｜《\*`!\?―…─])/g;
+        /(!\?|\?!|!!|\?\?|！？|？！|！！|！！|？？)|(\b\d{1,2}\b)|([\|｜][^《\n]+《[^》\n]+》)|([一-龯]+《[^》\n]+》)|(《《[^》\n]+》》)|(\*\*[^*]+\*\*)|(\*[^*\n]+\*)|(`[^`]+`)|([\[［](?:縦|横)[:：][^\]］\n]+[\]］])|(―{2,}|…{2,}|─{2,})|([―…─])|([^\|｜《\*`!\?―…─])/g;
       let match;
       while ((match = pattern.exec(str)) !== null) {
         const raw = match[0];
         let display = raw;
-        if (match[1] || match[2]) {
+        const manualTcy = /^[\[［](縦|横)[:：]([^\]］\n]+)[\]］]$/.exec(raw);
+        if (manualTcy) {
+          // [縦:…] は1コマ分、[横:…] は中身をそのまま横倒しで並べた幅で数える
+          display = manualTcy[1] === "縦" ? "あ" : manualTcy[2];
+        } else if (match[1] || match[2]) {
           display = "あ";
         } else if (raw.startsWith("《《") && raw.endsWith("》》")) {
           display = raw.slice(2, -2);
@@ -1692,6 +1714,62 @@ window.addEventListener("DOMContentLoaded", function () {
     if (nombreTypeVal === "roman") return toRomanNumeral(pageNum);
     return String(pageNum);
   }
+  // 目次の「1文字ずつ配置」方式で使う、コマ（1コマ＝1つのdiv）への分解。
+  // 1コマの高さはフォントサイズ1つ分。複数文字を1コマにまとめる場合は
+  // tcy（縦中横）として描画する。高さの計算は文字数ではなくコマ数で行うこと。
+  //
+  // タイトル：本文側（renderInline）と同じ判定 \b\d{1,2}\b で、
+  //   1〜2桁の半角数字だけを1コマの縦中横にする。3桁以上は縦中横にせず1文字ずつ。
+  function buildTocTitleCells(text) {
+    const cells = [];
+    const pushPlain = (s) =>
+      [...s].forEach((ch) => cells.push({ text: ch, tcy: false }));
+    // 自動判定（1〜2桁の半角数字だけを縦中横にする）
+    const pushAuto = (s) => {
+      const re = /\b\d{1,2}\b/g;
+      let last = 0;
+      let m;
+      while ((m = re.exec(s)) !== null) {
+        pushPlain(s.slice(last, m.index));
+        cells.push({ text: m[0], tcy: true });
+        last = m.index + m[0].length;
+      }
+      pushPlain(s.slice(last));
+    };
+    // 本文と同じ手動指定タグ（[縦:…] / [横:…]）は自動判定より優先する
+    const tagRe = /[\[［](縦|横)[:：]([^\]］\n]+)[\]］]/g;
+    let lastTag = 0;
+    let t;
+    while ((t = tagRe.exec(text)) !== null) {
+      pushAuto(text.slice(lastTag, t.index));
+      if (t[1] === "縦") {
+        cells.push({ text: t[2], tcy: true });
+      } else {
+        pushPlain(t[2]);
+      }
+      lastTag = t.index + t[0].length;
+    }
+    pushAuto(text.slice(lastTag));
+    return cells;
+  }
+  // ページ番号：アラビア数字のときは桁数に関わらず常に1コマの縦中横。
+  // 漢数字・ローマ数字のときは縦中横にせず1文字ずつ（従来どおり）。
+  function buildTocPageNumCells(displayPageNum) {
+    const nombreType =
+      (els.nombreTypeSelect && els.nombreTypeSelect.value) || "arabic";
+    const isArabic =
+      nombreType !== "kanji-h" &&
+      nombreType !== "kanji-v" &&
+      nombreType !== "roman";
+    if (isArabic && displayPageNum) {
+      return [{ text: displayPageNum, tcy: true }];
+    }
+    return [...displayPageNum].map((ch) => ({ text: ch, tcy: false }));
+  }
+  function renderTocCellHtml(cell) {
+    const body = escapeHtml(cell.text);
+    return cell.tcy ? "<span class='tcy'>" + body + "</span>" : body;
+  }
   function renderTocPageDom(pageEl, pageData) {
     const isGutterOn = els.gutterSelect && els.gutterSelect.value === "on";
     const tocAbsolutePageIdx = pageData.tocAbsolutePageIdx || 0;
@@ -1780,10 +1858,14 @@ window.addEventListener("DOMContentLoaded", function () {
     let maxPageNumHeightPx = 0;
     (pageData.tocEntries || []).forEach((e) => {
       const fs = fontSizePx * (LEVEL_FONT_SCALE[e.level] || 1);
-      maxTitleHeightPx = Math.max(maxTitleHeightPx, fs * [...e.text].length);
+      maxTitleHeightPx = Math.max(
+        maxTitleHeightPx,
+        fs * buildTocTitleCells(e.text).length,
+      );
       maxPageNumHeightPx = Math.max(
         maxPageNumHeightPx,
-        fs * formatTocPageNumber(e.absolutePageIdx).length,
+        fs *
+          buildTocPageNumCells(formatTocPageNumber(e.absolutePageIdx)).length,
       );
     });
     const sharedTitleAreaLimitPx = Math.max(
@@ -1803,14 +1885,15 @@ window.addEventListener("DOMContentLoaded", function () {
       const levelClass = " toc-level-" + entry.level;
       const rowFontSizePx = fontSizePx * (LEVEL_FONT_SCALE[entry.level] || 1);
       const indentPx = entry.level >= 2 ? LEVEL_INDENT_PX : 0;
-      const titleCharCount = [...entry.text].length;
+      const titleCells = buildTocTitleCells(entry.text);
+      const pageNumCells = buildTocPageNumCells(displayPageNum);
       // 高さは実際に描画するフォントサイズ(rowFontSizePx)を基準に計算する
       // （レベル2/3はフォントサイズが縮小されるため、fontSizePx基準のままだと
       // 実際の描画サイズとズレて、topで指定した位置と実描画位置が食い違う）。
-      const titleHeightPx = rowFontSizePx * titleCharCount;
+      const titleHeightPx = rowFontSizePx * titleCells.length;
       // ページ番号は2段組の「下段」のように、縦位置設定とは無関係に
       // 常に版面の下端付近に固定する（全項目で同じtop座標）。
-      const pageNumHeightPx = rowFontSizePx * displayPageNum.length;
+      const pageNumHeightPx = rowFontSizePx * pageNumCells.length;
       const pageNumTopPx =
         vMarginPx +
         Math.max(
@@ -1829,7 +1912,8 @@ window.addEventListener("DOMContentLoaded", function () {
         displayPageNum,
         levelClass,
         rowFontSizePx,
-        titleCharCount,
+        titleCells,
+        pageNumCells,
         titleHeightPx,
         pageNumHeightPx,
         pageNumTopPx,
@@ -1850,7 +1934,8 @@ window.addEventListener("DOMContentLoaded", function () {
       const {
         entry,
         rightPx,
-        displayPageNum,
+        pageNumCells,
+        titleCells,
         levelClass,
         rowFontSizePx,
         titleHeightPx,
@@ -1863,8 +1948,7 @@ window.addEventListener("DOMContentLoaded", function () {
       // topで指定した位置と実際の描画位置がズレる不具合があったため
       // （1文字ずつなら「1文字の高さ＝フォントサイズ」という前提で
       //  自分で完全に位置を制御でき、ブラウザの自動配置に依存しない）。
-      const titleChars = [...entry.text];
-      titleChars.forEach((ch, chIdx) => {
+      titleCells.forEach((cell, chIdx) => {
         // style属性はシングルクォートで囲む（tocFontFamilyがダブルクォートを
         // 含む値のため。理由は目次見出しの箇所のコメントと同じ）。
         rowsHtml.push(
@@ -1881,7 +1965,7 @@ window.addEventListener("DOMContentLoaded", function () {
             "px;font-family:" +
             tocFontFamily +
             "'>" +
-            escapeHtml(ch) +
+            renderTocCellHtml(cell) +
             "</div>",
         );
       });
@@ -1928,8 +2012,7 @@ window.addEventListener("DOMContentLoaded", function () {
       // heightを明示するのはタイトル本体と同じ理由（height:autoのままだと
       // writing-mode:vertical-rlのabsolute要素で実描画位置がtopとズレるため）。
       // ページ番号も同様に1文字ずつ個別のdivに分割して積む（理由はタイトル本体と同じ）。
-      const pageNumChars = [...displayPageNum];
-      pageNumChars.forEach((ch, chIdx) => {
+      pageNumCells.forEach((cell, chIdx) => {
         rowsHtml.push(
           "<div class='toc-row toc-pagenum' style='position:absolute;top:" +
             (pageNumTopPx + chIdx * rowFontSizePx) +
@@ -1944,7 +2027,7 @@ window.addEventListener("DOMContentLoaded", function () {
             "px;font-family:" +
             tocFontFamily +
             "'>" +
-            escapeHtml(ch) +
+            renderTocCellHtml(cell) +
             "</div>",
         );
       });
@@ -3044,6 +3127,8 @@ window.addEventListener("DOMContentLoaded", function () {
         "（例：12月31日 15時03分）\n\n" +
         "・記号指定：`!?` `？！` `！！` など\n" +
         "（例：本当!? 嘘でしょ？！ 信じられない！！）\n\n" +
+        "・手動指定：`[縦:100]`（自動の対象外でも縦中横にする） `[横:Vol.5]`（縦中横にせず横倒しのまま）\n" +
+        "（例：第[縦:100]話 [横:Vol.5]）\n\n" +
         "## 3. Markdown記法と装飾\n\n" +
         "標準的なMarkdown記法で文章を修飾できます。\n\n" +
         "・太字指定：`**太字**`（例：**ここが太字**）\n" +
