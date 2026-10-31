@@ -38,12 +38,12 @@
     <link rel="manifest" href="manifest.json" />
     <meta name="theme-color" content="#7a502f" />
 
-    <title>取扱説明書 | 言ノ葉Editer</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
+      id="dynamic-font-link"
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700&family=Noto+Serif+JP:wght@400;500;600&family=Sawarabi+Mincho&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Shippori+Mincho:wght@400;500;600;700&family=Noto+Serif+JP:wght@400;500;600&family=Sawarabi+Mincho&display=swap"
     />
     <link
       rel="stylesheet"
@@ -54,998 +54,1599 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Bonheur+Royale&family=Crafty+Girls&family=Fleur+De+Leah&family=Google+Sans+Flex:opsz,wght@6..144,1..1000&family=Henny+Penny&family=Kranky&family=Michroma&family=Zen+Loop:ital@0;1&display=swap"
     />
-    <link rel="stylesheet" href="css/lp.css" />
+    <!-- 中表紙・奥付 各項目カスタムWebフォント用（動的差し替え） -->
+    <link id="dynamic-cover-title-font-link" rel="stylesheet" href="" />
+    <link id="dynamic-cover-subtitle-font-link" rel="stylesheet" href="" />
+    <link id="dynamic-cover-author-font-link" rel="stylesheet" href="" />
+    <link id="dynamic-colophon-title-font-link" rel="stylesheet" href="" />
+    <link id="dynamic-colophon-fields-font-link" rel="stylesheet" href="" />
+    <link id="dynamic-colophon-note-font-link" rel="stylesheet" href="" />
+
+    <style id="page-size-style">
+      @page {
+        size: 210mm 297mm;
+        margin: 0;
+      }
+    </style>
+    <title>言ノ葉Editer v1.1</title>
+
+    <link rel="stylesheet" href="css/style.css" />
   </head>
 
   <body>
-    <div class="app-shell">
-      <div class="mobile-toc-toggle" id="mobileTocToggle">
-        <span>☰</span><span>目次</span>
-      </div>
-      <div class="toc-scrim" id="tocScrim"></div>
-
-      <nav class="toc-sidebar" id="tocSidebar">
-        <div class="toc-brand">
-          <div class="toc-brand-title">言ノ葉Editer</div>
-          <div class="toc-brand-sub">取扱説明書</div>
+    <main class="app">
+      <header class="hero no-print">
+        <div class="hero-title-group">
+          <h1>言ノ葉Editer</h1>
+          <span class="version-badge">v1.1</span>
         </div>
-        <div class="toc-theme-row">
-          <label for="themeSelect">表示テーマ</label>
-          <select id="themeSelect">
+        <div class="hero-actions">
+          <a
+            href="manual.html"
+            target="_blank"
+            rel="noopener"
+            class="secondary-button"
+            style="text-decoration: none; height: 36px"
+          >
+            使い方
+          </a>
+          <select
+            id="themeSelect"
+            class="select-input"
+            style="width: 110px; height: 36px"
+          >
             <option value="standard">ライト</option>
             <option value="dark">ダーク</option>
             <option value="sepia" selected>セピア</option>
           </select>
+          <button
+            id="printButton"
+            class="primary-button"
+            type="button"
+            style="height: 36px"
+          >
+            印刷・PDF出力
+          </button>
         </div>
-        <div class="toc-nav" id="tocNav">
-          <div class="toc-group-label">はじめに</div>
-          <a href="#intro">言ノ葉Editerとは</a>
-          <a href="#quickstart">基本の使い方</a>
+      </header>
 
-          <div class="toc-group-label">組版エンジン</div>
-          <a href="#engine">自動組版のしくみ</a>
-          <a href="#markup">組版マークアップ</a>
-
-          <div class="toc-group-label">レイアウト設定</div>
-          <a href="#paper">用紙・段組・余白</a>
-          <a href="#font">フォント</a>
-
-          <div class="toc-group-label">柱・ノンブル</div>
-          <a href="#header">柱（ヘッダー）</a>
-          <a href="#nombre">ノンブル（ページ番号）</a>
-
-          <div class="toc-group-label">前付け・後付け</div>
-          <a href="#frontmatter">中表紙（扉ページ）</a>
-          <a href="#toc-guide">目次</a>
-          <a href="#colophon">奥付</a>
-
-          <div class="toc-group-label">出力・環境</div>
-          <a href="#output">印刷・PDF出力</a>
-          <a href="#local">データの保存について</a>
-          <a href="#pwa">アプリとしてインストール</a>
-          <div class="toc-group-label">その他</div>
-          <a href="#license">ライセンスについて</a>
-          <a href="#faq">問い合わせ先</a>
-        </div>
-      </nav>
-
-      <main class="content-area">
-        <header class="doc-header">
-          <div class="doc-eyebrow">MANUAL</div>
-          <h1 class="doc-title">言ノ葉Editer 取扱説明書</h1>
-          <p class="doc-lead">
-            原稿をテキストで流し込むだけで、禁則も字下げも自動で整う日本語組版エディタです。このページでは、各設定項目の意味と使い方を実務目線でまとめています。目次から気になる項目にジャンプしてください。
-          </p>
-        </header>
-
-        <section class="doc-section" id="intro">
-          <h2><span class="section-no">01</span>言ノ葉Editerとは</h2>
-          <p>
-            Wordやテキストエディタで書かれた原稿を流し込み、リアルタイムで縦書きの本の紙面を確認しながら、そのまま高品質な印刷やPDF出力（同人誌入稿・文庫作成など）まで行えるWebベースの日本語自動組版エディタです。
-          </p>
-          <p>
-            原稿執筆から版組み・レイアウト調整・PDF化まで、サーバー不要・完全フロントエンド（ブラウザのみ）で完結します。原稿データが外部に送信されることはありません。
-          </p>
-        </section>
-
-        <section class="doc-section" id="quickstart">
-          <h2><span class="section-no">02</span>基本の使い方</h2>
-          <ol class="steps-list">
-            <li>
-              <strong>エディタを開く</strong> —
-              ランディングページから「原稿を組んでみる」を押すか、直接エディタ本体を開きます。
-            </li>
-            <li>
-              <strong>原稿を流し込む</strong> —
-              「本文入力」エリアに原稿を貼り付けるか、ファイルをインポートします。
-            </li>
-            <li>
-              <strong>版面・レイアウトを整える</strong> —
-              「組版・設定」タブで用紙サイズ、段組、のど、ノンブル、フォント等を調整します。
-            </li>
-            <li>
-              <strong>紙面をプレビューで確認</strong> —
-              リアルタイムで縦書き本のかたちに組み上がる紙面を確認・推敲します。
-            </li>
-            <li>
-              <strong>PDF・印刷出力</strong> —
-              右上の「印刷・PDF出力」から縦書きPDFを書き出すか印刷します。
-            </li>
-          </ol>
-          <div class="tip-box">
-            <strong>元に戻す・やり直す</strong><br />
-            本文テキスト欄の下にある「元に戻す」「やり直す」ボタンで、直近5世代まで本文の変更を戻せます（<code
-              >Ctrl+Z</code
+      <div class="editor-grid">
+        <section class="panel editor-panel no-print">
+          <div class="editor-tabs">
+            <button
+              class="editor-tab-btn active"
+              data-target="pane-text"
+              type="button"
             >
-            /
-            <code>Ctrl+Shift+Z</code
-            >のショートカットにも対応）。「消去」「読込」「サンプル」による本文の一括差し替えも対象に含まれます。
+              本文入力
+            </button>
+            <button
+              class="editor-tab-btn"
+              data-target="pane-typeset"
+              type="button"
+            >
+              本文組版・設定
+            </button>
+            <button
+              class="editor-tab-btn"
+              data-target="pane-frontmatter"
+              type="button"
+            >
+              付帯ページ
+            </button>
           </div>
-        </section>
 
-        <section class="doc-section" id="engine">
-          <h2><span class="section-no">03</span>自動組版のしくみ</h2>
-          <p>
-            原稿を流し込むと、禁則処理・記号の分断防止・会話文の字下げ調整が自動で適用されます。行頭・行尾禁則はもちろん、「――」（ダッシュ）や「……」（リーダー）などの記号が行途中や行末で泣き別れしないよう自動補正されます。
-          </p>
-          <p>
-            フォントの縦書き字送りや約物（「」など）固有のアキはCanvasで実測され、ミリ単位で精緻な自動ページ分割・組版が行われます。
-          </p>
-        </section>
-
-        <section class="doc-section" id="markup">
-          <h2><span class="section-no">04</span>組版マークアップ</h2>
-          <p>
-            本文中に以下の記法を使うことで、ルビや傍点、配置などを制御できます。
-          </p>
-          <table class="ref-table">
-            <thead>
-              <tr>
-                <th>機能</th>
-                <th>記法</th>
-                <th>入力例</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>ルビ（ふりがな）</td>
-                <td>
-                  <code>｜漢字《かんじ》</code> または
-                  <code>漢字《かんじ》</code>
-                </td>
-                <td><code>｜瑠璃《るり》色の空</code></td>
-              </tr>
-              <tr>
-                <td>傍点（圏点）</td>
-                <td><code>《《文字》》</code></td>
-                <td><code>《《ここを強調》》</code></td>
-              </tr>
-              <tr>
-                <td>縦中横（半角数字）</td>
-                <td>1〜2桁の数字</td>
-                <td><code>12</code>月<code>31</code>日</td>
-              </tr>
-              <tr>
-                <td>縦中横（感嘆符・疑問符）</td>
-                <td>
-                  <code>!?</code> <code>?!</code> <code>!!</code>
-                  <code>??</code> 等
-                </td>
-                <td><code>本当!?</code></td>
-              </tr>
-              <tr>
-                <td>縦中横の手動指定</td>
-                <td>
-                  <code>[縦:…]</code>（縦中横にする）<br />
-                  <code>[横:…]</code>（縦中横にしない）
-                </td>
-                <td>
-                  第<code>[縦:100]</code>話<br />
-                  <code>[横:Vol.5]</code>
-                </td>
-              </tr>
-              <tr>
-                <td>中央寄せ</td>
-                <td><code>[中央]</code> または <code>[center]</code></td>
-                <td><code>[中央]第一章</code></td>
-              </tr>
-              <tr>
-                <td>右寄せ（下寄せ）</td>
-                <td><code>[右]</code> または <code>[right]</code></td>
-                <td><code>[右]言ノ葉 太郎</code></td>
-              </tr>
-              <tr>
-                <td>字下げなし</td>
-                <td>
-                  <code>[字下げなし]</code> または <code>[noindent]</code>
-                </td>
-                <td><code>[字下げなし]地の文をそのまま</code></td>
-              </tr>
-              <tr>
-                <td>字下げあり（強制）</td>
-                <td><code>[字下げあり]</code> または <code>[indent]</code></td>
-                <td><code>[字下げあり]「地の文扱いの会話」</code></td>
-              </tr>
-              <tr>
-                <td>手動改ページ</td>
-                <td><code>[改ページ]</code></td>
-                <td><code>[改ページ]</code>（行頭に単独で記載）</td>
-              </tr>
-              <tr>
-                <td>タイトル内の改行位置指定</td>
-                <td><code>[改行]</code></td>
-                <td><code>言ノ葉[改行]Editer</code></td>
-              </tr>
-              <tr>
-                <td>見出し</td>
-                <td><code>#</code>〜<code>######</code></td>
-                <td><code>## 1. はじめに</code></td>
-              </tr>
-              <tr>
-                <td>太字 / 斜体</td>
-                <td><code>**太字**</code> / <code>*斜体*</code></td>
-                <td><code>**重要**</code></td>
-              </tr>
-              <tr>
-                <td>引用枠</td>
-                <td><code>&gt; 文章</code></td>
-                <td><code>&gt; これは引用文です。</code></td>
-              </tr>
-            </tbody>
-          </table>
-          <div class="tip-box">
-            <strong>縦中横にしたくない数字がある場合</strong><br />
-            半角数字1〜2桁は自動的に縦中横（横向き表示）になります。型番や記号列など、数字を横向きにしたくない場合は、全角数字（<code>１２</code>など）で入力すると縦中横化の対象から外れ、他の文字と同じ向きのまま表示されます。範囲を指定して外したいときは、次の手動指定が便利です。
-          </div>
-          <div class="tip-box">
-            <strong>縦中横を手動で指定する（[縦:…] / [横:…]）</strong><br />
-            自動判定はそのままに、特定の箇所だけ上書きできます。何も書かなければ、これまでどおり自動で判定されます。<br />
-            ・<code>[縦:100]</code>：自動判定の対象外（3桁の数字や英数字の混在など）でも、中身を1コマにまとめて縦中横にします。<br />
-            ・<code>[横:Vol.5]</code>：自動判定の対象（1〜2桁の数字や<code>!?</code>など）が含まれていても、縦中横にせず横倒しのまま並べます。<br />
-            括弧とコロンは全角（<code>［縦：100］</code>）でも入力できます。タグの中ではルビや太字などの記法は使えず、中身はそのままの文字として表示されます。本文の見出しに書いた場合は、目次にも同じ指定が反映されます。
-          </div>
-          <div class="tip-box">
-            <strong>[改行]記法について</strong><br />
-            <code>[改行]</code
-            >は本文中では使用できません。中表紙タイトル・中表紙サブタイトル・奥付タイトルの入力欄（1行のテキスト入力）専用の記法で、挿入した位置で強制的に改行されます。
-          </div>
-          <div class="tip-box">
-            <strong>字下げの自動判定と、記法による上書き</strong><br />
-            通常は「」『』などの括弧で始まる会話文は自動的に字下げが省略され、それ以外の地の文は自動で一字下げされます。<code>[字下げなし]</code>・<code>[字下げあり]</code>は、この自動判定を行単位で上書きしたいときに使います。中央寄せ・右寄せと併用した場合は、字下げ指定のほうが優先されます。
-          </div>
-        </section>
-
-        <section class="doc-section" id="paper">
-          <h2><span class="section-no">05</span>用紙・段組・余白</h2>
-          <h3>用紙サイズ</h3>
-          <p>
-            A6（文庫本サイズ）、B6（同人誌主流）、A5、B5、A4、ハガキなど、実寸ミリ単位で設計されています。
-          </p>
-          <h3>段組</h3>
-          <p>
-            1段組 /
-            2段組を切り替えられます。2段組では段の境界線の有無も選択できます。
-          </p>
-          <h3>のど（綴じ代）</h3>
-          <p>
-            のどのあり・なしを切り替え可能で、あり設定時は奇数・偶数ページで左右交互に配置されます。綴じ代幅はmm単位でカスタム指定できます（初期値6mm）。
-          </p>
-          <h3>余白</h3>
-          <div class="panel-card">
-            <div class="panel-card-title">余白プリセット（天地 × 左右）</div>
-            <table class="ref-table">
-              <thead>
-                <tr>
-                  <th>プリセット</th>
-                  <th>天地</th>
-                  <th>左右</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>狭い</td>
-                  <td>12mm</td>
-                  <td>10mm</td>
-                </tr>
-                <tr>
-                  <td>標準</td>
-                  <td>18mm</td>
-                  <td>14mm</td>
-                </tr>
-                <tr>
-                  <td>広い</td>
-                  <td>24mm</td>
-                  <td>18mm</td>
-                </tr>
-                <tr>
-                  <td>カスタム</td>
-                  <td colspan="2">任意のmm数値を指定可能</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <p>本文文字サイズもあわせて細かく設定できます。</p>
-        </section>
-
-        <section class="doc-section" id="font">
-          <h2><span class="section-no">06</span>フォント</h2>
-          <p>
-            本文には和文フォント10種、中表紙・奥付にはそれに加えて欧文フォント10種のプリセットが用意されています。いずれの項目も「カスタムURL指定...」を選ぶことで、任意のGoogle
-            Fonts等のWebフォントに差し替えられます。
-          </p>
-
-          <h3>明朝体（本文向き）</h3>
-          <table class="ref-table">
-            <thead>
-              <tr>
-                <th>フォント名</th>
-                <th>サンプル</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>システム標準明朝</td>
-                <td
-                  class="font-sample"
-                  style="
-                    font-family:
-                      &quot;Hiragino Mincho ProN&quot;, &quot;Yu Mincho&quot;,
-                      &quot;MS Mincho&quot;, serif;
-                  "
-                >
-                  ――言ノ葉、静かに紡がれる……。
-                </td>
-              </tr>
-              <tr>
-                <td>しっぽり明朝</td>
-                <td
-                  class="font-sample"
-                  style="
-                    font-family:
-                      &quot;Shippori Mincho&quot;, &quot;Yu Mincho&quot;,
-                      &quot;MS Mincho&quot;, serif;
-                  "
-                >
-                  ――言ノ葉、静かに紡がれる……。
-                </td>
-              </tr>
-              <tr>
-                <td>Noto Serif JP</td>
-                <td
-                  class="font-sample"
-                  style="
-                    font-family:
-                      &quot;Noto Serif JP&quot;, &quot;Yu Mincho&quot;,
-                      &quot;MS Mincho&quot;, serif;
-                  "
-                >
-                  ――言ノ葉、静かに紡がれる……。
-                </td>
-              </tr>
-              <tr>
-                <td>さわらび明朝</td>
-                <td
-                  class="font-sample"
-                  style="
-                    font-family:
-                      &quot;Sawarabi Mincho&quot;, &quot;Yu Mincho&quot;,
-                      &quot;MS Mincho&quot;, serif;
-                  "
-                >
-                  ――言ノ葉、静かに紡がれる……。
-                </td>
-              </tr>
-              <tr>
-                <td>Klee One</td>
-                <td
-                  class="font-sample"
-                  style="
-                    font-family:
-                      &quot;Klee One&quot;, &quot;Hiragino Mincho ProN&quot;,
-                      serif;
-                  "
-                >
-                  ――言ノ葉、静かに紡がれる……。
-                </td>
-              </tr>
-              <tr>
-                <td>よもぎフォント</td>
-                <td
-                  class="font-sample"
-                  style="
-                    font-family:
-                      &quot;Yomogi&quot;, &quot;Hiragino Mincho ProN&quot;,
-                      serif;
-                  "
-                >
-                  ――言ノ葉、静かに紡がれる……。
-                </td>
-              </tr>
-            </tbody>
-          </table>
-
-          <h3>ゴシック体（タイトル・見出し向き）</h3>
-          <table class="ref-table">
-            <thead>
-              <tr>
-                <th>フォント名</th>
-                <th>サンプル</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>M PLUS 1p Light</td>
-                <td
-                  class="font-sample"
-                  style="
-                    font-family:
-                      &quot;M PLUS 1p&quot;, &quot;Hiragino Sans&quot;,
-                      sans-serif;
-                    font-weight: 300;
-                  "
-                >
-                  ――言ノ葉、静かに紡がれる……。
-                </td>
-              </tr>
-              <tr>
-                <td>RocknRoll One</td>
-                <td
-                  class="font-sample"
-                  style="
-                    font-family:
-                      &quot;RocknRoll One&quot;, &quot;Hiragino Sans&quot;,
-                      sans-serif;
-                  "
-                >
-                  ――言ノ葉、静かに紡がれる……。
-                </td>
-              </tr>
-              <tr>
-                <td>IBM Plex Sans JP</td>
-                <td
-                  class="font-sample"
-                  style="
-                    font-family:
-                      &quot;IBM Plex Sans JP&quot;, &quot;Hiragino Sans&quot;,
-                      sans-serif;
-                  "
-                >
-                  ――言ノ葉、静かに紡がれる……。
-                </td>
-              </tr>
-              <tr>
-                <td>LINE Seed JP</td>
-                <td
-                  class="font-sample"
-                  style="
-                    font-family:
-                      &quot;LINE Seed JP&quot;, &quot;Hiragino Sans&quot;,
-                      sans-serif;
-                  "
-                >
-                  ――言ノ葉、静かに紡がれる……。
-                </td>
-              </tr>
-            </tbody>
-          </table>
-
-          <h3>欧文フォント（中表紙・奥付向き）</h3>
-          <p>
-            中表紙のタイトル・サブタイトル・著者名、奥付のタイトル・固定項目・自由記載欄、それぞれのフォント選択欄で、和文10種の後ろに以下の欧文フォントが並びます。英字タイトルにこだわりたい場合にお使いください。
-          </p>
-          <table class="ref-table">
-            <thead>
-              <tr>
-                <th>フォント名</th>
-                <th>サンプル</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Cormorant Garamond</td>
-                <td
-                  class="font-sample"
-                  style="font-family: &quot;Cormorant Garamond&quot;, serif"
-                >
-                  Kotonoha Editer
-                </td>
-              </tr>
-              <tr>
-                <td>Montserrat</td>
-                <td
-                  class="font-sample"
-                  style="font-family: &quot;Montserrat&quot;, sans-serif"
-                >
-                  Kotonoha Editer
-                </td>
-              </tr>
-              <tr>
-                <td>Bonheur Royale</td>
-                <td
-                  class="font-sample"
-                  style="font-family: &quot;Bonheur Royale&quot;, cursive"
-                >
-                  Kotonoha Editer
-                </td>
-              </tr>
-              <tr>
-                <td>Crafty Girls</td>
-                <td
-                  class="font-sample"
-                  style="font-family: &quot;Crafty Girls&quot;, cursive"
-                >
-                  Kotonoha Editer
-                </td>
-              </tr>
-              <tr>
-                <td>Fleur De Leah</td>
-                <td
-                  class="font-sample"
-                  style="font-family: &quot;Fleur De Leah&quot;, cursive"
-                >
-                  Kotonoha Editer
-                </td>
-              </tr>
-              <tr>
-                <td>Google Sans Flex</td>
-                <td
-                  class="font-sample"
-                  style="font-family: &quot;Google Sans Flex&quot;, sans-serif"
-                >
-                  Kotonoha Editer
-                </td>
-              </tr>
-              <tr>
-                <td>Henny Penny</td>
-                <td
-                  class="font-sample"
-                  style="font-family: &quot;Henny Penny&quot;, cursive"
-                >
-                  Kotonoha Editer
-                </td>
-              </tr>
-              <tr>
-                <td>Kranky</td>
-                <td
-                  class="font-sample"
-                  style="font-family: &quot;Kranky&quot;, cursive"
-                >
-                  Kotonoha Editer
-                </td>
-              </tr>
-              <tr>
-                <td>Michroma</td>
-                <td
-                  class="font-sample"
-                  style="font-family: &quot;Michroma&quot;, sans-serif"
-                >
-                  Kotonoha Editer
-                </td>
-              </tr>
-              <tr>
-                <td>Zen Loop</td>
-                <td
-                  class="font-sample"
-                  style="font-family: &quot;Zen Loop&quot;, cursive"
-                >
-                  Kotonoha Editer
-                </td>
-              </tr>
-            </tbody>
-          </table>
-
-          <h3>カスタムWebフォント</h3>
-          <p>
-            プリセットにないフォントを使いたい場合は、フォント選択で「カスタムURL指定...」を選ぶと、CSS/Font
-            URLとfamily名を入力する欄が表示されます。本文・中表紙（タイトル／サブタイトル／著者名）・奥付（タイトル／固定項目／自由記載欄）のあわせて7項目、それぞれ個別にカスタムフォントを指定できます。
-          </p>
-
-          <h4 style="margin: 18px 0 8px; font-size: 15px">
-            設定の手順（Google Fontsを例に）
-          </h4>
-          <ol class="steps-list">
-            <li>
-              <strong>使いたいフォントをGoogle Fontsで探す</strong> —
-              <a
-                href="https://fonts.google.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-                >fonts.google.com</a
-              >
-              で好みのフォントを選びます。ここでは例として「Zen
-              Kurenaido」というフォントを使うとします。
-            </li>
-            <li>
-              <strong>埋め込み用のCSS URLを取得する</strong> —
-              フォントページの「Get font」→「Get embed
-              code」を開くと、次のような<code>&lt;link&gt;</code>タグが表示されます。
-              <div class="panel-card" style="margin-top: 8px">
-                <code
-                  >&lt;link
-                  href="https://fonts.googleapis.com/css2?family=Zen+Kurenaido&amp;display=swap"
-                  rel="stylesheet"&gt;</code
-                >
+          <div class="tab-content-area">
+            <div id="pane-text" class="tab-pane active">
+              <div class="form-row two-cols" style="margin-bottom: 12px">
+                <div class="form-col">
+                  <div class="field-label">
+                    <label for="pageTitle">表題（タイトル）</label>
+                  </div>
+                  <input
+                    id="pageTitle"
+                    class="title-input"
+                    type="text"
+                    placeholder="例：舞姫、怪異譚"
+                  />
+                </div>
+                <div class="form-col">
+                  <div class="field-label">
+                    <label for="pageHeader">柱（ヘッダー）</label>
+                  </div>
+                  <input
+                    id="pageHeader"
+                    class="title-input"
+                    type="text"
+                    placeholder="例：第一章 ～目覚め～"
+                  />
+                </div>
               </div>
-              この<code>href="..."</code>の中身（<code>https://fonts.googleapis.com/css2?family=Zen+Kurenaido&amp;display=swap</code>）だけをコピーします。
-            </li>
-            <li>
-              <strong>「CSS/Font URL」欄に貼り付ける</strong> —
-              手順2でコピーしたURLをそのまま貼り付けます。
-            </li>
-            <li>
-              <strong>「family名」欄にフォント名を入力する</strong> — Google
-              Fontsのフォント名をそのままダブルクォートで囲んで入力します。今回の例なら
-              <code>"Zen Kurenaido"</code> と入力します（末尾に
-              <code>, sans-serif</code>
-              のような総称フォント名を足しておくと、万一読み込みに失敗した際のフォールバックになり安全です）。
-            </li>
-          </ol>
-          <div class="tip-box">
-            <strong>family名の書き方</strong><br />
-            family名はCSSの<code>font-family</code>プロパティにそのまま渡されます。フォント名にスペースが含まれる場合は
-            <code>"Zen Kurenaido"</code>
-            のようにダブルクォートで囲んでください。複数指定する場合はカンマ区切りで
-            <code>"Zen Kurenaido", "Noto Serif JP", serif</code>
-            のように書けます。
+
+              <div class="field-label" style="margin-top: 8px">
+                <label for="sourceText">本文テキスト</label>
+                <small id="charCount">0文字</small>
+              </div>
+              <textarea
+                id="sourceText"
+                class="text-input"
+                placeholder="ここに本文を入力してください。"
+              ></textarea>
+
+              <div class="controls-undo">
+                <button
+                  id="undoButton"
+                  class="secondary-button"
+                  type="button"
+                  disabled
+                  title="元に戻す（Ctrl+Z）"
+                >
+                  元に戻す
+                </button>
+                <button
+                  id="redoButton"
+                  class="secondary-button"
+                  type="button"
+                  disabled
+                  title="やり直す（Ctrl+Shift+Z）"
+                >
+                  やり直す
+                </button>
+              </div>
+
+              <div class="controls-main">
+                <button
+                  id="insertBreakButton"
+                  class="secondary-button"
+                  type="button"
+                >
+                  手動改ページ
+                </button>
+                <button
+                  id="sampleButton"
+                  class="secondary-button"
+                  type="button"
+                >
+                  サンプル
+                </button>
+                <button
+                  id="importButton"
+                  class="secondary-button"
+                  type="button"
+                >
+                  読込
+                </button>
+                <button
+                  id="exportButton"
+                  class="secondary-button"
+                  type="button"
+                >
+                  保存 (.txt)
+                </button>
+                <button id="clearButton" class="secondary-button" type="button">
+                  消去
+                </button>
+                <input
+                  type="file"
+                  id="fileInput"
+                  accept=".txt,.md"
+                  style="display: none"
+                />
+              </div>
+            </div>
+
+            <div id="pane-typeset" class="tab-pane">
+              <details class="setting-group" open>
+                <summary>ヘッダー・ノンブル設定</summary>
+                <div class="setting-content">
+                  <div class="form-row">
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="headerDisplaySelect">ヘッダー表示</label>
+                      </div>
+                      <select id="headerDisplaySelect" class="select-input">
+                        <option value="all" selected>全ページ</option>
+                        <option value="odd">奇数ページのみ</option>
+                        <option value="even">偶数ページのみ</option>
+                        <option value="alternate">左右交互</option>
+                      </select>
+                    </div>
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="headerPosSelect">位置</label>
+                      </div>
+                      <select id="headerPosSelect" class="select-input">
+                        <option value="right" selected>右上</option>
+                        <option value="center">中央上</option>
+                        <option value="left">左上</option>
+                      </select>
+                    </div>
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="headerSizeSelect">文字サイズ</label>
+                      </div>
+                      <select id="headerSizeSelect" class="select-input">
+                        <option value="0.55rem">小</option>
+                        <option value="0.65rem" selected>標準</option>
+                        <option value="0.75rem">大</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="form-row" style="margin-top: 10px">
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="nombreDisplaySelect">ノンブル表示</label>
+                      </div>
+                      <select id="nombreDisplaySelect" class="select-input">
+                        <option value="all" selected>全ページ</option>
+                        <option value="skip-first">1ページ目隠す</option>
+                        <option value="off">非表示</option>
+                      </select>
+                    </div>
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="nombrePosSelect">位置</label>
+                      </div>
+                      <select id="nombrePosSelect" class="select-input">
+                        <option value="center" selected>中央下</option>
+                        <option value="right">右下</option>
+                        <option value="left">左下</option>
+                        <option value="alternate">左右交互</option>
+                      </select>
+                    </div>
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="nombreSizeSelect">文字サイズ</label>
+                      </div>
+                      <select id="nombreSizeSelect" class="select-input">
+                        <option value="0.55rem">小</option>
+                        <option value="0.68rem" selected>標準</option>
+                        <option value="0.78rem">大</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="form-row" style="margin-top: 10px">
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="nombreTypeSelect">数字タイプ</label>
+                      </div>
+                      <select id="nombreTypeSelect" class="select-input">
+                        <option value="arabic" selected>算用数字</option>
+                        <option value="kanji-h">漢数字（横書き）</option>
+                        <option value="kanji-v">漢数字（縦書き）</option>
+                        <option value="roman">ローマ数字</option>
+                      </select>
+                    </div>
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="nombreFormatSelect">ノンブル形式</label>
+                      </div>
+                      <select id="nombreFormatSelect" class="select-input">
+                        <option value="dash" selected>- 1 -</option>
+                        <option value="p">P.1</option>
+                        <option value="slash">/ 1 /</option>
+                        <option value="number">数字のみ</option>
+                      </select>
+                    </div>
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="startPageInput">開始ページ</label>
+                      </div>
+                      <input
+                        id="startPageInput"
+                        class="title-input"
+                        type="number"
+                        value="1"
+                        min="1"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </details>
+
+              <details class="setting-group" open>
+                <summary>用紙・フォント・レイアウト</summary>
+                <div class="setting-content">
+                  <div class="form-row">
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="pageSizeSelect">用紙サイズ</label>
+                      </div>
+                      <select id="pageSizeSelect" class="select-input">
+                        <option value="A4">A4</option>
+                        <option value="B5">B5</option>
+                        <option value="A5" selected>A5</option>
+                        <option value="B6">B6</option>
+                        <option value="A6">A6</option>
+                        <option value="Hagaki">ハガキ</option>
+                      </select>
+                    </div>
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="columnSelect">段組</label>
+                      </div>
+                      <select id="columnSelect" class="select-input">
+                        <option value="1" selected>1段組</option>
+                        <option value="2">2段組</option>
+                      </select>
+                    </div>
+                    <div class="form-col" id="columnRuleCol">
+                      <div class="field-label">
+                        <label for="columnRuleSelect">境界線</label>
+                      </div>
+                      <select id="columnRuleSelect" class="select-input">
+                        <option value="on" selected>実線</option>
+                        <option value="off">なし</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="form-row" style="margin-top: 10px">
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="fontSizeSelect">文字サイズ</label>
+                      </div>
+                      <select id="fontSizeSelect" class="select-input">
+                        <option value="8.5pt">小 (8.5pt)</option>
+                        <option value="9.5pt" selected>標準 (9.5pt)</option>
+                        <option value="10.5pt">中 (10.5pt)</option>
+                        <option value="12pt">大 (12pt)</option>
+                      </select>
+                    </div>
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="marginSelect">余白（mm）</label>
+                      </div>
+                      <select id="marginSelect" class="select-input">
+                        <option value="narrow">狭い（天地12×左右10）</option>
+                        <option value="normal" selected>
+                          標準（天地18×左右14）
+                        </option>
+                        <option value="wide">広い（天地24×左右18）</option>
+                        <option value="custom">カスタム</option>
+                      </select>
+                    </div>
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="gutterSelect">綴じ代</label>
+                      </div>
+                      <select id="gutterSelect" class="select-input">
+                        <option value="off" selected>なし</option>
+                        <option value="on">あり（交互）</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div
+                    class="form-row"
+                    id="customMarginRow"
+                    style="margin-top: 10px; display: none"
+                  >
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="marginVInput">上下余白（mm）</label>
+                      </div>
+                      <input
+                        id="marginVInput"
+                        class="select-input"
+                        type="number"
+                        min="0"
+                        max="50"
+                        step="0.5"
+                        value="18"
+                      />
+                    </div>
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="marginHInput">左右余白（mm）</label>
+                      </div>
+                      <input
+                        id="marginHInput"
+                        class="select-input"
+                        type="number"
+                        min="0"
+                        max="50"
+                        step="0.5"
+                        value="14"
+                      />
+                    </div>
+                  </div>
+
+                  <div
+                    class="form-row"
+                    id="gutterWidthRow"
+                    style="margin-top: 10px; display: none"
+                  >
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="gutterWidthInput">綴じ代幅（mm）</label>
+                      </div>
+                      <input
+                        id="gutterWidthInput"
+                        class="select-input"
+                        type="number"
+                        min="0"
+                        max="30"
+                        step="0.5"
+                        value="6"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="form-row" style="margin-top: 10px">
+                    <div class="form-col" style="grid-column: span 3">
+                      <div class="field-label">
+                        <label for="fontSelect">書体（フォント）</label>
+                      </div>
+                      <select id="fontSelect" class="select-input">
+                        <option value="system">システム標準明朝</option>
+                        <option value="shippori">しっぽり明朝</option>
+                        <option value="noto" selected>Noto Serif JP</option>
+                        <option value="sawarabi">さわらび明朝</option>
+                        <option value="mplus1p">M PLUS 1p Light</option>
+                        <option value="rocknroll">RocknRoll One</option>
+                        <option value="plexjpregular">IBM Plex Sans JP</option>
+                        <option value="lineseedregular">LINE Seed JP</option>
+                        <option value="klee">Klee One</option>
+                        <option value="yomogi">よもぎフォント</option>
+                        <option value="custom">カスタムURL指定...</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div
+                    id="customFontRow"
+                    class="form-row"
+                    style="display: none; margin-top: 10px"
+                  >
+                    <div class="form-col" style="grid-column: span 2">
+                      <div class="field-label">
+                        <label for="customFontUrl">CSS/Font URL</label>
+                      </div>
+                      <input
+                        id="customFontUrl"
+                        class="title-input"
+                        type="text"
+                        placeholder="https://..."
+                      />
+                    </div>
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="customFontFamily">family名</label>
+                      </div>
+                      <input
+                        id="customFontFamily"
+                        class="title-input"
+                        type="text"
+                        placeholder="'Font', serif"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </details>
+            </div>
+
+            <div id="pane-frontmatter" class="tab-pane">
+              <div class="editor-subtabs">
+                <button
+                  class="editor-subtab-btn active"
+                  data-target="subpane-cover"
+                  type="button"
+                >
+                  中表紙
+                </button>
+                <button
+                  class="editor-subtab-btn"
+                  data-target="subpane-colophon"
+                  type="button"
+                >
+                  奥付
+                </button>
+                <button
+                  class="editor-subtab-btn"
+                  data-target="subpane-toc"
+                  type="button"
+                >
+                  目次
+                </button>
+              </div>
+
+              <div id="subpane-cover" class="editor-subpane active">
+                <div class="field-label">
+                  <label for="coverEnableToggle">中表紙を作成する</label>
+                </div>
+                <select id="coverEnableToggle" class="select-input">
+                  <option value="off" selected>作成しない</option>
+                  <option value="on">作成する</option>
+                </select>
+
+                <div id="coverFieldsGroup">
+                  <div class="form-row two-cols" style="margin-top: 12px">
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="coverTitleInput">タイトル</label>
+                      </div>
+                      <input
+                        id="coverTitleInput"
+                        class="title-input"
+                        type="text"
+                        placeholder="例：舞姫（[改行]で改行）"
+                      />
+                    </div>
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="coverSubtitleInput">サブタイトル</label>
+                      </div>
+                      <input
+                        id="coverSubtitleInput"
+                        class="title-input"
+                        type="text"
+                        placeholder="例：怪異譚（[改行]で改行）"
+                      />
+                    </div>
+                  </div>
+                  <div class="field-label" style="margin-top: 8px">
+                    <label for="coverAuthorInput">著者名</label>
+                  </div>
+                  <input
+                    id="coverAuthorInput"
+                    class="title-input"
+                    type="text"
+                    placeholder="例：言葉　柄亭太"
+                  />
+
+                  <div class="field-label" style="margin-top: 8px">
+                    項目ごとのフォント
+                  </div>
+                  <div
+                    class="form-row"
+                    style="
+                      grid-template-columns: repeat(3, 1fr);
+                      margin-top: 4px;
+                    "
+                  >
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="coverTitleFontSelect">タイトル</label>
+                      </div>
+                      <select id="coverTitleFontSelect" class="select-input">
+                        <option value="system">システム標準明朝</option>
+                        <option value="shippori">しっぽり明朝</option>
+                        <option value="noto" selected>Noto Serif JP</option>
+                        <option value="sawarabi">さわらび明朝</option>
+                        <option value="mplus1p">M PLUS 1p Light</option>
+                        <option value="rocknroll">RocknRoll One</option>
+                        <option value="plexjpregular">IBM Plex Sans JP</option>
+                        <option value="lineseedregular">LINE Seed JP</option>
+                        <option value="klee">Klee One</option>
+                        <option value="yomogi">よもぎフォント</option>
+                        <option value="cormorant">Cormorant Garamond</option>
+                        <option value="montserrat">Montserrat</option>
+                        <option value="bonheurroyale">Bonheur Royale</option>
+                        <option value="craftygirls">Crafty Girls</option>
+                        <option value="fleurdeleah">Fleur De Leah</option>
+                        <option value="googlesansflex">Google Sans Flex</option>
+                        <option value="hennypenny">Henny Penny</option>
+                        <option value="kranky">Kranky</option>
+                        <option value="michroma">Michroma</option>
+                        <option value="zenloop">Zen Loop</option>
+                        <option value="custom">カスタムURL指定...</option>
+                      </select>
+                    </div>
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="coverSubtitleFontSelect"
+                          >サブタイトル</label
+                        >
+                      </div>
+                      <select id="coverSubtitleFontSelect" class="select-input">
+                        <option value="system">システム標準明朝</option>
+                        <option value="shippori">しっぽり明朝</option>
+                        <option value="noto" selected>Noto Serif JP</option>
+                        <option value="sawarabi">さわらび明朝</option>
+                        <option value="mplus1p">M PLUS 1p Light</option>
+                        <option value="rocknroll">RocknRoll One</option>
+                        <option value="plexjpregular">IBM Plex Sans JP</option>
+                        <option value="lineseedregular">LINE Seed JP</option>
+                        <option value="klee">Klee One</option>
+                        <option value="yomogi">よもぎフォント</option>
+                        <option value="cormorant">Cormorant Garamond</option>
+                        <option value="montserrat">Montserrat</option>
+                        <option value="bonheurroyale">Bonheur Royale</option>
+                        <option value="craftygirls">Crafty Girls</option>
+                        <option value="fleurdeleah">Fleur De Leah</option>
+                        <option value="googlesansflex">Google Sans Flex</option>
+                        <option value="hennypenny">Henny Penny</option>
+                        <option value="kranky">Kranky</option>
+                        <option value="michroma">Michroma</option>
+                        <option value="zenloop">Zen Loop</option>
+                        <option value="custom">カスタムURL指定...</option>
+                      </select>
+                    </div>
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="coverAuthorFontSelect">著者名</label>
+                      </div>
+                      <select id="coverAuthorFontSelect" class="select-input">
+                        <option value="system">システム標準明朝</option>
+                        <option value="shippori">しっぽり明朝</option>
+                        <option value="noto" selected>Noto Serif JP</option>
+                        <option value="sawarabi">さわらび明朝</option>
+                        <option value="mplus1p">M PLUS 1p Light</option>
+                        <option value="rocknroll">RocknRoll One</option>
+                        <option value="plexjpregular">IBM Plex Sans JP</option>
+                        <option value="lineseedregular">LINE Seed JP</option>
+                        <option value="klee">Klee One</option>
+                        <option value="yomogi">よもぎフォント</option>
+                        <option value="cormorant">Cormorant Garamond</option>
+                        <option value="montserrat">Montserrat</option>
+                        <option value="bonheurroyale">Bonheur Royale</option>
+                        <option value="craftygirls">Crafty Girls</option>
+                        <option value="fleurdeleah">Fleur De Leah</option>
+                        <option value="googlesansflex">Google Sans Flex</option>
+                        <option value="hennypenny">Henny Penny</option>
+                        <option value="kranky">Kranky</option>
+                        <option value="michroma">Michroma</option>
+                        <option value="zenloop">Zen Loop</option>
+                        <option value="custom">カスタムURL指定...</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div
+                    id="coverFontCustomRow"
+                    class="form-row"
+                    style="margin-top: 4px"
+                  >
+                    <div
+                      id="coverTitleCustomFontCol"
+                      class="form-col"
+                      style="display: none"
+                    >
+                      <div class="field-label">
+                        <label for="coverTitleCustomFontUrl"
+                          >タイトル：CSS/Font URL</label
+                        >
+                      </div>
+                      <input
+                        id="coverTitleCustomFontUrl"
+                        class="title-input"
+                        type="text"
+                        placeholder="https://..."
+                      />
+                      <div class="field-label" style="margin-top: 4px">
+                        <label for="coverTitleCustomFontFamily">family名</label>
+                      </div>
+                      <input
+                        id="coverTitleCustomFontFamily"
+                        class="title-input"
+                        type="text"
+                        placeholder="'Font', serif"
+                      />
+                    </div>
+                    <div
+                      id="coverSubtitleCustomFontCol"
+                      class="form-col"
+                      style="display: none"
+                    >
+                      <div class="field-label">
+                        <label for="coverSubtitleCustomFontUrl"
+                          >サブタイトル：CSS/Font URL</label
+                        >
+                      </div>
+                      <input
+                        id="coverSubtitleCustomFontUrl"
+                        class="title-input"
+                        type="text"
+                        placeholder="https://..."
+                      />
+                      <div class="field-label" style="margin-top: 4px">
+                        <label for="coverSubtitleCustomFontFamily"
+                          >family名</label
+                        >
+                      </div>
+                      <input
+                        id="coverSubtitleCustomFontFamily"
+                        class="title-input"
+                        type="text"
+                        placeholder="'Font', serif"
+                      />
+                    </div>
+                    <div
+                      id="coverAuthorCustomFontCol"
+                      class="form-col"
+                      style="display: none"
+                    >
+                      <div class="field-label">
+                        <label for="coverAuthorCustomFontUrl"
+                          >著者名：CSS/Font URL</label
+                        >
+                      </div>
+                      <input
+                        id="coverAuthorCustomFontUrl"
+                        class="title-input"
+                        type="text"
+                        placeholder="https://..."
+                      />
+                      <div class="field-label" style="margin-top: 4px">
+                        <label for="coverAuthorCustomFontFamily"
+                          >family名</label
+                        >
+                      </div>
+                      <input
+                        id="coverAuthorCustomFontFamily"
+                        class="title-input"
+                        type="text"
+                        placeholder="'Font', serif"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="field-label" style="margin-top: 8px">
+                    項目ごとの文字サイズ
+                  </div>
+                  <div
+                    class="form-row"
+                    style="
+                      grid-template-columns: repeat(3, 1fr);
+                      margin-top: 4px;
+                    "
+                  >
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="coverTitleSizeSelect">タイトル</label>
+                      </div>
+                      <select id="coverTitleSizeSelect" class="select-input">
+                        <option value="1.2">小</option>
+                        <option value="1.4">やや小</option>
+                        <option value="1.6" selected>標準</option>
+                        <option value="1.9">やや大</option>
+                        <option value="2.2">大</option>
+                      </select>
+                    </div>
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="coverSubtitleSizeSelect"
+                          >サブタイトル</label
+                        >
+                      </div>
+                      <select id="coverSubtitleSizeSelect" class="select-input">
+                        <option value="0.7">小</option>
+                        <option value="0.8">やや小</option>
+                        <option value="0.9" selected>標準</option>
+                        <option value="1.0">やや大</option>
+                        <option value="1.2">大</option>
+                      </select>
+                    </div>
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="coverAuthorSizeSelect">著者名</label>
+                      </div>
+                      <select id="coverAuthorSizeSelect" class="select-input">
+                        <option value="0.65">小</option>
+                        <option value="0.75">やや小</option>
+                        <option value="0.85" selected>標準</option>
+                        <option value="0.95">やや大</option>
+                        <option value="1.1">大</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="field-label" style="margin-top: 8px">
+                    配置・装飾
+                  </div>
+                  <div
+                    class="form-row"
+                    style="
+                      grid-template-columns: repeat(3, 1fr);
+                      margin-top: 4px;
+                    "
+                  >
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="coverTemplateSelect">レイアウト</label>
+                      </div>
+                      <select id="coverTemplateSelect" class="select-input">
+                        <option value="vertical-center" selected>
+                          縦書き・中央
+                        </option>
+                        <option value="vertical-top-right">縦書き・右上</option>
+                        <option value="horizontal-center">横書き・中央</option>
+                        <option value="horizontal-minimal">
+                          横書き・ミニマル
+                        </option>
+                      </select>
+                    </div>
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="coverFrameSelect">枠</label>
+                      </div>
+                      <select id="coverFrameSelect" class="select-input">
+                        <option value="none" selected>枠なし</option>
+                        <option value="single">一重罫線</option>
+                        <option value="single-clipped">
+                          一重罫線（角落とし）
+                        </option>
+                        <option value="dotted">点線罫線</option>
+                        <option value="single-bold">一重罫線（極太）</option>
+                        <option value="double">二重罫線（均等）</option>
+                        <option value="double-outer-thick">
+                          二重罫線（外太・内細）
+                        </option>
+                        <option value="double-inner-thick">
+                          二重罫線（外細・内太）
+                        </option>
+                        <option value="double-corner-point">
+                          二重罫線＋四隅ポイント
+                        </option>
+                        <option value="corner">角飾り</option>
+                        <option value="corner-sumitate">
+                          角飾り（隅立て）
+                        </option>
+                      </select>
+                    </div>
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="coverGapSelect">要素同士の間隔</label>
+                      </div>
+                      <select id="coverGapSelect" class="select-input">
+                        <option value="0.0">狭い</option>
+                        <option value="0.2">やや狭い</option>
+                        <option value="0.4" selected>標準</option>
+                        <option value="0.8">やや広い</option>
+                        <option value="1.0">広い</option>
+                      </select>
+                    </div>
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="coverDividerToggle">区切り線</label>
+                      </div>
+                      <select id="coverDividerToggle" class="select-input">
+                        <option value="off" selected>引かない</option>
+                        <option value="on">引く</option>
+                      </select>
+                    </div>
+                    <div class="form-col">
+                      <div class="field-label">
+                        <label for="coverDividerLengthSelect"
+                          >区切り線の長さ</label
+                        >
+                      </div>
+                      <select
+                        id="coverDividerLengthSelect"
+                        class="select-input"
+                      >
+                        <option value="20">20%</option>
+                        <option value="40">40%</option>
+                        <option value="60" selected>60%</option>
+                        <option value="80">80%</option>
+                        <option value="100">100%</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div id="subpane-colophon" class="editor-subpane">
+                <div class="field-label">
+                  <label for="colophonEnableToggle">奥付を作成する</label>
+                </div>
+                <select id="colophonEnableToggle" class="select-input">
+                  <option value="off" selected>作成しない</option>
+                  <option value="on">作成する</option>
+                </select>
+
+                <div id="colophonFieldsGroup">
+                  <details class="setting-group" open>
+                    <summary>基本情報</summary>
+                    <div class="setting-content">
+                      <div class="form-row two-cols" style="margin-top: 12px">
+                        <div class="form-col">
+                          <div class="field-label">
+                            <label for="colophonTitleInput">タイトル</label>
+                          </div>
+                          <input
+                            id="colophonTitleInput"
+                            class="title-input"
+                            type="text"
+                            placeholder="例：舞姫、怪異譚（[改行]で改行）"
+                          />
+                        </div>
+                        <div class="form-col">
+                          <div class="field-label">
+                            <label for="colophonDateInput">発行日</label>
+                          </div>
+                          <input
+                            id="colophonDateInput"
+                            class="title-input"
+                            type="date"
+                          />
+                        </div>
+                      </div>
+                      <div class="form-row two-cols" style="margin-top: 8px">
+                        <div class="form-col">
+                          <div class="field-label">
+                            <label for="colophonAuthorInput">著者</label>
+                          </div>
+                          <input
+                            id="colophonAuthorInput"
+                            class="title-input"
+                            type="text"
+                            placeholder="言葉　柄亭太"
+                          />
+                        </div>
+                        <div class="form-col">
+                          <div class="field-label">
+                            <label for="colophonCircleInput">サークル名</label>
+                          </div>
+                          <input
+                            id="colophonCircleInput"
+                            class="title-input"
+                            type="text"
+                            placeholder="サークル名"
+                          />
+                        </div>
+                      </div>
+                      <div class="form-row two-cols" style="margin-top: 8px">
+                        <div class="form-col">
+                          <div class="field-label">
+                            <label for="colophonContactInput">連絡先</label>
+                          </div>
+                          <input
+                            id="colophonContactInput"
+                            class="title-input"
+                            type="text"
+                            placeholder="メールアドレスなど"
+                          />
+                        </div>
+                        <div class="form-col">
+                          <div class="field-label">
+                            <label for="colophonPrinterInput">印刷</label>
+                          </div>
+                          <input
+                            id="colophonPrinterInput"
+                            class="title-input"
+                            type="text"
+                            placeholder="〇〇印刷"
+                          />
+                        </div>
+                      </div>
+
+                      <div class="field-label" style="margin-top: 8px">
+                        <label for="colophonNoteInput"
+                          >自由記載欄（任意）</label
+                        >
+                      </div>
+                      <textarea
+                        id="colophonNoteInput"
+                        class="text-input"
+                        style="min-height: 80px"
+                        placeholder="例：無断転載・複製を禁じます"
+                      ></textarea>
+
+                      <div class="field-label" style="margin-top: 8px">
+                        <label for="colophonTemplateSelect">レイアウト</label>
+                      </div>
+                      <select id="colophonTemplateSelect" class="select-input">
+                        <option value="vertical" selected>縦書き</option>
+                        <option value="horizontal">横書き</option>
+                      </select>
+                    </div>
+                  </details>
+
+                  <details class="setting-group">
+                    <summary>フォント・サイズ</summary>
+                    <div class="setting-content">
+                      <div class="field-label" style="margin-top: 8px">
+                        項目ごとのフォント
+                      </div>
+                      <div
+                        class="form-row"
+                        style="
+                          grid-template-columns: repeat(3, 1fr);
+                          margin-top: 4px;
+                        "
+                      >
+                        <div class="form-col">
+                          <div class="field-label">
+                            <label for="colophonTitleFontSelect"
+                              >タイトル</label
+                            >
+                          </div>
+                          <select
+                            id="colophonTitleFontSelect"
+                            class="select-input"
+                          >
+                            <option value="system">システム標準明朝</option>
+                            <option value="shippori">しっぽり明朝</option>
+                            <option value="noto" selected>Noto Serif JP</option>
+                            <option value="sawarabi">さわらび明朝</option>
+                            <option value="mplus1p">M PLUS 1p Light</option>
+                            <option value="rocknroll">RocknRoll One</option>
+                            <option value="plexjpregular">
+                              IBM Plex Sans JP
+                            </option>
+                            <option value="lineseedregular">
+                              LINE Seed JP
+                            </option>
+                            <option value="klee">Klee One</option>
+                            <option value="yomogi">よもぎフォント</option>
+                            <option value="cormorant">
+                              Cormorant Garamond
+                            </option>
+                            <option value="montserrat">Montserrat</option>
+                            <option value="bonheurroyale">
+                              Bonheur Royale
+                            </option>
+                            <option value="craftygirls">Crafty Girls</option>
+                            <option value="fleurdeleah">Fleur De Leah</option>
+                            <option value="googlesansflex">
+                              Google Sans Flex
+                            </option>
+                            <option value="hennypenny">Henny Penny</option>
+                            <option value="kranky">Kranky</option>
+                            <option value="michroma">Michroma</option>
+                            <option value="zenloop">Zen Loop</option>
+                            <option value="custom">カスタムURL指定...</option>
+                          </select>
+                        </div>
+                        <div class="form-col">
+                          <div class="field-label">
+                            <label for="colophonFieldsFontSelect"
+                              >固定項目</label
+                            >
+                          </div>
+                          <select
+                            id="colophonFieldsFontSelect"
+                            class="select-input"
+                          >
+                            <option value="system">システム標準明朝</option>
+                            <option value="shippori">しっぽり明朝</option>
+                            <option value="noto" selected>Noto Serif JP</option>
+                            <option value="sawarabi">さわらび明朝</option>
+                            <option value="mplus1p">M PLUS 1p Light</option>
+                            <option value="rocknroll">RocknRoll One</option>
+                            <option value="plexjpregular">
+                              IBM Plex Sans JP
+                            </option>
+                            <option value="lineseedregular">
+                              LINE Seed JP
+                            </option>
+                            <option value="klee">Klee One</option>
+                            <option value="yomogi">よもぎフォント</option>
+                            <option value="cormorant">
+                              Cormorant Garamond
+                            </option>
+                            <option value="montserrat">Montserrat</option>
+                            <option value="bonheurroyale">
+                              Bonheur Royale
+                            </option>
+                            <option value="craftygirls">Crafty Girls</option>
+                            <option value="fleurdeleah">Fleur De Leah</option>
+                            <option value="googlesansflex">
+                              Google Sans Flex
+                            </option>
+                            <option value="hennypenny">Henny Penny</option>
+                            <option value="kranky">Kranky</option>
+                            <option value="michroma">Michroma</option>
+                            <option value="zenloop">Zen Loop</option>
+                            <option value="custom">カスタムURL指定...</option>
+                          </select>
+                        </div>
+                        <div class="form-col">
+                          <div class="field-label">
+                            <label for="colophonNoteFontSelect"
+                              >自由記載欄</label
+                            >
+                          </div>
+                          <select
+                            id="colophonNoteFontSelect"
+                            class="select-input"
+                          >
+                            <option value="system">システム標準明朝</option>
+                            <option value="shippori">しっぽり明朝</option>
+                            <option value="noto" selected>Noto Serif JP</option>
+                            <option value="sawarabi">さわらび明朝</option>
+                            <option value="mplus1p">M PLUS 1p Light</option>
+                            <option value="rocknroll">RocknRoll One</option>
+                            <option value="plexjpregular">
+                              IBM Plex Sans JP
+                            </option>
+                            <option value="lineseedregular">
+                              LINE Seed JP
+                            </option>
+                            <option value="klee">Klee One</option>
+                            <option value="yomogi">よもぎフォント</option>
+                            <option value="cormorant">
+                              Cormorant Garamond
+                            </option>
+                            <option value="montserrat">Montserrat</option>
+                            <option value="bonheurroyale">
+                              Bonheur Royale
+                            </option>
+                            <option value="craftygirls">Crafty Girls</option>
+                            <option value="fleurdeleah">Fleur De Leah</option>
+                            <option value="googlesansflex">
+                              Google Sans Flex
+                            </option>
+                            <option value="hennypenny">Henny Penny</option>
+                            <option value="kranky">Kranky</option>
+                            <option value="michroma">Michroma</option>
+                            <option value="zenloop">Zen Loop</option>
+                            <option value="custom">カスタムURL指定...</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div
+                        id="colophonFontCustomRow"
+                        class="form-row"
+                        style="margin-top: 4px"
+                      >
+                        <div
+                          id="colophonTitleCustomFontCol"
+                          class="form-col"
+                          style="display: none"
+                        >
+                          <div class="field-label">
+                            <label for="colophonTitleCustomFontUrl"
+                              >タイトル：CSS/Font URL</label
+                            >
+                          </div>
+                          <input
+                            id="colophonTitleCustomFontUrl"
+                            class="title-input"
+                            type="text"
+                            placeholder="https://..."
+                          />
+                          <div class="field-label" style="margin-top: 4px">
+                            <label for="colophonTitleCustomFontFamily"
+                              >family名</label
+                            >
+                          </div>
+                          <input
+                            id="colophonTitleCustomFontFamily"
+                            class="title-input"
+                            type="text"
+                            placeholder="'Font', serif"
+                          />
+                        </div>
+                        <div
+                          id="colophonFieldsCustomFontCol"
+                          class="form-col"
+                          style="display: none"
+                        >
+                          <div class="field-label">
+                            <label for="colophonFieldsCustomFontUrl"
+                              >固定項目：CSS/Font URL</label
+                            >
+                          </div>
+                          <input
+                            id="colophonFieldsCustomFontUrl"
+                            class="title-input"
+                            type="text"
+                            placeholder="https://..."
+                          />
+                          <div class="field-label" style="margin-top: 4px">
+                            <label for="colophonFieldsCustomFontFamily"
+                              >family名</label
+                            >
+                          </div>
+                          <input
+                            id="colophonFieldsCustomFontFamily"
+                            class="title-input"
+                            type="text"
+                            placeholder="'Font', serif"
+                          />
+                        </div>
+                        <div
+                          id="colophonNoteCustomFontCol"
+                          class="form-col"
+                          style="display: none"
+                        >
+                          <div class="field-label">
+                            <label for="colophonNoteCustomFontUrl"
+                              >自由記載欄：CSS/Font URL</label
+                            >
+                          </div>
+                          <input
+                            id="colophonNoteCustomFontUrl"
+                            class="title-input"
+                            type="text"
+                            placeholder="https://..."
+                          />
+                          <div class="field-label" style="margin-top: 4px">
+                            <label for="colophonNoteCustomFontFamily"
+                              >family名</label
+                            >
+                          </div>
+                          <input
+                            id="colophonNoteCustomFontFamily"
+                            class="title-input"
+                            type="text"
+                            placeholder="'Font', serif"
+                          />
+                        </div>
+                      </div>
+
+                      <div class="field-label" style="margin-top: 8px">
+                        項目ごとの文字サイズ
+                      </div>
+                      <div
+                        class="form-row"
+                        style="
+                          grid-template-columns: repeat(3, 1fr);
+                          margin-top: 4px;
+                        "
+                      >
+                        <div class="form-col">
+                          <div class="field-label">
+                            <label for="colophonTitleSizeSelect"
+                              >タイトル</label
+                            >
+                          </div>
+                          <select
+                            id="colophonTitleSizeSelect"
+                            class="select-input"
+                          >
+                            <option value="0.9">小</option>
+                            <option value="1.05">やや小</option>
+                            <option value="1.2" selected>標準</option>
+                            <option value="1.5">やや大</option>
+                            <option value="1.8">大</option>
+                          </select>
+                        </div>
+                        <div class="form-col">
+                          <div class="field-label">
+                            <label for="colophonFieldsSizeSelect"
+                              >固定項目</label
+                            >
+                          </div>
+                          <select
+                            id="colophonFieldsSizeSelect"
+                            class="select-input"
+                          >
+                            <option value="0.7">小</option>
+                            <option value="0.8">やや小</option>
+                            <option value="0.9" selected>標準</option>
+                            <option value="1.0">やや大</option>
+                            <option value="1.1">大</option>
+                          </select>
+                        </div>
+                        <div class="form-col">
+                          <div class="field-label">
+                            <label for="colophonNoteSizeSelect"
+                              >自由記載欄</label
+                            >
+                          </div>
+                          <select
+                            id="colophonNoteSizeSelect"
+                            class="select-input"
+                          >
+                            <option value="0.7">小</option>
+                            <option value="0.8">やや小</option>
+                            <option value="0.85" selected>標準</option>
+                            <option value="0.95">やや大</option>
+                            <option value="1.05">大</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </details>
+
+                  <details class="setting-group">
+                    <summary>配置</summary>
+                    <div class="setting-content">
+                      <div
+                        class="form-row"
+                        style="
+                          grid-template-columns: repeat(3, 1fr);
+                          margin-top: 4px;
+                        "
+                      >
+                        <div class="form-col">
+                          <div class="field-label">
+                            <label for="colophonWritePosSelect"
+                              >書き出し位置</label
+                            >
+                          </div>
+                          <select
+                            id="colophonWritePosSelect"
+                            class="select-input"
+                          >
+                            <option value="lead" selected>右寄り</option>
+                            <option value="center">中央</option>
+                            <option value="trail">左寄り</option>
+                          </select>
+                        </div>
+                        <div class="form-col">
+                          <div class="field-label">
+                            <label for="colophonVertPosSelect">天地位置</label>
+                          </div>
+                          <select
+                            id="colophonVertPosSelect"
+                            class="select-input"
+                          >
+                            <option value="top">上寄せ</option>
+                            <option value="center" selected>中央</option>
+                            <option value="bottom">下寄せ</option>
+                          </select>
+                        </div>
+                        <div class="form-col">
+                          <div class="field-label">
+                            <label for="colophonAlignSelect"
+                              >文字の揃え方</label
+                            >
+                          </div>
+                          <select id="colophonAlignSelect" class="select-input">
+                            <option value="left">上揃え</option>
+                            <option value="center" selected>中央揃え</option>
+                            <option value="right">下揃え</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </details>
+                </div>
+              </div>
+
+              <div id="subpane-toc" class="editor-subpane">
+                <details class="setting-group" open>
+                  <summary>基本設定</summary>
+                  <div class="setting-content">
+                    <div class="form-row two-cols">
+                      <div class="form-col">
+                        <div class="field-label">
+                          <label for="tocEnableToggle">目次を作成する</label>
+                        </div>
+                        <select id="tocEnableToggle" class="select-input">
+                          <option value="off" selected>作成しない</option>
+                          <option value="on">作成する</option>
+                        </select>
+                      </div>
+                      <div class="form-col">
+                        <div class="field-label">
+                          <label for="tocFontSelect">目次の書体</label>
+                        </div>
+                        <select id="tocFontSelect" class="select-input">
+                          <option value="system">システム標準明朝</option>
+                          <option value="shippori">しっぽり明朝</option>
+                          <option value="noto" selected>Noto Serif JP</option>
+                          <option value="sawarabi">さわらび明朝</option>
+                          <option value="mplus1p">M PLUS 1p Light</option>
+                          <option value="rocknroll">RocknRoll One</option>
+                          <option value="plexjpregular">
+                            IBM Plex Sans JP
+                          </option>
+                          <option value="lineseedregular">
+                            LINE Seed JP
+                          </option>
+                          <option value="klee">Klee One</option>
+                          <option value="yomogi">よもぎフォント</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </details>
+
+                <details class="setting-group" open>
+                  <summary>見出し（1ページ目冒頭）</summary>
+                  <div class="setting-content">
+                    <div class="form-row two-cols">
+                      <div class="form-col">
+                        <div class="field-label">
+                          <label for="tocHeadingToggle">表示</label>
+                        </div>
+                        <select id="tocHeadingToggle" class="select-input">
+                          <option value="off">表示しない</option>
+                          <option value="on" selected>表示する</option>
+                        </select>
+                      </div>
+                      <div class="form-col">
+                        <div class="field-label">
+                          <label for="tocHeadingTextInput"
+                            >見出しテキスト</label
+                          >
+                        </div>
+                        <input
+                          type="text"
+                          id="tocHeadingTextInput"
+                          class="title-input"
+                          value="目次"
+                        />
+                      </div>
+                    </div>
+                    <div class="form-row" style="margin-top: 10px">
+                      <div class="form-col">
+                        <div class="field-label">
+                          <label for="tocHeadingFontSelect">書体</label>
+                        </div>
+                        <select
+                          id="tocHeadingFontSelect"
+                          class="select-input"
+                        >
+                          <option value="system">システム標準明朝</option>
+                          <option value="shippori">しっぽり明朝</option>
+                          <option value="noto" selected>Noto Serif JP</option>
+                          <option value="sawarabi">さわらび明朝</option>
+                          <option value="mplus1p">M PLUS 1p Light</option>
+                          <option value="rocknroll">RocknRoll One</option>
+                          <option value="plexjpregular">
+                            IBM Plex Sans JP
+                          </option>
+                          <option value="lineseedregular">
+                            LINE Seed JP
+                          </option>
+                          <option value="klee">Klee One</option>
+                          <option value="yomogi">よもぎフォント</option>
+                        </select>
+                      </div>
+                      <div class="form-col">
+                        <div class="field-label">
+                          <label for="tocHeadingSizeSelect">文字サイズ</label>
+                        </div>
+                        <select
+                          id="tocHeadingSizeSelect"
+                          class="select-input"
+                        >
+                          <option value="0.85">小</option>
+                          <option value="1" selected>標準</option>
+                          <option value="1.3">大</option>
+                          <option value="1.6">特大</option>
+                        </select>
+                      </div>
+                      <div class="form-col">
+                        <div class="field-label">
+                          <label for="tocHeadingVertAlignSelect">縦位置</label>
+                        </div>
+                        <select
+                          id="tocHeadingVertAlignSelect"
+                          class="select-input"
+                        >
+                          <option value="top" selected>上寄せ</option>
+                          <option value="middle">中央寄せ</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </details>
+
+                <details class="setting-group" open>
+                  <summary>レイアウト・装飾</summary>
+                  <div class="setting-content">
+                    <div class="form-row">
+                      <div class="form-col">
+                        <div class="field-label">
+                          <label for="tocColumnsSelect">1ページの列数</label>
+                        </div>
+                        <select id="tocColumnsSelect" class="select-input">
+                          <option value="auto" selected>自動</option>
+                          <option value="7">7列</option>
+                          <option value="8">8列</option>
+                          <option value="9">9列</option>
+                          <option value="10">10列</option>
+                          <option value="11">11列</option>
+                          <option value="12">12列</option>
+                        </select>
+                      </div>
+                      <div class="form-col">
+                        <div class="field-label">
+                          <label for="tocVertAlignSelect">縦位置</label>
+                        </div>
+                        <select id="tocVertAlignSelect" class="select-input">
+                          <option value="top" selected>上寄せ</option>
+                          <option value="middle">中央寄せ</option>
+                        </select>
+                      </div>
+                      <div class="form-col">
+                        <div class="field-label">
+                          <label for="tocLeaderToggle">リーダー線</label>
+                        </div>
+                        <select id="tocLeaderToggle" class="select-input">
+                          <option value="dotted" selected>点線</option>
+                          <option value="dashed">破線</option>
+                          <option value="solid">実線</option>
+                          <option value="off">なし</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="form-row" style="margin-top: 10px">
+                      <div class="form-col">
+                        <div class="field-label">
+                          <label for="tocDividerToggle">区切り線（横）</label>
+                        </div>
+                        <select id="tocDividerToggle" class="select-input">
+                          <option value="off" selected>表示しない</option>
+                          <option value="on">表示する</option>
+                        </select>
+                      </div>
+                      <div class="form-col">
+                        <div class="field-label">
+                          <label for="tocPageNumStyleSelect">ページ番号の数字</label>
+                        </div>
+                        <select id="tocPageNumStyleSelect" class="select-input">
+                          <option value="tcy" selected>縦中横</option>
+                          <option value="sideways">横倒し</option>
+                          <option value="upright">正立</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </details>
+              </div>
+            </div>
           </div>
         </section>
 
-        <section class="doc-section" id="header">
-          <h2><span class="section-no">07</span>柱（ヘッダー）</h2>
-          <p>ページ上部に表示する柱（章タイトルなど）の設定です。</p>
-          <table class="ref-table">
-            <thead>
-              <tr>
-                <th>項目</th>
-                <th>選択肢</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>表示条件</td>
-                <td>全ページ / 奇数ページのみ / 偶数ページのみ / 左右交互</td>
-              </tr>
-              <tr>
-                <td>位置</td>
-                <td>右上 / 中央上 / 左上</td>
-              </tr>
-              <tr>
-                <td>文字サイズ</td>
-                <td>小 / 標準 / 大</td>
-              </tr>
-            </tbody>
-          </table>
-        </section>
-
-        <section class="doc-section" id="nombre">
-          <h2><span class="section-no">08</span>ノンブル（ページ番号）</h2>
-          <p>
-            ページ番号の表示条件・位置・文字サイズ・数字タイプ・形式・開始番号を設定できます。
-          </p>
-          <table class="ref-table">
-            <thead>
-              <tr>
-                <th>項目</th>
-                <th>選択肢</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>表示条件</td>
-                <td>全ページ / 1ページ目非表示 / 完全非表示</td>
-              </tr>
-              <tr>
-                <td>位置</td>
-                <td>中央下 / 右下 / 左下 / 左右交互</td>
-              </tr>
-              <tr>
-                <td>文字サイズ</td>
-                <td>小 / 標準 / 大</td>
-              </tr>
-              <tr>
-                <td>数字タイプ</td>
-                <td>
-                  算用数字 / 漢数字（横書き）/ 漢数字（縦書き）/ ローマ数字
-                </td>
-              </tr>
-              <tr>
-                <td>形式</td>
-                <td>
-                  <code>- 1 -</code> / <code>P.1</code> / <code>/ 1 /</code> /
-                  数字のみ
-                </td>
-              </tr>
-              <tr>
-                <td>開始ページ番号</td>
-                <td>任意の数値を指定可能</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <h3>数字タイプについて</h3>
-          <p>
-            漢数字は横書き・縦書きで表記方式が異なります。<strong>横書き</strong>は通常の位取り記数法です（例：<code
-              >10</code
+        <div class="preview-container">
+          <div class="preview-nav no-print">
+            <button
+              id="nextPageBtn"
+              class="secondary-button"
+              type="button"
+              title="次のページへ"
             >
-            → <code>十</code>、<code>21</code> → <code>二十一</code>、<code
-              >123</code
+              ◀ 次のページ
+            </button>
+            <button
+              id="lastPageBtn"
+              class="secondary-button icon-button"
+              type="button"
+              title="末尾ページへ"
             >
-            →
-            <code>百二十三</code
-            >）。<strong>縦書き</strong>は位ごとにそのまま並べる表記です（例：<code
-              >10</code
+              ⏮
+            </button>
+            <span class="page-jump-group">
+              <input
+                id="pageJumpInput"
+                class="page-jump-input"
+                type="number"
+                min="1"
+                step="1"
+                inputmode="numeric"
+                title="ページ番号を指定してジャンプ"
+              />
+              <span id="pageNavStatus" class="page-nav-status">/ 1 ページ</span>
+            </span>
+            <button
+              id="firstPageBtn"
+              class="secondary-button icon-button"
+              type="button"
+              title="先頭ページへ"
             >
-            → <code>一〇</code>、<code>21</code> →
-            <code>二一</code>）。ローマ数字は大文字表記（<code
-              >I, II, III...</code
-            >）です。
-          </p>
-          <div class="tip-box">
-            <strong>漢数字（縦書き）の挙動について</strong><br />
-            中央配置を選んでいる場合は、縦書きが不自然になるため自動的に横書きへ切り替わります（この場合も表記は位ごとのままです）。また、文字サイズに「大」を選んでいても、縦書き表示の際は余白とのバランスをとるため自動的に「標準」へ調整されます。
-          </div>
-        </section>
-
-        <section class="doc-section" id="frontmatter">
-          <h2><span class="section-no">09</span>中表紙（扉ページ）</h2>
-          <p>
-            本文の前に挿入する扉ページです。タイトル・サブタイトル（任意）・著者名（任意）を設定できます。中表紙を作成すると、次に見開きを整えるための空白ページが自動で1枚挿入されます。
-          </p>
-          <table class="ref-table">
-            <thead>
-              <tr>
-                <th>項目</th>
-                <th>選択肢</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>レイアウト</td>
-                <td>
-                  縦書き・中央 / 縦書き・右上 / 横書き・中央 / 横書き・ミニマル
-                </td>
-              </tr>
-              <tr>
-                <td>枠</td>
-                <td>
-                  枠なし / 一重罫線 / 一重罫線（角落とし）/ 点線罫線 /
-                  一重罫線（極太）/ 二重罫線（均等）/ 二重罫線（外太・内細）/
-                  二重罫線（外細・内太）/ 二重罫線＋四隅ポイント / 角飾り /
-                  角飾り（隅立て）
-                </td>
-              </tr>
-              <tr>
-                <td>要素同士の間隔</td>
-                <td>狭い〜広い（5段階）</td>
-              </tr>
-              <tr>
-                <td>区切り線</td>
-                <td>引かない / 引く（長さを20〜100%で指定）</td>
-              </tr>
-              <tr>
-                <td>項目ごとのフォント・文字サイズ</td>
-                <td>
-                  タイトル・サブタイトル・著者名それぞれに独立してフォント・文字サイズを指定可能（欧文フォント・カスタムWebフォントにも個別対応。詳細は<a
-                    href="#font"
-                    >06 フォント</a
-                  >を参照）
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <div class="tip-box">
-            <strong>区切り線について</strong><br />
-            タイトル・サブタイトルと著者名の間に引く線です。縦書きレイアウトでは縦棒、横書きレイアウトでは横棒（水平線）として表示されます。著者名が未入力の場合は表示されません。
-          </div>
-          <div class="tip-box">
-            <strong>タイトルの改行位置指定</strong><br />
-            タイトル・サブタイトルの入力欄内で<code>[改行]</code>と入力すると、その位置で強制的に改行できます（詳細は<a
-              href="#markup"
-              >04 組版マークアップ</a
-            >を参照）。
-          </div>
-        </section>
-
-        <section class="doc-section" id="toc-guide">
-          <h2><span class="section-no">10</span>目次</h2>
-          <p>
-            本文中の見出し（<code>#</code>〜<code>######</code>のMarkdown記法）から自動生成される目次ページです。「タイトル……ページ番号」の体裁で、1項目ごとに1列（縦書きの列）を使って版面の右から左へ配置されます。必要なページ数は見出しの数に応じて自動で調整され、目次のページ数ぶん本文のページ番号は後ろにずれます。
-          </p>
-          <table class="ref-table">
-            <thead>
-              <tr>
-                <th>項目</th>
-                <th>選択肢</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>目次の書体</td>
-                <td>
-                  項目（タイトル・ページ番号）全体に適用（詳細は<a
-                    href="#font"
-                    >06 フォント</a
-                  >を参照）
-                </td>
-              </tr>
-              <tr>
-                <td>見出し（1ページ目冒頭）</td>
-                <td>
-                  表示する / 表示しない。表示する場合、テキスト・書体・文字サイズ（小〜特大）・縦位置（上寄せ／中央寄せ）を個別に指定可能。1ページ目の一番右に、項目の列とは別枠で1列を確保して配置される
-                </td>
-              </tr>
-              <tr>
-                <td>1ページの列数</td>
-                <td>
-                  自動（版面の幅に収まる最大列数）/ 7〜12列から手動指定。手動指定時は版面の幅をその列数でちょうど均等に割り、左右中央に配置される
-                </td>
-              </tr>
-              <tr>
-                <td>縦位置</td>
-                <td>
-                  上寄せ / 中央寄せ。中央寄せは目次全体で最も長いタイトルを基準に開始位置を1つ決め、全項目・全ページで同じ高さに揃える（見開きページ間で開始位置がズレないようにするため）
-                </td>
-              </tr>
-              <tr>
-                <td>リーダー線</td>
-                <td>点線 / 破線 / 実線 / なし</td>
-              </tr>
-              <tr>
-                <td>区切り線（横）</td>
-                <td>
-                  表示する / 表示しない。表示すると、版面の下端付近、全項目のページ番号より上の位置に、ページ全体を横断する1本の線が引かれる
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <div class="tip-box">
-            <strong>ページ番号は版面の下端に固定</strong><br />
-            タイトルの位置は縦位置設定に従って動きますが、ページ番号は縦位置設定とは関係なく、常に版面の下端付近に揃えて配置されます。リーダー線は、タイトルの末尾からページ番号の手前までを、項目ごとの長さに応じて自動でつなぎます。
-          </div>
-          <div class="tip-box">
-            <strong>目次での縦中横</strong><br />
-            タイトル中の1〜2桁の半角数字は、本文と同じく縦中横になります。ページ番号は、番号の種類がアラビア数字のとき、桁数に関わらず常に1コマの縦中横で表示されます（漢数字・ローマ数字を選んでいる場合は1文字ずつ縦に並びます）。本文の見出しに<code>[縦:…]</code>・<code>[横:…]</code>を書いた場合は、目次にも同じ指定が反映されます（詳細は<a
-              href="#markup"
-              >04 組版マークアップ</a
-            >を参照）。
-          </div>
-          <div class="tip-box">
-            <strong>本文は奇数ページから始まる</strong><br />
-            日本語の書籍では、本文は右ページ（奇数ページ）から始めるのが一般的です。中表紙の有無・目次のページ数・開始ページ番号の組み合わせで本文の最初のページが偶数になる場合は、目次の末尾に空白ページが1枚自動で挿入され、本文が奇数ページから始まるよう調整されます。空白ページが入ると本文のページ番号も1つ後ろにずれ、目次に表示されるページ番号もそれに合わせて自動で更新されます。
-          </div>
-          <div class="tip-box">
-            <strong>見出しレベルとインデント</strong><br />
-            行頭の<code>#</code>の数（1〜6個）がそのまま見出しのレベルになり、レベル2以降は目次上で少しインデントされます（詳細は<a
-              href="#markup"
-              >04 組版マークアップ</a
-            >を参照）。
-          </div>
-        </section>
-
-        <section class="doc-section" id="colophon">
-          <h2><span class="section-no">11</span>奥付</h2>
-          <p>
-            本文の後に挿入するページです。タイトル・発行日・著者・サークル名・連絡先・印刷所の6項目と、自由記載欄を設定できます。<br />未入力の項目は行ごと表示されず、詰めて配置されるため、「タイトルのみ入力、残りの項目は自由記載欄で入力」といった使い方も可能です。全体のページ数が奇数になる場合は、奥付の直前に空白ページが自動で1枚挿入されます。
-          </p>
-          <table class="ref-table">
-            <thead>
-              <tr>
-                <th>項目</th>
-                <th>選択肢</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>レイアウト</td>
-                <td>縦書き / 横書き</td>
-              </tr>
-              <tr>
-                <td>書き出し位置</td>
-                <td>右寄り / 中央 / 左寄り</td>
-              </tr>
-              <tr>
-                <td>天地位置</td>
-                <td>上寄せ / 中央 / 下寄せ</td>
-              </tr>
-              <tr>
-                <td>文字の揃え方</td>
-                <td>上揃え / 中央揃え / 下揃え</td>
-              </tr>
-              <tr>
-                <td>項目ごとのフォント・文字サイズ</td>
-                <td>
-                  タイトル・固定項目（発行日〜印刷）・自由記載欄の3グループごとに独立してフォント・文字サイズを指定可能（欧文フォント・カスタムWebフォントにも個別対応。詳細は<a
-                    href="#font"
-                    >06 フォント</a
-                  >を参照）
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <h3>自由記載欄の記法</h3>
-          <p>
-            行頭に<code>[中央]</code>または<code>[右]</code>と書くと、その行だけ中央寄せ・右寄せにできます（全角の<code>［中央］</code>・<code>［右］</code>表記にも対応）。本文で使えるルビや太字などのインライン装飾も利用できます。行ごとの寄せ指定は、奥付全体で設定した「文字の揃え方」よりも優先されます。
-          </p>
-          <p>
-            また、<code>---</code>（<code>***</code>・<code>___</code>でも可）のみの行を書くと、区切り線（罫線）が引かれます。縦書きレイアウトでは縦罫線、横書きレイアウトでは横罫線として表示されます。固定項目（発行日〜印刷）を使わず、タイトルと自由記載欄だけで奥付を完結させたい場合に活用できます。
-          </p>
-          <div class="tip-box">
-            <strong>天地位置と文字の揃え方の違い</strong><br />
-            「天地位置」はページ全体の中で奥付の内容をどこに配置するか、「文字の揃え方」は内容そのものの行揃えです。両者は独立しているため、たとえば「下寄せ配置で中央揃えのテキスト」といった組み合わせも指定できます。
-          </div>
-          <div class="tip-box">
-            <strong>タイトルの改行位置指定</strong><br />
-            奥付タイトルの入力欄内で<code>[改行]</code>と入力すると、その位置で強制的に改行できます（詳細は<a
-              href="#markup"
-              >04 組版マークアップ</a
-            >を参照）。
-          </div>
-        </section>
-
-        <section class="doc-section" id="output">
-          <h2><span class="section-no">12</span>印刷・PDF出力</h2>
-          <p>
-            ブラウザの標準印刷機能を利用し、全ページをプレビュー通り一括レンダリングします。そのまま縦書きPDF保存や印刷が可能で、同人誌入稿や紙面確認にそのまま使用できます。
-          </p>
-        </section>
-
-        <section class="doc-section" id="local">
-          <h2><span class="section-no">13</span>データの保存について</h2>
-          <p>
-            原稿データは一切外部サーバーに送信されず、お使いのブラウザ内（LocalStorage）のみで保持されます。<br />テキストファイル<code>.txt</code>やマークダウンファイル<code>.md</code>の読込（インポート）、タイトル指定でのテキストファイル<code>.txt</code>保存（エクスポート）に対応しています。
-          </p>
-        </section>
-
-        <section class="doc-section" id="pwa">
-          <h2><span class="section-no">14</span>アプリとしてインストール</h2>
-          <p>
-            言ノ葉Editerはブラウザから開くだけで使えますが、お使いの端末に「アプリ」としてインストールし、オフラインでも起動できるようにすることも可能です（PWA対応）。原稿データの保存先はインストール前後で変わらず、引き続きお使いのブラウザ内（LocalStorage）です。
-          </p>
-          <table class="ref-table">
-            <thead>
-              <tr>
-                <th>環境</th>
-                <th>手順</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>PC（Chrome / Edge）</td>
-                <td>
-                  アドレスバー右端のインストールアイコンをクリック→「インストール」
-                </td>
-              </tr>
-              <tr>
-                <td>Android（Chrome）</td>
-                <td>
-                  メニュー（<code>⋮</code>）→「アプリをインストール」または「ホーム画面に追加」
-                </td>
-              </tr>
-              <tr>
-                <td>iPhone / iPad（Safari）</td>
-                <td>共有ボタンをタップ→「ホーム画面に追加」</td>
-              </tr>
-            </tbody>
-          </table>
-          <div class="tip-box">
-            <strong>インストールできない場合</strong><br />
-            PWAインストールにはHTTPS環境（または開発時のlocalhost）が必要です。ファイルを直接ダブルクリックして開いた場合（アドレスバーが<code>file://</code>から始まる場合）はインストールできません。
-          </div>
-        </section>
-
-        <section class="doc-section" id="license">
-          <h2><span class="section-no">15</span>ライセンスについて</h2>
-          <p>
-            <a
-              href="https://github.com/AmayoSakura/kotonoha_edit/blob/main/LICENSE"
-              target="_blank"
-              rel="noopener noreferrer"
-              >MIT License</a
+              ⏭
+            </button>
+            <button
+              id="prevPageBtn"
+              class="secondary-button"
+              type="button"
+              title="前のページへ"
             >
-          </p>
-        </section>
-
-        <section class="doc-section" id="faq">
-          <h2><span class="section-no">16</span>問い合わせ先</h2>
-          <p>
-            本ツールに関するご意見、バグ報告、機能要望は、以下のいずれかよりご連絡ください。
-          </p>
-          <p>
-            ・<a href="https://x.com/AmexAmexxx" target="_blank" rel="noopener"
-              >X（旧Twitter）</a
-            ><br />
-            ・<a
-              href="https://github.com/AmayoSakura/kotonoha_edit/issues"
-              target="_blank"
-              rel="noopener"
-              >GitHub</a
+              前のページ ▶
+            </button>
+            <label
+              class="sync-toggle"
+              title="エディタとプレビューのカーソル位置を連動させます"
             >
-          </p>
-        </section>
-      </main>
-    </div>
+              <input type="checkbox" id="syncToggle" checked />
+              同期
+            </label>
+          </div>
 
-    <script src="js/lp.js"></script>
+          <section class="preview-viewport" id="previewViewport">
+            <div id="pagesContainer" class="pages-container"></div>
+            <div id="layoutSpinner" class="layout-spinner-overlay" hidden>
+              <div class="layout-spinner"></div>
+              <p class="layout-spinner-label">組版処理中…</p>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <script src="js/app.js"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", function () {

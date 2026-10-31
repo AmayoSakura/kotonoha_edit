@@ -106,6 +106,7 @@ window.addEventListener("DOMContentLoaded", function () {
     tocColumnsSelect: "tocColumns",
     tocVertAlignSelect: "tocVertAlign",
     tocDividerToggle: "tocDivider",
+    tocPageNumStyleSelect: "tocPageNumStyle",
     tocHeadingToggle: "tocHeading",
     tocHeadingTextInput: "tocHeadingText",
     tocHeadingFontSelect: "tocHeadingFont",
@@ -1752,9 +1753,16 @@ window.addEventListener("DOMContentLoaded", function () {
     pushAuto(text.slice(lastTag));
     return cells;
   }
-  // ページ番号：アラビア数字のときは桁数に関わらず常に1コマの縦中横。
-  // 漢数字・ローマ数字のときは縦中横にせず1文字ずつ（従来どおり）。
-  function buildTocPageNumCells(displayPageNum) {
+  // ページ番号の向き（設定「ページ番号の数字」）。アラビア数字のときだけ有効。
+  //   tcy      … 桁数に関わらず1コマの縦中横（初期値）
+  //   sideways … 縦中横にせず、1文字ずつ横倒しのまま縦に並べる
+  //   upright  … 縦中横にせず、1文字ずつ正立のまま縦に並べる
+  // 漢数字・ローマ数字のときは、この設定に関わらず1文字ずつ縦に並べる。
+  function getTocPageNumStyle() {
+    const v = els.tocPageNumStyleSelect && els.tocPageNumStyleSelect.value;
+    return v === "sideways" || v === "upright" ? v : "tcy";
+  }
+  function buildTocPageNumCells(displayPageNum, style) {
     const nombreType =
       (els.nombreTypeSelect && els.nombreTypeSelect.value) || "arabic";
     const isArabic =
@@ -1762,13 +1770,24 @@ window.addEventListener("DOMContentLoaded", function () {
       nombreType !== "kanji-v" &&
       nombreType !== "roman";
     if (isArabic && displayPageNum) {
-      return [{ text: displayPageNum, tcy: true }];
+      if (style === "tcy") {
+        return [{ text: displayPageNum, tcy: true }];
+      }
+      return [...displayPageNum].map((ch) => ({
+        text: ch,
+        tcy: false,
+        upright: style === "upright",
+      }));
     }
     return [...displayPageNum].map((ch) => ({ text: ch, tcy: false }));
   }
   function renderTocCellHtml(cell) {
     const body = escapeHtml(cell.text);
-    return cell.tcy ? "<span class='tcy'>" + body + "</span>" : body;
+    if (cell.tcy) return "<span class='tcy'>" + body + "</span>";
+    if (cell.upright) {
+      return "<span style='text-orientation:upright'>" + body + "</span>";
+    }
+    return body;
   }
   function renderTocPageDom(pageEl, pageData) {
     const isGutterOn = els.gutterSelect && els.gutterSelect.value === "on";
@@ -1854,6 +1873,27 @@ window.addEventListener("DOMContentLoaded", function () {
     // 合わなくなる（例：番外編のあるページだけ開始位置が上にずれる）。
     // そのため基準は「目次全体（pageData.tocEntries）で一番長いタイトル・
     // 一番桁数の多いページ番号」から算出し、全ページ共通の開始位置にする。
+    // ページ番号の向き。縦中横以外（横倒し・正立）を選んでいても、目次の
+    // どれか1項目でも「タイトル＋間隔＋ページ番号」が版面の高さに収まらない
+    // 場合は、版面からはみ出さないよう、全項目を縦中横に切り替える
+    // （項目ごとに向きがバラバラになるのを避けるため、目次全体で統一する）。
+    let pageNumStyle = getTocPageNumStyle();
+    if (pageNumStyle !== "tcy") {
+      const overflows = (pageData.tocEntries || []).some((e) => {
+        const fs = fontSizePx * (LEVEL_FONT_SCALE[e.level] || 1);
+        const numCells = buildTocPageNumCells(
+          formatTocPageNumber(e.absolutePageIdx),
+          pageNumStyle,
+        ).length;
+        return (
+          fs * buildTocTitleCells(e.text).length +
+            pageNumGapPx +
+            fs * numCells >
+          effectiveColHPx
+        );
+      });
+      if (overflows) pageNumStyle = "tcy";
+    }
     let maxTitleHeightPx = 0;
     let maxPageNumHeightPx = 0;
     (pageData.tocEntries || []).forEach((e) => {
@@ -1865,7 +1905,10 @@ window.addEventListener("DOMContentLoaded", function () {
       maxPageNumHeightPx = Math.max(
         maxPageNumHeightPx,
         fs *
-          buildTocPageNumCells(formatTocPageNumber(e.absolutePageIdx)).length,
+          buildTocPageNumCells(
+            formatTocPageNumber(e.absolutePageIdx),
+            pageNumStyle,
+          ).length,
       );
     });
     const sharedTitleAreaLimitPx = Math.max(
@@ -1886,7 +1929,7 @@ window.addEventListener("DOMContentLoaded", function () {
       const rowFontSizePx = fontSizePx * (LEVEL_FONT_SCALE[entry.level] || 1);
       const indentPx = entry.level >= 2 ? LEVEL_INDENT_PX : 0;
       const titleCells = buildTocTitleCells(entry.text);
-      const pageNumCells = buildTocPageNumCells(displayPageNum);
+      const pageNumCells = buildTocPageNumCells(displayPageNum, pageNumStyle);
       // 高さは実際に描画するフォントサイズ(rowFontSizePx)を基準に計算する
       // （レベル2/3はフォントサイズが縮小されるため、fontSizePx基準のままだと
       // 実際の描画サイズとズレて、topで指定した位置と実描画位置が食い違う）。
@@ -2921,6 +2964,7 @@ window.addEventListener("DOMContentLoaded", function () {
     "tocColumnsSelect",
     "tocVertAlignSelect",
     "tocDividerToggle",
+    "tocPageNumStyleSelect",
     "tocHeadingToggle",
     "tocHeadingFontSelect",
     "tocHeadingSizeSelect",
