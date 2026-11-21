@@ -68,7 +68,7 @@
         margin: 0;
       }
     </style>
-    <title>言ノ葉Editer v1.2</title>
+    <title>言ノ葉Editer v1.3</title>
 
     <link rel="stylesheet" href="css/style.css" />
   </head>
@@ -78,7 +78,7 @@
       <header class="hero no-print">
         <div class="hero-title-group">
           <h1>言ノ葉Editer</h1>
-          <span class="version-badge">v1.2</span>
+          <span class="version-badge">v1.3</span>
         </div>
         <div class="hero-actions">
           <a
@@ -172,6 +172,70 @@
                 class="text-input"
                 placeholder="ここに本文を入力してください。"
               ></textarea>
+
+              <div
+                id="formatBar"
+                class="format-bar"
+                role="toolbar"
+                aria-label="書式"
+              >
+                <button
+                  type="button"
+                  class="format-btn"
+                  data-fmt="h1"
+                  aria-pressed="false"
+                  title="見出し1（行頭に # を付ける）"
+                >
+                  見出し1
+                </button>
+                <button
+                  type="button"
+                  class="format-btn"
+                  data-fmt="h2"
+                  aria-pressed="false"
+                  title="見出し2（行頭に ## を付ける）"
+                >
+                  見出し2
+                </button>
+                <button
+                  type="button"
+                  class="format-btn"
+                  data-fmt="bold"
+                  aria-pressed="false"
+                  title="太字（文字を選択してから押す／Ctrl+B）"
+                  disabled
+                >
+                  太字
+                </button>
+                <button
+                  type="button"
+                  class="format-btn"
+                  data-fmt="ruby"
+                  aria-pressed="false"
+                  title="ルビ（文字を選択してから押す。続けて読みを入力）"
+                  disabled
+                >
+                  ルビ
+                </button>
+                <button
+                  type="button"
+                  class="format-btn"
+                  data-fmt="center"
+                  aria-pressed="false"
+                  title="中央寄せ（行頭に [中央] を付ける）"
+                >
+                  中央
+                </button>
+                <button
+                  type="button"
+                  class="format-btn"
+                  data-fmt="right"
+                  aria-pressed="false"
+                  title="下寄せ（行頭に [右] を付ける）"
+                >
+                  下寄せ
+                </button>
+              </div>
 
               <div class="controls-undo">
                 <button

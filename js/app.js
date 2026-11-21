@@ -3056,6 +3056,331 @@ window.addEventListener("DOMContentLoaded", function () {
       performRedo();
     }
   });
+  // ===== 書式バー（本文入力欄の下の「見出し・太字・中央・下寄せ」ボタン） =====
+  // マークダウンに馴染みのない人向けに、記法をボタンで入れられるようにする。
+  // 行頭の記法（見出し・[中央]・[右]）は「カーソルのある行（選択範囲にかかる各行）」に、
+  // 太字（**）は「選択した文字」に作用する。どちらもトグル（もう一度押すと外れる）。
+  // 行頭の記法は、本文パーサー（parseToAST）の読み方に合わせる：
+  //   ・行頭に置けるのは [字下げ…] か [中央]/[右] のどちらか1つ（併用はできない）
+  //   ・そのあとに #… の見出し記号（[字下げなし]# 見出し や [中央]# 見出し は有効）
+  // パーサーは行をtrimしてから記法を見るため、行頭の空白は意味を持たない（変換時に落とす）。
+  const FMT_LINE_RE =
+    /^\s*((?:\[(?:字下げなし|noindent|字下げあり|indent)\]|［(?:字下げなし|noindent|字下げあり|indent)］)\s*)?((?:\[(?:中央|center|右|right)\]|［(?:中央|center|right|右)］)\s*)?(#{1,6}\s+)?([\s\S]*)$/i;
+  function parseFmtLine(line) {
+    const m = FMT_LINE_RE.exec(line);
+    let align = null;
+    if (m[2]) align = /中央|center/i.test(m[2]) ? "center" : "right";
+    return {
+      indent: m[1] || "",
+      align,
+      level: m[3] ? m[3].trim().length : 0,
+      rest: m[4],
+    };
+  }
+  function buildFmtLine(p) {
+    return (
+      p.indent +
+      (p.align === "center" ? "[中央]" : p.align === "right" ? "[右]" : "") +
+      (p.level > 0 ? "#".repeat(p.level) + " " : "") +
+      p.rest
+    );
+  }
+  // 改ページ・区切り線の行は、パーサー側で特別扱いされるため書式を付けない
+  function isFmtProtectedLine(line) {
+    const t = line.trim();
+    return (
+      /^(?:\[改ページ\]|<!--\s*pagebreak\s*-->)$/i.test(t) ||
+      /^(?:-{3,}|\*{3,}|_{3,})$/.test(t)
+    );
+  }
+  function getFmtLineRange(value, start, end) {
+    const ls = start === 0 ? 0 : value.lastIndexOf("\n", start - 1) + 1;
+    // 選択が次の行の頭で終わっているときは、その行を含めない
+    const effEnd = end > start && value[end - 1] === "\n" ? end - 1 : end;
+    let le = value.indexOf("\n", effEnd);
+    if (le === -1) le = value.length;
+    return { ls, le };
+  }
+  // op: { type: "heading", level } / { type: "align", align: "center" | "right" }
+  function applyFmtLineOp(value, start, end, op) {
+    const { ls, le } = getFmtLineRange(value, start, end);
+    const lines = value.slice(ls, le).split("\n");
+    const parsed = lines.map(parseFmtLine);
+    const single = lines.length === 1;
+    // 複数行の選択では空行を飛ばす（1行だけ＝カーソルのみなら空行にも付ける）
+    const targets = parsed.filter(
+      (p, i) =>
+        !isFmtProtectedLine(lines[i]) && (single || lines[i].trim() !== ""),
+    );
+    if (targets.length === 0) return null;
+    if (op.type === "heading") {
+      const remove = targets.every((p) => p.level === op.level);
+      targets.forEach((p) => {
+        p.level = remove ? 0 : op.level;
+      });
+    } else {
+      const remove = targets.every((p) => p.align === op.align);
+      targets.forEach((p) => {
+        p.align = remove ? null : op.align;
+        // [字下げ…] と [中央]/[右] は同じ行に併用できない（併用すると記法が文字として
+        // 出てしまう）ため、寄せを付けるときは字下げ指定を外す。
+        if (p.align) p.indent = "";
+      });
+    }
+    // 対象外の行は元の文字列のまま残す
+    const newLines = parsed.map((p, i) =>
+      targets.includes(p) ? buildFmtLine(p) : lines[i],
+    );
+    const joined = newLines.join("\n");
+    let selStart;
+    let selEnd;
+    if (single) {
+      const oldPre = lines[0].length - parsed[0].rest.length;
+      const newPre = newLines[0].length - parsed[0].rest.length;
+      const map = (pos) => ls + newPre + Math.max(0, pos - ls - oldPre);
+      selStart = map(start);
+      selEnd = map(end);
+    } else {
+      selStart = ls;
+      selEnd = ls + joined.length;
+    }
+    return {
+      value: value.slice(0, ls) + joined + value.slice(le),
+      selStart,
+      selEnd,
+    };
+  }
+  // 太字：選択範囲を ** で囲む。すでに太字なら外す。複数行は行ごとに囲む。
+  function toggleFmtBold(value, start, end) {
+    if (start === end) return null;
+    const sel = value.slice(start, end);
+    // 中身だけを選んでいて、外側に ** があるとき
+    if (
+      !sel.includes("\n") &&
+      start >= 2 &&
+      value.slice(start - 2, start) === "**" &&
+      value.slice(end, end + 2) === "**"
+    ) {
+      return {
+        value: value.slice(0, start - 2) + sel + value.slice(end + 2),
+        selStart: start - 2,
+        selEnd: end - 2,
+        removed: true,
+      };
+    }
+    const parts = sel.split("\n").map((s) => {
+      const m = /^(\s*)([\s\S]*?)(\s*)$/.exec(s);
+      return { lead: m[1], core: m[2], trail: m[3] };
+    });
+    const targets = parts.filter((x) => x.core !== "");
+    if (targets.length === 0) return null;
+    const removed = targets.every(
+      (x) => x.core.length >= 4 && x.core.startsWith("**") && x.core.endsWith("**"),
+    );
+    const out = parts
+      .map((x) => {
+        if (x.core === "") return x.lead + x.trail;
+        if (removed) return x.lead + x.core.slice(2, -2) + x.trail;
+        // 中途半端な ** が混ざっていても崩れないよう、いったん外してから囲む
+        const stripped = x.core.replace(/\*\*/g, "");
+        return stripped === ""
+          ? x.lead + x.core + x.trail
+          : x.lead + "**" + stripped + "**" + x.trail;
+      })
+      .join("\n");
+    return {
+      value: value.slice(0, start) + out + value.slice(end),
+      selStart: start,
+      selEnd: start + out.length,
+      removed,
+    };
+  }
+  // ルビ：選択した親文字を ｜親文字《》 にして、カーソルを《》の中に置く（そのまま読みを入力できる）。
+  // すでにルビが付いた範囲を選んでいるとき（｜漢字《かんじ》の全体、または親文字だけ）は外す。
+  // ルビは1行の中の短い範囲にだけ付けられる（複数行・長すぎる選択・《》｜を含む選択は対象外）。
+  function toggleFmtRuby(value, start, end) {
+    if (start === end || end - start > 200) return null;
+    const sel = value.slice(start, end);
+    if (sel.includes("\n")) return null;
+    // ルビごと選んでいる場合 → 親文字だけに戻す
+    // （｜がなければ、親文字が漢字だけのものだけがルビ。パーサーの判定に合わせる）
+    const whole = /^([|｜])?([^《》|｜]+)《[^》]*》$/.exec(sel);
+    if (whole && (whole[1] || /^[一-龯]+$/.test(whole[2]))) {
+      return {
+        value: value.slice(0, start) + whole[2] + value.slice(end),
+        selStart: start,
+        selEnd: start + whole[2].length,
+        removed: true,
+      };
+    }
+    // 親文字だけを選んでいて、すぐ後ろに《読み》がある場合 → ルビを外す
+    const after = /^《[^》\n]*》/.exec(value.slice(end, end + 200));
+    if (after) {
+      const hasBar = start >= 1 && /[|｜]/.test(value[start - 1]);
+      if (hasBar || /^[一-龯]+$/.test(sel)) {
+        const cutFront = hasBar ? 1 : 0;
+        return {
+          value:
+            value.slice(0, start - cutFront) +
+            sel +
+            value.slice(end + after[0].length),
+          selStart: start - cutFront,
+          selEnd: end - cutFront,
+          removed: true,
+        };
+      }
+    }
+    // 既存のルビ（親文字・読み）の一部だけを選んでいると入れ子になって崩れるため対象外
+    const ls = start === 0 ? 0 : value.lastIndexOf("\n", start - 1) + 1;
+    let le = value.indexOf("\n", end);
+    if (le === -1) le = value.length;
+    const line = value.slice(ls, le);
+    const spanRe = /[|｜][^《\n]+《[^》\n]*》|[一-龯]+《[^》\n]*》/g;
+    let sm;
+    while ((sm = spanRe.exec(line)) !== null) {
+      const a = ls + sm.index;
+      const b = a + sm[0].length;
+      if (start < b && end > a) return null;
+    }
+    if (/[《》|｜]/.test(sel)) return null;
+    const caret = start + 1 + sel.length + 1;
+    return {
+      value: value.slice(0, start) + "｜" + sel + "《》" + value.slice(end),
+      selStart: caret,
+      selEnd: caret,
+      removed: false,
+    };
+  }
+  // 書式バーの編集を、独自のundo履歴に積んでから反映する
+  function applyFmtResult(result) {
+    const ta = els.sourceText;
+    if (!result || result.value === ta.value) {
+      ta.focus();
+      return;
+    }
+    const before = ta.value;
+    const scrollTop = ta.scrollTop;
+    clearTimeout(undoDebounceTimer);
+    // 入力途中でまだ履歴に積まれていない分も、1つの履歴として残す
+    if (lastSnapshot !== null && lastSnapshot !== before) {
+      pushUndoSnapshot(lastSnapshot);
+    }
+    pushUndoSnapshot(before);
+    ta.value = result.value;
+    lastSnapshot = result.value;
+    ta.focus();
+    ta.setSelectionRange(result.selStart, result.selEnd);
+    ta.scrollTop = scrollTop;
+    updatePreview();
+    updateFormatBar();
+  }
+  function runFormat(kind) {
+    const ta = els.sourceText;
+    const v = ta.value;
+    const s = ta.selectionStart;
+    const e = ta.selectionEnd;
+    let result = null;
+    if (kind === "h1") {
+      result = applyFmtLineOp(v, s, e, { type: "heading", level: 1 });
+    } else if (kind === "h2") {
+      result = applyFmtLineOp(v, s, e, { type: "heading", level: 2 });
+    } else if (kind === "center") {
+      result = applyFmtLineOp(v, s, e, { type: "align", align: "center" });
+    } else if (kind === "right") {
+      result = applyFmtLineOp(v, s, e, { type: "align", align: "right" });
+    } else if (kind === "bold") {
+      result = toggleFmtBold(v, s, e);
+    } else if (kind === "ruby") {
+      result = toggleFmtRuby(v, s, e);
+    }
+    applyFmtResult(result);
+  }
+  // ボタンの押下状態（今の行の見出し・寄せ、選択範囲の太字）と、太字の有効・無効
+  function updateFormatBar() {
+    const bar = document.getElementById("formatBar");
+    if (!bar) return;
+    const ta = els.sourceText;
+    const v = ta.value;
+    const s = ta.selectionStart;
+    const e = ta.selectionEnd;
+    const { ls, le } = getFmtLineRange(v, s, e);
+    let states = { h1: false, h2: false, center: false, right: false };
+    // 大量に選択しているときは、押下状態の判定を省く（選択のたびに走るため）
+    if (le - ls <= 20000) {
+      const lines = v.slice(ls, le).split("\n");
+      const single = lines.length === 1;
+      const targets = lines
+        .filter(
+          (l) => !isFmtProtectedLine(l) && (single || l.trim() !== ""),
+        )
+        .map(parseFmtLine);
+      if (targets.length > 0) {
+        states = {
+          h1: targets.every((p) => p.level === 1),
+          h2: targets.every((p) => p.level === 2),
+          center: targets.every((p) => p.align === "center"),
+          right: targets.every((p) => p.align === "right"),
+        };
+      }
+    }
+    const hasSelection = s !== e;
+    const boldResult =
+      hasSelection && e - s <= 5000 ? toggleFmtBold(v, s, e) : null;
+    const rubyResult = hasSelection ? toggleFmtRuby(v, s, e) : null;
+    bar.querySelectorAll("button[data-fmt]").forEach((btn) => {
+      const kind = btn.dataset.fmt;
+      if (kind === "bold") {
+        btn.disabled = !hasSelection;
+        btn.setAttribute(
+          "aria-pressed",
+          boldResult && boldResult.removed ? "true" : "false",
+        );
+      } else if (kind === "ruby") {
+        // 複数行・長すぎる選択・《》を含む選択のときは押せない
+        btn.disabled = rubyResult === null;
+        btn.setAttribute(
+          "aria-pressed",
+          rubyResult && rubyResult.removed ? "true" : "false",
+        );
+      } else {
+        btn.setAttribute("aria-pressed", states[kind] ? "true" : "false");
+      }
+    });
+  }
+  (function initFormatBar() {
+    const bar = document.getElementById("formatBar");
+    if (!bar) return;
+    // ボタンを押しても入力欄からフォーカスと選択範囲が外れないようにする
+    bar.addEventListener("mousedown", function (ev) {
+      if (ev.target.closest("button")) ev.preventDefault();
+    });
+    bar.addEventListener("click", function (ev) {
+      const btn = ev.target.closest("button[data-fmt]");
+      if (!btn || btn.disabled) return;
+      runFormat(btn.dataset.fmt);
+    });
+    ["input", "keyup", "mouseup", "touchend", "focus", "select"].forEach(
+      function (type) {
+        els.sourceText.addEventListener(type, updateFormatBar);
+      },
+    );
+    document.addEventListener("selectionchange", function () {
+      if (document.activeElement === els.sourceText) updateFormatBar();
+    });
+    // PCのショートカット（バーと同じ動作の近道）：Ctrl/Cmd + B で太字
+    els.sourceText.addEventListener("keydown", function (ev) {
+      if (
+        (ev.ctrlKey || ev.metaKey) &&
+        !ev.altKey &&
+        !ev.shiftKey &&
+        (ev.key === "b" || ev.key === "B")
+      ) {
+        ev.preventDefault();
+        runFormat("bold");
+      }
+    });
+    updateFormatBar();
+  })();
   document
     .getElementById("insertBreakButton")
     .addEventListener("click", function () {

@@ -423,6 +423,48 @@
     border-bottom: 1px dashed var(--border-color, #999999);
     flex-shrink: 0;
   }
+
+  /* 本文入力欄の下の書式バー（見出し・太字・中央・下寄せ）。
+     幅が狭くても1段に収まるよう、ボタンは均等に縮む */
+  .format-bar {
+    display: flex;
+    gap: 4px;
+    margin-top: 8px;
+    flex-shrink: 0;
+  }
+
+  .format-btn {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 34px;
+    padding: 0 4px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--panel-sub);
+    color: var(--text);
+    font-size: 0.8rem;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .format-btn:hover:not(:disabled) {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .format-btn[aria-pressed="true"] {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .format-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
 }
 
 @layer viewer {
@@ -1357,9 +1399,27 @@
     min-height: 350px;
   }
 
+  .format-btn {
+    min-height: 40px;
+  }
+
   .preview-viewport {
     max-height: 600px;
     height: 600px;
+  }
+}
+
+/* 幅の狭いスマホ：6つのボタンを1段に収めるため文字を少し小さくし、
+   それでも入らない幅（320px前後）では自然に2段へ折り返す */
+@media (max-width: 480px) {
+  .format-bar {
+    flex-wrap: wrap;
+  }
+
+  .format-btn {
+    min-width: 48px;
+    padding: 0 2px;
+    font-size: 0.72rem;
   }
 }
 
